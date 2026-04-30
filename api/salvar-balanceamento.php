@@ -16,16 +16,22 @@ if (!$input || !isset($input['equipamento_id'], $input['cliente_id'], $input['nu
     exit;
 }
 
+$opcaoEntrega = isset($input['opcao_entrega']) ? (int)$input['opcao_entrega'] : null;
+$quantidadeSugerida = isset($input['quantidade_sugerida']) && $input['quantidade_sugerida'] !== null
+    ? (float)$input['quantidade_sugerida']
+    : null;
+
 $payload = [
     'equipamento_id' => $input['equipamento_id'],
     'cliente_id' => $input['cliente_id'],
     'numero_os' => $input['numero_os'],
-    'media_consumo_mensal' => $input['media_consumo_mensal'],
-    'opcao_entrega' => $input['opcao_entrega'],
-    'quantidade_sugerida' => $input['quantidade_sugerida'],
-    'quantidade_definida' => $input['quantidade_definida'],
+    'media_consumo_mensal' => isset($input['media_consumo_mensal']) ? (float)$input['media_consumo_mensal'] : null,
+    'opcao_entrega' => $opcaoEntrega,
+    'quantidade_sugerida' => $quantidadeSugerida,
+    'quantidade_definida' => (float)$input['quantidade_definida'],
+    'contador_atual' => isset($input['contador_atual']) ? (int)$input['contador_atual'] : null,
     'observacao' => $input['observacao'] ?? '',
-    'status' => 'confirmado' // Status inicial modificado para confirmado conforme fluxo
+    'status' => 'confirmado'
 ];
 
 $url = $supabaseUrl . '/rest/v1/balanceamento_entregas';
@@ -52,12 +58,10 @@ if ($httpCode >= 200 && $httpCode < 300) {
 
     if ($balanceamento) {
         // Calcular data da próxima entrega
-        $opcao = (int)$input['opcao_entrega'];
-        $dias = 30; // default 1x
-        if ($opcao === 2) $dias = 15;
-        if ($opcao === 3) $dias = 10;
-        if ($opcao === 0) $dias = 0; // Entrega manual imediata
-        
+        $opcao = $opcaoEntrega ?? 1;
+        $diasMap = [0 => 0, 1 => 30, 2 => 15, 3 => 10];
+        $dias = $diasMap[$opcao] ?? 30;
+
         $proximaData = new DateTime();
         if ($dias > 0) {
             $proximaData->modify("+$dias days");

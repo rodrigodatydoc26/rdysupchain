@@ -132,6 +132,62 @@ function preencherInfoEquipamento(eq) {
   document.getElementById('resPatrimonio').textContent = eq.patrimonio || '---';
   document.getElementById('resSerie').textContent = eq.serie || '---';
   document.getElementById('resModelo').textContent = eq.modelo || '---';
+  
+  const contador = eq.ultimo_contador || 0;
+  document.getElementById('resContador').textContent = contador;
+  document.getElementById('sumContadorAnterior').textContent = contador;
+  document.getElementById('inputContador').value = '';
+}
+
+function recalcularComContador() {
+  const novo = parseInt(document.getElementById('inputContador').value);
+  const antigo = state.equipamentoAtual.ultimo_contador || 0;
+  const dataAntiga = state.equipamentoAtual.data_ultimo_contador;
+  
+  if (!novo || novo <= antigo) {
+    alert("Insira um contador válido (maior que o anterior).");
+    return;
+  }
+  
+  if (!dataAntiga) {
+    alert("Não há data de leitura anterior para calcular o intervalo.");
+    return;
+  }
+  
+  const dataInicio = new Date(dataAntiga);
+  const dataFim = new Date();
+  const diffTime = Math.abs(dataFim - dataInicio);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+  
+  const consumoPaginas = novo - antigo;
+  const consumoDiario = consumoPaginas / diffDays;
+  const consumoMensalPaginas = consumoDiario * 30;
+  const consumoMensalResmas = consumoMensalPaginas / 500;
+  
+  // Arredondar conforme regra (1 casa decimal)
+  const mediaCalculada = Math.ceil(consumoMensalResmas * 10) / 10;
+  
+  aplicarNovaMedia(mediaCalculada);
+}
+
+function aplicarNovaMedia(media) {
+  state.mediaAtual = media;
+  
+  // Recalcular sugestões com margem de 15%
+  const comMargem = media * 1.15;
+  state.sugestoes = {
+    1: Math.ceil(comMargem),
+    2: Math.ceil(comMargem / 2),
+    3: Math.ceil(comMargem / 3)
+  };
+  
+  document.getElementById('resMedia').textContent = media.toFixed(1).replace('.', ',');
+  document.getElementById('opt1Qtd').textContent = state.sugestoes[1];
+  document.getElementById('opt2Qtd').textContent = state.sugestoes[2];
+  document.getElementById('opt3Qtd').textContent = state.sugestoes[3];
+  
+  resetarSelecao();
+  alert("Média recalculada com base no consumo do numerador!");
 }
 
 async function calcularMedia(id) {
@@ -209,6 +265,7 @@ async function salvarBalanceamento() {
   const os = document.getElementById('inputOs').value.trim();
   const qtd = parseInt(document.getElementById('inputQtd').value);
   const obs = document.getElementById('inputObs').value.trim();
+  const contadorAtual = parseInt(document.getElementById('inputContador').value) || null;
 
   if (!os) {
     alert("O número da O.S. é obrigatório!");
@@ -226,8 +283,9 @@ async function salvarBalanceamento() {
     numero_os: os,
     media_consumo_mensal: state.mediaAtual,
     opcao_entrega: state.opcaoSelecionada,
-    quantidade_sugerida: state.sugestoes[state.opcaoSelecionada],
+    quantidade_sugerida: state.sugestoes[state.opcaoSelecionada] ?? null,
     quantidade_definida: qtd,
+    contador_atual: contadorAtual,
     observacao: obs
   };
 
@@ -292,7 +350,7 @@ async function carregarHistorico() {
           <td>${nomeCliente}</td>
           <td>${serieEquip}</td>
           <td>${item.media_consumo_mensal}</td>
-          <td>${item.opcao_entrega}x</td>
+          <td>${item.opcao_entrega === 0 ? 'Manual' : item.opcao_entrega + 'x'}</td>
           <td>${item.quantidade_definida}</td>
           <td>${item.numero_os}</td>
           <td><span class="status-badge status-${item.status}">${item.status}</span></td>

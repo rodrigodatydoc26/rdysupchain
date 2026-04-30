@@ -422,6 +422,23 @@ input[type="text"]:focus, input[type="number"]:focus {
   gap: 8px;
 }
 
+.btn-calc {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.btn-calc:hover {
+  background: var(--gold);
+  color: #000;
+}
+
 .edit-qtd input {
   width: 80px;
   padding: 8px 12px;

@@ -24,10 +24,41 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $response = curl_exec($ch);
 curl_close($ch);
 
-$data = json_decode($response, true);
+$resData = json_decode($response, true);
 
-if (is_array($data) && count($data) > 0) {
-    echo json_encode($data[0]);
+if (is_array($resData) && count($resData) > 0) {
+    $data = is_array($resData) ? $resData[0] : null;
+
+    if ($data) {
+        // Buscar último contador na tabela ordens_servico
+        $urlOs = $supabaseUrl . '/rest/v1/ordens_servico'
+               . '?equipamento_id=eq.' . urlencode($data['id'])
+               . '&contador=gt.0'
+               . '&select=contador,data_os'
+               . '&order=data_os.desc&limit=1';
+        
+        $chOs = curl_init($urlOs);
+        curl_setopt($chOs, CURLOPT_HTTPHEADER, [
+            'apikey: ' . $supabaseKey,
+            'Authorization: Bearer ' . $supabaseKey
+        ]);
+        curl_setopt($chOs, CURLOPT_RETURNTRANSFER, true);
+        $resOs = curl_exec($chOs);
+        curl_close($chOs);
+        
+        $dataOs = json_decode($resOs, true);
+        if ($dataOs && count($dataOs) > 0) {
+            $data['ultimo_contador'] = $dataOs[0]['contador'];
+            $data['data_ultimo_contador'] = $dataOs[0]['data_os'];
+        } else {
+            $data['ultimo_contador'] = 0;
+            $data['data_ultimo_contador'] = null;
+        }
+    }
+
+    echo json_encode($data);
 } else {
     echo json_encode(['error' => 'Equipamento não encontrado']);
 }
+
+?>

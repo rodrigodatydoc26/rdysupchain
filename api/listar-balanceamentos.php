@@ -16,6 +16,20 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 ]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curlError = curl_error($ch);
 curl_close($ch);
+
+if ($curlError) {
+    http_response_code(503);
+    echo json_encode(['error' => 'Falha ao conectar ao banco de dados']);
+    exit;
+}
+
+if ($httpCode < 200 || $httpCode >= 300) {
+    http_response_code($httpCode);
+    echo json_encode(['error' => 'Erro ao buscar histórico', 'detalhe' => $response]);
+    exit;
+}
 
 echo $response;
