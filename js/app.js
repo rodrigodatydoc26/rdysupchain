@@ -1,3 +1,7 @@
+// Configuração Supabase (Acesso Direto)
+const SUPABASE_URL = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
+
 // Estado da aplicação
 let state = {
   equipamentoAtual: null,
@@ -5,6 +9,23 @@ let state = {
   opcaoSelecionada: null,
   sugestoes: {}
 };
+
+// Utilitário de fetch para Supabase
+async function sbFetch(path, options = {}) {
+  const url = `${SUPABASE_URL}/rest/v1${path}`;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+  const res = await fetch(url, { ...options, headers });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  return res.json();
+}
 
 // Alternância de abas
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -39,8 +60,7 @@ searchInput.addEventListener('input', (e) => {
 
 async function buscarSugestoes(query) {
   try {
-    const res = await fetch(`api/buscar-equipamento.php?type=list&q=${encodeURIComponent(query)}`);
-    const data = await res.json();
+    const data = await sbFetch(`/equipamentos?select=serie,patrimonio,secretaria,cliente:clientes(nome)&or=(serie.ilike.*${encodeURIComponent(query)}*,patrimonio.ilike.*${encodeURIComponent(query)}*)&limit=8`);
     
     if (Array.isArray(data) && data.length > 0) {
       renderizarSugestoes(data);
@@ -48,7 +68,7 @@ async function buscarSugestoes(query) {
       ocultarSugestoes();
     }
   } catch (error) {
-    console.debug("Sugestões indisponíveis (servidor offline)");
+    console.debug("Sugestões indisponíveis:", error);
     ocultarSugestoes();
   }
 }
@@ -74,7 +94,8 @@ function selecionarSugestao(serie) {
 }
 
 function ocultarSugestoes() {
-  document.getElementById('suggestionsList').classList.add('hidden');
+  const list = document.getElementById('suggestionsList');
+  if (list) list.classList.add('hidden');
 }
 
 // Fechar sugestões ao clicar fora
@@ -95,20 +116,32 @@ async function buscarEquipamento(query) {
   ocultarResultado();
 
   try {
-    const res = await fetch(`api/buscar-equipamento.php?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
+    const data = await sbFetch(`/equipamentos?or=(serie.ilike.*${encodeURIComponent(query)}*,patrimonio.ilike.*${encodeURIComponent(query)}*)&select=id,serie,patrimonio,modelo,secretaria,media_referencia,cliente:clientes(id,nome,cidade)&limit=1`);
 
-    if (data && data.id) {
-      state.equipamentoAtual = data;
-      preencherInfoEquipamento(data);
-      await calcularMedia(data.id);
+    if (data && data.length > 0) {
+      const equip = data[0];
+      
+      // Buscar último contador
+      const osData = await sbFetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.desc&limit=1`);
+      
+      if (osData && osData.length > 0) {
+        equip.ultimo_contador = osData[0].contador_atual;
+        equip.data_ultimo_contador = osData[0].data_os;
+      } else {
+        equip.ultimo_contador = 0;
+        equip.data_ultimo_contador = null;
+      }
+
+      state.equipamentoAtual = equip;
+      preencherInfoEquipamento(equip);
+      await calcularMedia(equip.id);
     } else {
       alert("Equipamento não encontrado!");
       mostrarLoading(false);
     }
   } catch (error) {
     console.error("Erro ao buscar equipamento:", error);
-    alert("Erro na comunicação com o servidor. Verifique se o Apache/PHP está rodando e se os arquivos estão na pasta correta.");
+    alert("Erro ao conectar com o banco de dados. Verifique sua internet.");
     mostrarLoading(false);
   }
 }
@@ -146,7 +179,6 @@ function preencherInfoEquipamento(eq) {
   const inputMedia = document.getElementById('inputMediaProjetada');
   inputMedia.value = mediaExcel.toFixed(1);
   
-  // Se houver média no Excel, já sugerir com base nela
   if (mediaExcel > 0) {
     usarMediaProjetada(mediaExcel);
   }
@@ -203,30 +235,49 @@ function aplicarNovaMedia(media) {
 
 async function calcularMedia(id) {
   try {
-    const res = await fetch(`api/calcular-media.php?equipamento_id=${id}`);
-    const data = await res.json();
+    // Buscar histórico de entregas para calcular média (últimas 3)
+    const entregas = await sbFetch(`/balanceamento_entregas?equipamento_id=eq.${id}&status=eq.confirmado&order=data_registro.desc&limit=3`);
     
-    if (data && data.media !== undefined) {
-      state.mediaAtual = data.media;
-      state.sugestoes = data.sugestoes;
-      
-      setMedia(data.media);
-      document.getElementById('opt1Qtd').textContent = data.sugestoes[1];
-      document.getElementById('opt2Qtd').textContent = data.sugestoes[2];
-      document.getElementById('opt3Qtd').textContent = data.sugestoes[3];
-      
-      const card = document.getElementById('lastDeliveriesCard');
-      renderizarUltimasEntregas(data.entregas);
-      
-      if (data.entregas && data.entregas.length > 0) {
-        card.classList.remove('hidden');
-      } else {
-        card.classList.add('hidden');
-      }
-
-      resetarSelecao();
-      mostrarResultado();
+    let media = 0;
+    if (entregas && entregas.length > 0) {
+      const soma = entregas.reduce((acc, curr) => acc + parseFloat(curr.media_consumo_mensal || 0), 0);
+      media = soma / entregas.length;
+    } else {
+      // Fallback para a média de referência do equipamento
+      media = parseFloat(state.equipamentoAtual.media_referencia) || 0;
     }
+
+    state.mediaAtual = media;
+    const comMargem = media * 1.15;
+    state.sugestoes = {
+      1: Math.ceil(comMargem),
+      2: Math.ceil(comMargem / 2),
+      3: Math.ceil(comMargem / 3)
+    };
+    
+    setMedia(media);
+    document.getElementById('opt1Qtd').textContent = state.sugestoes[1];
+    document.getElementById('opt2Qtd').textContent = state.sugestoes[2];
+    document.getElementById('opt3Qtd').textContent = state.sugestoes[3];
+    
+    const card = document.getElementById('lastDeliveriesCard');
+    // Mapear para o formato esperado pelo renderizador
+    const entregasFormatadas = entregas.map(ent => ({
+      data_entrega: ent.data_registro,
+      quantidade: ent.quantidade_definida,
+      numero_os: ent.numero_os
+    }));
+    
+    renderizarUltimasEntregas(entregasFormatadas);
+    
+    if (entregasFormatadas.length > 0) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+
+    resetarSelecao();
+    mostrarResultado();
   } catch (error) {
     console.error("Erro ao calcular média:", error);
   } finally {
@@ -274,7 +325,8 @@ async function salvarBalanceamento() {
     quantidade_sugerida: state.sugestoes[state.opcaoSelecionada] ?? null,
     quantidade_definida: qtd,
     contador_atual: contadorAtual,
-    observacao: obs
+    observacao: obs,
+    status: 'confirmado'
   };
 
   const btn = document.getElementById('btnConfirmar');
@@ -283,22 +335,30 @@ async function salvarBalanceamento() {
   lucide.createIcons();
 
   try {
-    const res = await fetch('api/salvar-balanceamento.php', {
+    await sbFetch('/balanceamento_entregas', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const result = await res.json();
-    if (result.success) {
-      alert("Balanceamento salvo com sucesso!");
-      document.getElementById('searchInput').value = '';
-      ocultarResultado();
-    } else {
-      alert("Erro ao salvar: " + (result.error || "Desconhecido"));
+
+    // Se houver contador, salvar também na tabela de ordens_servico
+    if (contadorAtual) {
+      await sbFetch('/ordens_servico', {
+        method: 'POST',
+        body: JSON.stringify({
+          equipamento_id: state.equipamentoAtual.id,
+          cliente_id: state.equipamentoAtual.cliente.id,
+          numero_os: os,
+          contador_atual: contadorAtual
+        })
+      });
     }
+
+    alert("Balanceamento salvo com sucesso!");
+    document.getElementById('searchInput').value = '';
+    ocultarResultado();
   } catch (error) {
     console.error("Erro ao salvar:", error);
-    alert("Erro ao conectar com o servidor.");
+    alert("Erro ao salvar no banco de dados.");
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="check-circle"></i> CONFIRMAR BALANCEAMENTO';
@@ -358,20 +418,16 @@ async function carregarHistorico() {
   tbody.innerHTML = '<tr><td colspan="9" class="text-center">Carregando... <i data-lucide="loader" class="spin"></i></td></tr>';
   lucide.createIcons();
 
-  const filterDataInicio = document.getElementById('filterDataInicio').value;
-  const filterDataFim = document.getElementById('filterDataFim').value;
   const filterCliente = document.getElementById('filterCliente').value;
   const filterSerie = document.getElementById('filterSerie').value;
 
-  const params = new URLSearchParams();
-  if (filterDataInicio) params.append('data_inicio', filterDataInicio);
-  if (filterDataFim) params.append('data_fim', filterDataFim);
-  if (filterCliente) params.append('cliente', filterCliente);
-  if (filterSerie) params.append('serie', filterSerie);
+  let query = `/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos(serie,secretaria,media_referencia)&order=data_registro.desc&limit=50`;
+  
+  if (filterSerie) query += `&equipamento.serie=ilike.*${encodeURIComponent(filterSerie)}*`;
+  if (filterCliente) query += `&cliente.nome=ilike.*${encodeURIComponent(filterCliente)}*`;
 
   try {
-    const res = await fetch(`api/listar-balanceamentos.php?${params.toString()}`);
-    const data = await res.json();
+    const data = await sbFetch(query);
     renderizarHistorico(data);
   } catch (error) {
     console.error("Erro ao carregar histórico:", error);
