@@ -14,15 +14,26 @@ let state = {
 const API = {
     async fetch(endpoint) {
         const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
-        const res = await fetch(url, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        return res.json();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        try {
+            const res = await fetch(url, {
+                signal: controller.signal,
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            clearTimeout(timeoutId);
+            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+            return res.json();
+        } catch (e) {
+            clearTimeout(timeoutId);
+            if (e.name === 'AbortError') throw new Error("Timeout: A conexão com o banco demorou demais.");
+            throw e;
+        }
     },
 
     async post(endpoint, data) {
@@ -147,7 +158,7 @@ async function buscarEquipamento(serie) {
 
     } catch (e) {
         console.error(e);
-        alert("Erro ao carregar dados do equipamento.");
+        alert(`Erro de conexão: ${e.message}\n\nVerifique se você está conectado à internet ou se o firewall está bloqueando o acesso.`);
     } finally {
         setLoading(false);
     }
