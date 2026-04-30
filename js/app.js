@@ -12,7 +12,8 @@ let state = {
 
 // Utilitário de fetch para Supabase
 async function sbFetch(path, options = {}) {
-  const url = `${SUPABASE_URL}/rest/v1${path}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${SUPABASE_URL}/rest/v1${cleanPath}`;
   const headers = {
     'apikey': SUPABASE_KEY,
     'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -125,15 +126,18 @@ async function buscarEquipamento(query) {
       const equip = data[0];
       
       // Buscar último contador
-      const osData = await sbFetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.desc&limit=1`);
-      
-      if (osData && osData.length > 0) {
-        equip.ultimo_contador = osData[0].contador_atual;
-        equip.data_ultimo_contador = osData[0].data_os;
-      } else {
-        equip.ultimo_contador = 0;
-        equip.data_ultimo_contador = null;
-      }
+      let ultimoContador = 0;
+      let dataUltimo = null;
+      try {
+        const osData = await sbFetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.desc&limit=1`);
+        if (osData && osData.length > 0) {
+          ultimoContador = osData[0].contador_atual;
+          dataUltimo = osData[0].data_os;
+        }
+      } catch (e) { console.error("Erro ao buscar histórico de OS:", e); }
+
+      equip.ultimo_contador = ultimoContador;
+      equip.data_ultimo_contador = dataUltimo;
 
       state.equipamentoAtual = equip;
       preencherInfoEquipamento(equip);
