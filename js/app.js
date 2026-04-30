@@ -173,7 +173,7 @@ function updateMedia(val) {
 
     // Opções
     const margem = val * 1.15;
-    const s1 = Math.ceil(val) + 1;
+    const s1 = Math.floor(val + 1);
     const s2 = Math.ceil(margem / 2);
     const s3 = Math.ceil(margem / 3);
 
