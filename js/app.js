@@ -457,15 +457,15 @@ async function carregarHistorico() {
   }
 }
 
-function exportarExcel() {
-  const table = document.querySelector(".data-table");
-  if (!table || table.rows.length <= 2 && table.rows[1].cells.length < 5) {
+function exportarExcel(tableId, fileName) {
+  const table = document.getElementById(tableId);
+  if (!table || table.rows.length <= 1) {
     alert("Não há dados para exportar.");
     return;
   }
 
-  const wb = XLSX.utils.table_to_book(table, { sheet: "Balanceamentos" });
-  XLSX.writeFile(wb, `Balanceamentos_${new Date().toISOString().split('T')[0]}.xlsx`);
+  const wb = XLSX.utils.table_to_book(table, { sheet: fileName });
+  XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
 function setMedia(valor) {

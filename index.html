@@ -214,7 +214,7 @@
         <div class="historico-header">
           <h2>Últimos Balanceamentos</h2>
           <div class="header-actions">
-            <button class="btn-outline btn-excel" onclick="exportarExcel()"><i data-lucide="file-spreadsheet"></i> Exportar Excel</button>
+            <button class="btn-outline btn-excel" onclick="exportarExcel('historicoTable', 'Historico_Balanceamentos')"><i data-lucide="file-spreadsheet"></i> Exportar Excel</button>
             <button class="btn-outline" onclick="carregarHistorico()"><i data-lucide="refresh-cw"></i> Atualizar</button>
           </div>
         </div>
@@ -242,7 +242,7 @@
         </div>
         
         <div class="table-responsive">
-          <table class="data-table">
+          <table class="data-table" id="historicoTable">
             <thead>
               <tr>
                 <th>Data</th>
@@ -275,6 +275,7 @@
         <div class="historico-header">
           <h2>Ranking de Consumo por Máquina</h2>
           <div class="header-actions">
+            <button class="btn-outline btn-excel" onclick="exportarExcel('rankingTable', 'Ranking_Maquinas')"><i data-lucide="file-spreadsheet"></i> Exportar Excel</button>
             <button class="btn-outline" onclick="carregarRelatorios()"><i data-lucide="refresh-cw"></i> Atualizar Ranking</button>
           </div>
         </div>
