@@ -383,14 +383,19 @@ async function salvarBalanceamento() {
 
 async function renderizarHistorico(dados) {
   const tbody = document.getElementById('historicoTbody');
+  const tfoot = document.getElementById('historicoTfoot');
+  const totalEl = document.getElementById('totalResmas');
   tbody.innerHTML = '';
   
   if (!dados || dados.length === 0) {
     tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 40px; color: var(--text-dim);">Nenhum registro de balanceamento encontrado.</td></tr>';
+    tfoot.classList.add('hidden');
     return;
   }
 
+  let totalResmas = 0;
   dados.forEach(item => {
+    totalResmas += parseFloat(item.quantidade_definida || 0);
     const tr = document.createElement('tr');
     const dataFormatada = new Date(item.data_registro).toLocaleDateString('pt-BR');
     const nomeCliente = item.cliente ? item.cliente.nome : 'N/D';
@@ -410,6 +415,17 @@ async function renderizarHistorico(dados) {
     `;
     tbody.appendChild(tr);
   });
+
+  totalEl.textContent = totalResmas.toLocaleString('pt-BR');
+  tfoot.classList.remove('hidden');
+}
+
+function usarMediaProjetada(valor) {
+  const mediaVal = parseFloat(valor) || 0;
+  if (mediaVal > 0) {
+    state.mediaAtual = mediaVal;
+    aplicarNovaMedia(mediaVal);
+  }
 }
 
 async function carregarHistorico() {
