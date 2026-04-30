@@ -181,9 +181,9 @@ function ativarModoDemo(query) {
 function preencherInfoEquipamento(eq) {
   document.getElementById('resCliente').textContent = `Cliente: ${eq.cliente ? eq.cliente.nome : 'Não informado'}`;
   document.getElementById('resSecretaria').textContent = `SETOR: ${eq.secretaria || 'OUTROS'}`;
-  document.getElementById('resPatrimonio').textContent = eq.patrimonio || '---';
+  document.getElementById('resPatrimonio').textContent = eq.patrimonio || 'Não informado';
   document.getElementById('resSerie').textContent = eq.serie || '---';
-  document.getElementById('resModelo').textContent = eq.modelo || '---';
+  document.getElementById('resModelo').textContent = eq.modelo || 'Não informado';
   
   const contador = eq.ultimo_contador || 0;
   document.getElementById('resContador').textContent = contador;
