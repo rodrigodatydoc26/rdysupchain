@@ -47,7 +47,7 @@ if (is_array($resData) && count($resData) > 0) {
         curl_close($chOs);
         
         $dataOs = json_decode($resOs, true);
-        if ($dataOs && count($dataOs) > 0) {
+        if (is_array($dataOs) && isset($dataOs[0]) && is_array($dataOs[0]) && array_key_exists('contador', $dataOs[0])) {
             $data['ultimo_contador'] = $dataOs[0]['contador'];
             $data['data_ultimo_contador'] = $dataOs[0]['data_os'];
         } else {

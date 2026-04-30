@@ -99,7 +99,7 @@ function ativarModoDemo(query) {
     state.mediaAtual = mockMedia.media;
     state.sugestoes = mockMedia.sugestoes;
     
-    document.getElementById('resMedia').textContent = mockMedia.media.toFixed(1).replace('.', ',');
+    setMedia(mockMedia.media);
     document.getElementById('opt1Qtd').textContent = mockMedia.sugestoes[1];
     document.getElementById('opt2Qtd').textContent = mockMedia.sugestoes[2];
     document.getElementById('opt3Qtd').textContent = mockMedia.sugestoes[3];
@@ -181,7 +181,7 @@ function aplicarNovaMedia(media) {
     3: Math.ceil(comMargem / 3)
   };
   
-  document.getElementById('resMedia').textContent = media.toFixed(1).replace('.', ',');
+  setMedia(media);
   document.getElementById('opt1Qtd').textContent = state.sugestoes[1];
   document.getElementById('opt2Qtd').textContent = state.sugestoes[2];
   document.getElementById('opt3Qtd').textContent = state.sugestoes[3];
@@ -199,8 +199,7 @@ async function calcularMedia(id) {
       state.mediaAtual = data.media;
       state.sugestoes = data.sugestoes;
       
-      document.getElementById('resMedia').textContent = data.media.toFixed(1).replace('.', ',');
-      
+      setMedia(data.media);
       document.getElementById('opt1Qtd').textContent = data.sugestoes[1];
       document.getElementById('opt2Qtd').textContent = data.sugestoes[2];
       document.getElementById('opt3Qtd').textContent = data.sugestoes[3];
@@ -415,6 +414,12 @@ function exportarExcel() {
 
   const wb = XLSX.utils.table_to_book(table, { sheet: "Balanceamentos" });
   XLSX.writeFile(wb, `Balanceamentos_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+function setMedia(valor) {
+  const txt = parseFloat(valor).toFixed(1).replace('.', ',');
+  document.getElementById('resMedia').textContent = txt;
+  document.getElementById('sumMedia').textContent = txt;
 }
 
 // Utilitários de UI
