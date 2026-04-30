@@ -307,6 +307,17 @@ async function salvarBalanceamento() {
 
   if (!os) { alert("O número da O.S. é obrigatório!"); return; }
   if (!qtd || qtd <= 0) { alert("Quantidade inválida!"); return; }
+  
+  const antigo = state.equipamentoAtual.ultimo_contador || 0;
+  if (!contadorAtual || contadorAtual <= 0) {
+    alert("O Contador Atual é obrigatório para registrar a entrega!");
+    return;
+  }
+  
+  if (contadorAtual <= antigo) {
+    alert(`Erro: O contador atual (${contadorAtual}) não pode ser menor ou igual ao anterior (${antigo}).`);
+    return;
+  }
 
   const payload = {
     equipamento_id: state.equipamentoAtual.id,
