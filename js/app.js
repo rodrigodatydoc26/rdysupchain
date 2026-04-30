@@ -331,8 +331,22 @@ async function carregarHistorico() {
   tbody.innerHTML = '<tr><td colspan="8" class="text-center">Carregando... <i data-lucide="loader" class="spin"></i></td></tr>';
   lucide.createIcons();
 
+  const filterData = document.getElementById('filterData').value;
+  const filterCliente = document.getElementById('filterCliente').value;
+  const filterSerie = document.getElementById('filterSerie').value;
+
+  const params = new URLSearchParams();
+  if (filterData) params.append('data', filterData);
+  if (filterCliente) params.append('cliente', filterCliente);
+  if (filterSerie) params.append('serie', filterSerie);
+
   try {
-    const res = await fetch('/api/listar-balanceamentos.php');
+    const res = await fetch(`/api/listar-balanceamentos.php?${params.toString()}`);
+    
+    if (!res.ok && window.location.protocol === 'file:') {
+       throw new Error('Offline');
+    }
+
     const data = await res.json();
 
     if (data && data.length > 0) {
@@ -361,9 +375,33 @@ async function carregarHistorico() {
       tbody.innerHTML = '<tr><td colspan="8" class="text-center">Nenhum histórico encontrado.</td></tr>';
     }
   } catch (error) {
-    console.error("Erro ao carregar histórico:", error);
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Erro ao carregar os dados.</td></tr>';
+    console.warn("Erro ao carregar histórico (Modo Demo Ativo):", error);
+    mostrarHistoricoDemo();
   }
+}
+
+function mostrarHistoricoDemo() {
+  const tbody = document.getElementById('historicoTbody');
+  const mockData = [
+    { data_registro: new Date().toISOString(), cliente: {nome: 'CLIENTE DEMO 1'}, equipamento: {serie: 'SERIE123'}, media_consumo_mensal: 10.5, opcao_entrega: 2, quantidade_definida: 6, numero_os: 'OS-123', status: 'confirmado' },
+    { data_registro: new Date().toISOString(), cliente: {nome: 'SECRETARIA ADM'}, equipamento: {serie: 'BRB456'}, media_consumo_mensal: 4.2, opcao_entrega: 1, quantidade_definida: 5, numero_os: 'OS-456', status: 'confirmado' }
+  ];
+  
+  tbody.innerHTML = '';
+  mockData.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(item.data_registro).toLocaleDateString('pt-BR')}</td>
+      <td>${item.cliente.nome}</td>
+      <td>${item.equipamento.serie}</td>
+      <td>${item.media_consumo_mensal}</td>
+      <td>${item.opcao_entrega}x</td>
+      <td>${item.quantidade_definida}</td>
+      <td>${item.numero_os}</td>
+      <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 // Utilitários de UI

@@ -180,6 +180,24 @@
           <h2>Últimos Balanceamentos</h2>
           <button class="btn-outline" onclick="carregarHistorico()"><i data-lucide="refresh-cw"></i> Atualizar</button>
         </div>
+
+        <div class="filters-bar">
+          <div class="filter-group">
+            <label>Data:</label>
+            <input type="date" id="filterData">
+          </div>
+          <div class="filter-group">
+            <label>Cliente:</label>
+            <input type="text" id="filterCliente" placeholder="Filtrar cliente...">
+          </div>
+          <div class="filter-group">
+            <label>Série/Patrimônio:</label>
+            <input type="text" id="filterSerie" placeholder="Nº Série/Patri...">
+          </div>
+          <div class="filter-group">
+            <button class="btn-primary" onclick="carregarHistorico()">FILTRAR</button>
+          </div>
+        </div>
         
         <div class="table-responsive">
           <table class="data-table">
