@@ -5,9 +5,29 @@ $supabaseUrl = getenv('SUPABASE_URL') ?: 'https://iedkbtceqgrawgubxslh.supabase.
 $supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllZGtidGNlcWdyYXdndWJ4c2xoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU2ODA2NiwiZXhwIjoyMDkzMTQ0MDY2fQ.HPd4Dx63C3_IJ2F9so0UzYKGZDE0Rnak8FRGz1ymPs0';
 
 $q = $_GET['q'] ?? '';
+$type = $_GET['type'] ?? 'single';
 
 if (strlen($q) < 3) {
-    echo json_encode(['error' => 'Query muito curta']);
+    echo json_encode([]);
+    exit;
+}
+
+if ($type === 'list') {
+    // Busca lista para autocomplete
+    $url = $supabaseUrl . '/rest/v1/equipamentos'
+         . '?select=serie,patrimonio'
+         . '&or=(serie.ilike.*' . urlencode($q) . '*,patrimonio.ilike.*' . urlencode($q) . '*)'
+         . '&limit=8';
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'apikey: ' . $supabaseKey,
+        'Authorization: Bearer ' . $supabaseKey
+    ]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    echo $response;
     exit;
 }
 

@@ -32,7 +32,10 @@
         <div class="search-card">
           <h2><i data-lucide="search"></i> Buscar equipamento</h2>
           <div class="search-input-wrapper">
-            <input type="text" id="searchInput" placeholder="Nº Série ou Patrimônio...">
+            <div class="autocomplete-container">
+              <input type="text" id="searchInput" placeholder="Nº Série ou Patrimônio..." autocomplete="off">
+              <div id="suggestionsList" class="suggestions-list hidden"></div>
+            </div>
             <button id="searchBtn" class="btn-primary">BUSCAR</button>
           </div>
           <div class="search-helper">ou consulte as últimas entregas no Histórico</div>

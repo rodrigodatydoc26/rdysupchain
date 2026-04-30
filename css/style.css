@@ -144,6 +144,48 @@ body {
   margin: 0 auto;
 }
 
+.autocomplete-container {
+  flex: 1;
+  position: relative;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.suggestion-item {
+  padding: 12px 20px;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: var(--bg-2);
+  color: var(--gold);
+}
+
+.suggestion-item .sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
 input[type="text"], input[type="number"] {
   flex: 1;
   background: var(--bg-2);

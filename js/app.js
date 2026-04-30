@@ -28,8 +28,56 @@ const searchBtn = document.getElementById('searchBtn');
 
 searchInput.addEventListener('input', (e) => {
   clearTimeout(searchTimeout);
-  if (e.target.value.length > 2) {
-    searchTimeout = setTimeout(() => buscarEquipamento(e.target.value), 400);
+  const query = e.target.value.trim();
+  
+  if (query.length > 2) {
+    searchTimeout = setTimeout(() => buscarSugestoes(query), 300);
+  } else {
+    ocultarSugestoes();
+  }
+});
+
+async function buscarSugestoes(query) {
+  try {
+    const res = await fetch(`/api/buscar-equipamento.php?type=list&q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    
+    if (Array.isArray(data) && data.length > 0) {
+      renderizarSugestoes(data);
+    } else {
+      ocultarSugestoes();
+    }
+  } catch (error) {
+    console.warn("Erro ao buscar sugestões:", error);
+    ocultarSugestoes();
+  }
+}
+
+function renderizarSugestoes(itens) {
+  const list = document.getElementById('suggestionsList');
+  list.innerHTML = itens.map(item => `
+    <div class="suggestion-item" onclick="selecionarSugestao('${item.serie}')">
+      <strong>${item.serie}</strong>
+      ${item.patrimonio ? `<span class="sub">Patrimônio: ${item.patrimonio}</span>` : ''}
+    </div>
+  `).join('');
+  list.classList.remove('hidden');
+}
+
+function selecionarSugestao(serie) {
+  searchInput.value = serie;
+  ocultarSugestoes();
+  buscarEquipamento(serie);
+}
+
+function ocultarSugestoes() {
+  document.getElementById('suggestionsList').classList.add('hidden');
+}
+
+// Fechar sugestões ao clicar fora
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.autocomplete-container')) {
+    ocultarSugestoes();
   }
 });
 
