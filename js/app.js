@@ -300,6 +300,20 @@ function selecionarOpcao(opcao) {
   document.getElementById('formLineObs').classList.remove('hidden');
   document.getElementById('actionRow').classList.remove('hidden');
   document.getElementById('inputQtd').value = qtd;
+  
+  atualizarProximaSolicitacao();
+}
+
+function atualizarProximaSolicitacao() {
+  const contador = parseInt(document.getElementById('inputContador').value) || 0;
+  const qtd = parseInt(document.getElementById('inputQtd').value) || 0;
+  
+  if (contador > 0 && qtd > 0) {
+    const proxima = contador + (qtd * 500);
+    document.getElementById('resProximaSolicitacao').textContent = proxima.toLocaleString('pt-BR');
+  } else {
+    document.getElementById('resProximaSolicitacao').textContent = '---';
+  }
 }
 
 async function salvarBalanceamento() {
@@ -506,6 +520,7 @@ function resetarSelecao() {
   document.getElementById('actionRow').classList.add('hidden');
   document.getElementById('inputOs').value = '';
   document.getElementById('inputObs').value = '';
+  document.getElementById('resProximaSolicitacao').textContent = '---';
 }
 async function carregarRelatorios() {
   const tbody = document.getElementById('rankingTbody');

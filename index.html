@@ -141,11 +141,16 @@
               <div class="summary-line">
                 <span>Contador Atual:</span>
                 <div class="edit-qtd">
-                  <input type="number" id="inputContador" placeholder="OBRIGATÓRIO" title="O contador atual é obrigatório para salvar">
+                  <input type="number" id="inputContador" placeholder="OBRIGATÓRIO" title="O contador atual é obrigatório para salvar" oninput="atualizarProximaSolicitacao()">
                   <button class="btn-calc" onclick="recalcularComContador()" title="Recalcular média com este contador">
                     <i data-lucide="refresh-cw"></i>
                   </button>
                 </div>
+              </div>
+
+              <div class="summary-line highlight-line">
+                <span>Próxima solicitação de papel em:</span>
+                <strong id="resProximaSolicitacao" class="highlight-gold">---</strong>
               </div>
 
               <div class="summary-line">
@@ -161,7 +166,7 @@
               <div class="summary-line edit-line hidden" id="editLine">
                 <span>Quantidade por visita:</span>
                 <div class="edit-qtd">
-                  <input type="number" id="inputQtd" min="1" step="1" placeholder="0" title="Quantidade de resmas por visita">
+                  <input type="number" id="inputQtd" min="1" step="1" placeholder="0" title="Quantidade de resmas por visita" oninput="atualizarProximaSolicitacao()">
                   <span>resmas</span>
                 </div>
               </div>
