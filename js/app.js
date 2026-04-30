@@ -1,566 +1,323 @@
-// Configuração Supabase (Acesso Direto)
+// RDY DOC CONTROL - App Logic (Direct Supabase)
 const SUPABASE_URL = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
 
-// Estado da aplicação
+// Estado global
 let state = {
-  equipamentoAtual: null,
-  mediaAtual: 0,
-  opcaoSelecionada: null,
-  sugestoes: {}
+    equipamento: null,
+    media: 0,
+    opcao: null,
+    historico: []
 };
 
-// Utilitário de fetch para Supabase
-async function sbFetch(path, options = {}) {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const url = `${SUPABASE_URL}/rest/v1${cleanPath}`;
-  const headers = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
-    'Content-Type': 'application/json',
-    ...options.headers
-  };
-  const res = await fetch(url, { ...options, headers });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err);
-  }
-  return res.json();
-}
+// Funções de API
+const API = {
+    async fetch(endpoint) {
+        const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
+        const res = await fetch(url, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        return res.json();
+    },
 
-// Alternância de abas
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
-    e.target.classList.add('active');
-    document.getElementById(`tab-${e.target.dataset.tab}`).classList.add('active');
-
-    if(e.target.dataset.tab === 'historico') {
-      carregarHistorico();
+    async post(endpoint, data) {
+        const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        return res.json();
     }
-    if(e.target.dataset.tab === 'relatorios') {
-      carregarRelatorios();
-    }
-  });
+};
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    initTabs();
+    initSearch();
 });
 
-// Busca com debounce
-let searchTimeout;
-const searchInput = document.getElementById('searchInput');
-const searchBtn = document.getElementById('searchBtn');
-
-searchInput.addEventListener('input', (e) => {
-  clearTimeout(searchTimeout);
-  const query = e.target.value.trim();
-  
-  if (query.length > 2) {
-    searchTimeout = setTimeout(() => buscarSugestoes(query), 300);
-  } else {
-    ocultarSugestoes();
-  }
-});
-
-async function buscarSugestoes(query) {
-  try {
-    const data = await sbFetch(`/equipamentos?select=serie,patrimonio,secretaria,cliente:clientes(nome)&or=(serie.ilike.*${encodeURIComponent(query)}*,patrimonio.ilike.*${encodeURIComponent(query)}*)&limit=8`);
-    
-    if (Array.isArray(data) && data.length > 0) {
-      renderizarSugestoes(data);
-    } else {
-      ocultarSugestoes();
-    }
-  } catch (error) {
-    console.debug("Sugestões indisponíveis:", error);
-    ocultarSugestoes();
-  }
+function initTabs() {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabId}`));
+            if (tabId === 'historico') carregarHistorico();
+            if (tabId === 'relatorios') carregarRelatorios();
+        });
+    });
 }
 
-function renderizarSugestoes(itens) {
-  const list = document.getElementById('suggestionsList');
-  list.innerHTML = itens.map(item => `
-    <div class="suggestion-item" onclick="selecionarSugestao('${item.serie}')">
-      <div class="sugg-main">
-        <strong>${item.serie}</strong>
-        <span class="tag-sm">${item.secretaria || 'OUTROS'}</span>
-      </div>
-      <span class="sub">${item.cliente ? item.cliente.nome : ''}</span>
-    </div>
-  `).join('');
-  list.classList.remove('hidden');
+function initSearch() {
+    const input = document.getElementById('searchInput');
+    const list = document.getElementById('suggestionsList');
+    let timeout;
+
+    input.addEventListener('input', () => {
+        clearTimeout(timeout);
+        const q = input.value.trim();
+        if (q.length < 3) return list.classList.add('hidden');
+
+        timeout = setTimeout(async () => {
+            try {
+                const data = await API.fetch(`/equipamentos?select=serie,patrimonio,secretaria,cliente:clientes(nome)&or=(serie.ilike.*${q}*,patrimonio.ilike.*${q}*)&limit=8`);
+                if (data.length > 0) {
+                    list.innerHTML = data.map(item => `
+                        <div class="suggestion-item" onclick="selecionarSugestao('${item.serie}')">
+                            <div class="sugg-main">
+                                <strong>${item.serie}</strong>
+                                <span class="tag-sm">${item.secretaria || 'OUTROS'}</span>
+                            </div>
+                            <span class="sub">${item.cliente ? item.cliente.nome : ''}</span>
+                        </div>
+                    `).join('');
+                    list.classList.remove('hidden');
+                } else {
+                    list.classList.add('hidden');
+                }
+            } catch (e) {
+                console.warn("Search error:", e);
+            }
+        }, 300);
+    });
+
+    document.getElementById('searchBtn').addEventListener('click', () => buscarEquipamento(input.value));
+    document.addEventListener('click', (e) => { if (!e.target.closest('.autocomplete-container')) list.classList.add('hidden'); });
 }
 
-function selecionarSugestao(serie) {
-  searchInput.value = serie;
-  ocultarSugestoes();
-  buscarEquipamento(serie);
+async function selecionarSugestao(serie) {
+    document.getElementById('searchInput').value = serie;
+    document.getElementById('suggestionsList').classList.add('hidden');
+    buscarEquipamento(serie);
 }
 
-function ocultarSugestoes() {
-  const list = document.getElementById('suggestionsList');
-  if (list) list.classList.add('hidden');
-}
+async function buscarEquipamento(serie) {
+    if (!serie) return;
+    setLoading(true);
+    resetUI();
 
-// Fechar sugestões ao clicar fora
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.autocomplete-container')) {
-    ocultarSugestoes();
-  }
-});
-
-searchBtn.addEventListener('click', () => {
-  if (searchInput.value.length > 2) {
-    buscarEquipamento(searchInput.value);
-  }
-});
-
-async function buscarEquipamento(query) {
-  mostrarLoading(true);
-  ocultarResultado();
-
-  try {
-    const data = await sbFetch(`/equipamentos?or=(serie.ilike.*${encodeURIComponent(query)}*,patrimonio.ilike.*${encodeURIComponent(query)}*)&select=id,serie,patrimonio,modelo,secretaria,media_referencia,cliente:clientes(id,nome,cidade)&limit=1`);
-
-    if (data && data.length > 0) {
-      const equip = data[0];
-      
-      // Buscar último contador
-      let ultimoContador = 0;
-      let dataUltimo = null;
-      try {
-        const osData = await sbFetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.desc&limit=1`);
-        if (osData && osData.length > 0) {
-          ultimoContador = osData[0].contador_atual;
-          dataUltimo = osData[0].data_os;
+    try {
+        const data = await API.fetch(`/equipamentos?serie=eq.${serie}&select=*,cliente:clientes(id,nome,cidade)&limit=1`);
+        if (data.length === 0) {
+            alert("Equipamento não encontrado!");
+            return;
         }
-      } catch (e) { console.error("Erro ao buscar histórico de OS:", e); }
 
-      equip.ultimo_contador = ultimoContador;
-      equip.data_ultimo_contador = dataUltimo;
+        const equip = data[0];
+        
+        // Buscar último contador
+        const os = await API.fetch(`/ordens_servico?equipamento_id=eq.${equip.id}&order=data_os.desc&limit=1`);
+        equip.ultimo_contador = os[0]?.contador_atual || 0;
+        equip.data_ultimo_contador = os[0]?.data_os || null;
 
-      state.equipamentoAtual = equip;
-      preencherInfoEquipamento(equip);
-      await calcularMedia(equip.id);
-    } else {
-      alert("Equipamento não encontrado!");
-      mostrarLoading(false);
+        state.equipamento = equip;
+        
+        // Preencher UI
+        document.getElementById('resCliente').innerText = `Cliente: ${equip.cliente?.nome || 'N/D'}`;
+        document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
+        document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
+        document.getElementById('resSerie').innerText = equip.serie;
+        document.getElementById('resModelo').innerText = equip.modelo || 'N/D';
+        document.getElementById('resContador').innerText = equip.ultimo_contador;
+        document.getElementById('sumContadorAnterior').innerText = equip.ultimo_contador;
+
+        // Calcular Média
+        const entregas = await API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=eq.confirmado&order=data_registro.desc&limit=3`);
+        let media = parseFloat(equip.media_referencia) || 0;
+        if (entregas.length > 0) {
+            const soma = entregas.reduce((a, b) => a + parseFloat(b.media_consumo_mensal), 0);
+            media = soma / entregas.length;
+        }
+        
+        updateMedia(media);
+        document.getElementById('resultContainer').classList.remove('hidden');
+
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao carregar dados do equipamento.");
+    } finally {
+        setLoading(false);
     }
-  } catch (error) {
-    console.error("Erro ao buscar equipamento:", error);
-    alert("Erro ao conectar com o banco de dados. Verifique sua internet.");
-    mostrarLoading(false);
-  }
 }
 
-function renderizarUltimasEntregas(entregas) {
-  const tbody = document.getElementById('lastDeliveriesTbody');
-  tbody.innerHTML = '';
-  
-  if (!entregas || entregas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="padding: 20px; color: var(--text-dim);">Nenhuma entrega recente.</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = entregas.map(e => `
-    <tr>
-      <td>${new Date(e.data_entrega).toLocaleDateString('pt-BR')}</td>
-      <td>${e.quantidade}</td>
-      <td>${e.numero_os}</td>
-    </tr>
-  `).join('');
+function updateMedia(val) {
+    state.media = val;
+    const txt = val.toFixed(1).replace('.', ',');
+    document.getElementById('resMedia').innerText = txt;
+    document.getElementById('sumMedia').innerText = txt;
+    document.getElementById('resPaginas').innerText = (val * 500).toLocaleString('pt-BR');
+
+    // Opções
+    const margem = val * 1.15;
+    const s1 = Math.ceil(val) + 1;
+    const s2 = Math.ceil(margem / 2);
+    const s3 = Math.ceil(margem / 3);
+
+    document.getElementById('opt1Qtd').innerText = s1;
+    document.getElementById('opt2Qtd').innerText = s2;
+    document.getElementById('opt3Qtd').innerText = s3;
+
+    state.sugestoes = { 1: s1, 2: s2, 3: s3 };
 }
 
-function preencherInfoEquipamento(eq) {
-  document.getElementById('resCliente').textContent = `Cliente: ${eq.cliente ? eq.cliente.nome : 'Não informado'}`;
-  document.getElementById('resSecretaria').textContent = `SETOR: ${eq.secretaria || 'OUTROS'}`;
-  document.getElementById('resPatrimonio').textContent = eq.patrimonio || 'Não informado';
-  document.getElementById('resSerie').textContent = eq.serie || '---';
-  document.getElementById('resModelo').textContent = eq.modelo || 'Não informado';
-  
-  const contador = eq.ultimo_contador || 0;
-  document.getElementById('resContador').textContent = contador;
+function selecionarOpcao(n) {
+    state.opcao = n;
+    let qtd = state.sugestoes[n] || 0;
+    if (n === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 1;
 
-  // A média projetada agora é usada internamente no cálculo de média se não houver histórico
-  document.getElementById('sumContadorAnterior').textContent = contador;
-  document.getElementById('inputContador').value = '';
-}
-
-function recalcularComContador() {
-  const novo = parseInt(document.getElementById('inputContador').value);
-  const antigo = state.equipamentoAtual.ultimo_contador || 0;
-  const dataAntiga = state.equipamentoAtual.data_ultimo_contador;
-  
-  if (!novo || novo <= antigo) {
-    alert("Insira um contador válido (maior que o anterior).");
-    return;
-  }
-  
-  if (!dataAntiga) {
-    alert("Não há data de leitura anterior para calcular o intervalo.");
-    return;
-  }
-  
-  const dataInicio = new Date(dataAntiga);
-  const dataFim = new Date();
-  const diffTime = Math.abs(dataFim - dataInicio);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-  
-  const consumoPaginas = novo - antigo;
-  const consumoDiario = consumoPaginas / diffDays;
-  const consumoMensalPaginas = consumoDiario * 30;
-  const consumoMensalResmas = consumoMensalPaginas / 500;
-  
-  const mediaCalculada = Math.ceil(consumoMensalResmas * 10) / 10;
-  aplicarNovaMedia(mediaCalculada);
-}
-
-function aplicarNovaMedia(media) {
-  state.mediaAtual = media;
-  const comMargem = media * 1.15;
-  state.sugestoes = {
-    1: Math.ceil(media) + 1, // Regra solicitada: Média + 1 resma
-    2: Math.ceil(comMargem / 2),
-    3: Math.ceil(comMargem / 3)
-  };
-  
-  setMedia(media);
-  document.getElementById('opt1Qtd').textContent = state.sugestoes[1];
-  document.getElementById('opt2Qtd').textContent = state.sugestoes[2];
-  document.getElementById('opt3Qtd').textContent = state.sugestoes[3];
-  
-  resetarSelecao();
-}
-
-async function calcularMedia(id) {
-  try {
-    // Buscar histórico de entregas para calcular média (últimas 3)
-    const entregas = await sbFetch(`/balanceamento_entregas?equipamento_id=eq.${id}&status=eq.confirmado&order=data_registro.desc&limit=3`);
+    document.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.opcao) === n));
+    document.getElementById('sumOpcaoText').innerText = n === 0 ? `Entrega Manual (${qtd} resmas)` : `${n}x por mês (${qtd} resmas/visita)`;
     
-    let media = 0;
-    if (entregas && entregas.length > 0) {
-      const soma = entregas.reduce((acc, curr) => acc + parseFloat(curr.media_consumo_mensal || 0), 0);
-      media = soma / entregas.length;
-    } else {
-      // Fallback para a média de referência do equipamento
-      media = parseFloat(state.equipamentoAtual.media_referencia) || 0;
+    document.getElementById('formLineOs').classList.remove('hidden');
+    document.getElementById('formLineObs').classList.remove('hidden');
+    document.getElementById('actionRow').classList.remove('hidden');
+
+    updateProxima();
+}
+
+function atualizarQtdManual(v) {
+    if (state.opcao === 0) {
+        document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${v} resmas)`;
+        updateProxima();
     }
-
-    state.mediaAtual = media;
-    const comMargem = media * 1.15;
-    state.sugestoes = {
-      1: Math.ceil(media) + 1, // Regra solicitada: Média + 1 resma
-      2: Math.ceil(comMargem / 2),
-      3: Math.ceil(comMargem / 3)
-    };
-    
-    setMedia(media);
-    document.getElementById('opt1Qtd').textContent = state.sugestoes[1];
-    document.getElementById('opt2Qtd').textContent = state.sugestoes[2];
-    document.getElementById('opt3Qtd').textContent = state.sugestoes[3];
-    
-    const card = document.getElementById('lastDeliveriesCard');
-    // Mapear para o formato esperado pelo renderizador
-    const entregasFormatadas = entregas.map(ent => ({
-      data_entrega: ent.data_registro,
-      quantidade: ent.quantidade_definida,
-      numero_os: ent.numero_os
-    }));
-    
-    renderizarUltimasEntregas(entregasFormatadas);
-    
-    if (entregasFormatadas.length > 0) {
-      card.classList.remove('hidden');
-    } else {
-      card.classList.add('hidden');
-    }
-
-    resetarSelecao();
-    mostrarResultado();
-  } catch (error) {
-    console.error("Erro ao calcular média:", error);
-  } finally {
-    mostrarLoading(false);
-  }
 }
 
-function selecionarOpcao(opcao) {
-  state.opcaoSelecionada = opcao;
-  let qtd = state.sugestoes[opcao] || 0;
-  
-  if (opcao === 0) {
-    qtd = parseInt(document.getElementById('inputManualQtd').value) || 1;
-  }
-  
-  document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
-  document.querySelector(`.option-card[data-opcao="${opcao}"]`).classList.add('selected');
-  
-  if (opcao === 0) {
-    document.getElementById('sumOpcaoText').textContent = `Entrega Manual (Avulsa: ${qtd} resmas)`;
-  } else {
-    document.getElementById('sumOpcaoText').textContent = `${opcao}x por mês (${qtd} resmas por visita)`;
-  }
-  
-  document.getElementById('formLineOs').classList.remove('hidden');
-  document.getElementById('formLineObs').classList.remove('hidden');
-  document.getElementById('actionRow').classList.remove('hidden');
-  
-  atualizarProximaSolicitacao();
-}
+function updateProxima() {
+    const cont = parseInt(document.getElementById('inputContador').value) || 0;
+    let qtd = 0;
+    if (state.opcao === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
+    else if (state.opcao !== null) qtd = state.sugestoes[state.opcao] || 0;
 
-function atualizarQtdManual(val) {
-  if (state.opcaoSelecionada === 0) {
-    document.getElementById('sumOpcaoText').textContent = `Entrega Manual (Avulsa: ${val} resmas)`;
-    atualizarProximaSolicitacao();
-  }
-}
-
-function atualizarProximaSolicitacao() {
-  const contador = parseInt(document.getElementById('inputContador').value) || 0;
-  let qtd = 0;
-  
-  if (state.opcaoSelecionada === 0) {
-    qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
-  } else if (state.opcaoSelecionada !== null) {
-    qtd = state.sugestoes[state.opcaoSelecionada] || 0;
-  }
-  
-  if (contador > 0 && qtd > 0) {
-    const proxima = contador + (qtd * 500);
-    document.getElementById('resProximaSolicitacao').textContent = proxima.toLocaleString('pt-BR');
-  } else {
-    document.getElementById('resProximaSolicitacao').textContent = '---';
-  }
+    const el = document.getElementById('resProximaSolicitacao');
+    if (cont > 0 && qtd > 0) el.innerText = (cont + (qtd * 500)).toLocaleString('pt-BR');
+    else el.innerText = '---';
 }
 
 async function salvarBalanceamento() {
-  const os = document.getElementById('inputOs').value.trim();
-  let qtd = 0;
-  if (state.opcaoSelecionada === 0) {
-    qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
-  } else {
-    qtd = state.sugestoes[state.opcaoSelecionada] || 0;
-  }
-  
-  const obs = document.getElementById('inputObs').value.trim();
-  const contadorAtual = parseInt(document.getElementById('inputContador').value) || null;
-  const antigo = state.equipamentoAtual.ultimo_contador || 0;
-
-  if (!qtd || qtd <= 0) { alert("Quantidade inválida!"); return; }
-
-  // REAJUSTE AUTOMÁTICO DE MÉDIA: Se o contador mudou, calculamos a média real deste período
-  const dataAntiga = state.equipamentoAtual.data_ultimo_contador;
-  if (dataAntiga) {
-    const dataInicio = new Date(dataAntiga);
-    const dataFim = new Date();
-    const diffTime = Math.abs(dataFim - dataInicio);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    const os = document.getElementById('inputOs').value.trim();
+    const cont = parseInt(document.getElementById('inputContador').value) || null;
+    const obs = document.getElementById('inputObs').value.trim();
     
-    const consumoPaginas = contadorAtual - antigo;
-    const consumoDiario = consumoPaginas / diffDays;
-    const consumoMensalPaginas = consumoDiario * 30;
-    const consumoMensalResmas = consumoMensalPaginas / 500;
-    
-    // Atualiza a média do estado para que o registro seja salvo com a média REAJUSTADA
-    state.mediaAtual = Math.ceil(consumoMensalResmas * 10) / 10;
-  }
+    let qtd = 0;
+    if (state.opcao === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
+    else qtd = state.sugestoes[state.opcao] || 0;
 
-  const payload = {
-    equipamento_id: state.equipamentoAtual.id,
-    cliente_id: state.equipamentoAtual.cliente.id,
-    numero_os: os,
-    media_consumo_mensal: state.mediaAtual,
-    opcao_entrega: state.opcaoSelecionada,
-    quantidade_sugerida: state.sugestoes[state.opcaoSelecionada] ?? null,
-    quantidade_definida: qtd,
-    contador_atual: contadorAtual,
-    observacao: obs,
-    status: 'confirmado'
-  };
+    if (!qtd) return alert("Selecione uma opção de entrega!");
 
-  const btn = document.getElementById('btnConfirmar');
-  btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader" class="spin"></i> SALVANDO...';
-  lucide.createIcons();
+    setBtnLoading(true);
 
-  try {
-    await sbFetch('/balanceamento_entregas', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
+    try {
+        // Ajuste de média automático se houver contador
+        let finalMedia = state.media;
+        if (cont && state.equipamento.ultimo_contador && state.equipamento.data_ultimo_contador) {
+            const dias = Math.ceil(Math.abs(new Date() - new Date(state.equipamento.data_ultimo_contador)) / (1000*60*60*24)) || 1;
+            finalMedia = Math.ceil(((cont - state.equipamento.ultimo_contador) / dias * 30 / 500) * 10) / 10;
+        }
 
-    // Se houver contador, salvar também na tabela de ordens_servico
-    if (contadorAtual) {
-      await sbFetch('/ordens_servico', {
-        method: 'POST',
-        body: JSON.stringify({
-          equipamento_id: state.equipamentoAtual.id,
-          cliente_id: state.equipamentoAtual.cliente.id,
-          numero_os: os,
-          contador_atual: contadorAtual
-        })
-      });
+        await API.post('/balanceamento_entregas', {
+            equipamento_id: state.equipamento.id,
+            cliente_id: state.equipamento.cliente.id,
+            numero_os: os,
+            media_consumo_mensal: finalMedia,
+            opcao_entrega: state.opcao,
+            quantidade_definida: qtd,
+            contador_atual: cont,
+            observacao: obs,
+            status: 'confirmado'
+        });
+
+        if (cont) {
+            await API.post('/ordens_servico', {
+                equipamento_id: state.equipamento.id,
+                cliente_id: state.equipamento.cliente.id,
+                numero_os: os,
+                contador_atual: cont
+            });
+        }
+
+        alert("Sucesso!");
+        window.location.reload();
+
+    } catch (e) {
+        alert("Erro ao salvar.");
+    } finally {
+        setBtnLoading(false);
     }
-
-    alert("Balanceamento salvo com sucesso!");
-    document.getElementById('searchInput').value = '';
-    ocultarResultado();
-  } catch (error) {
-    console.error("Erro ao salvar:", error);
-    alert("Erro ao salvar no banco de dados.");
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="check-circle"></i> CONFIRMAR BALANCEAMENTO';
-    lucide.createIcons();
-  }
-}
-
-async function renderizarHistorico(dados) {
-  const tbody = document.getElementById('historicoTbody');
-  const tfoot = document.getElementById('historicoTfoot');
-  const totalEl = document.getElementById('totalResmas');
-  tbody.innerHTML = '';
-  
-  if (!dados || dados.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 40px; color: var(--text-dim);">Nenhum registro de balanceamento encontrado.</td></tr>';
-    tfoot.classList.add('hidden');
-    return;
-  }
-
-  let totalResmas = 0;
-  dados.forEach(item => {
-    totalResmas += parseFloat(item.quantidade_definida || 0);
-    const tr = document.createElement('tr');
-    const dataFormatada = new Date(item.data_registro).toLocaleDateString('pt-BR');
-    const nomeCliente = item.cliente ? item.cliente.nome : 'N/D';
-    const localSetor = item.equipamento ? item.equipamento.secretaria : 'N/D';
-    const serieEquip = item.equipamento ? item.equipamento.serie : 'N/D';
-
-    tr.innerHTML = `
-      <td>${dataFormatada}</td>
-      <td>${nomeCliente}</td>
-      <td>${localSetor}</td>
-      <td>${serieEquip}</td>
-      <td>${item.media_consumo_mensal}</td>
-      <td>${item.opcao_entrega === 0 ? 'Manual' : item.opcao_entrega + 'x'}</td>
-      <td>${item.quantidade_definida}</td>
-      <td>${item.numero_os}</td>
-      <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  totalEl.textContent = totalResmas.toLocaleString('pt-BR');
-  tfoot.classList.remove('hidden');
-}
-
-function usarMediaProjetada(valor) {
-  const mediaVal = parseFloat(valor) || 0;
-  if (mediaVal > 0) {
-    state.mediaAtual = mediaVal;
-    aplicarNovaMedia(mediaVal);
-  }
 }
 
 async function carregarHistorico() {
-  const tbody = document.getElementById('historicoTbody');
-  tbody.innerHTML = '<tr><td colspan="9" class="text-center">Carregando... <i data-lucide="loader" class="spin"></i></td></tr>';
-  lucide.createIcons();
-
-  const filterCliente = document.getElementById('filterCliente').value;
-  const filterSerie = document.getElementById('filterSerie').value;
-
-  let query = `/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos(serie,secretaria,media_referencia)&order=data_registro.desc&limit=50`;
-  
-  if (filterSerie) query += `&equipamento.serie=ilike.*${encodeURIComponent(filterSerie)}*`;
-  if (filterCliente) query += `&cliente.nome=ilike.*${encodeURIComponent(filterCliente)}*`;
-
-  try {
-    const data = await sbFetch(query);
-    renderizarHistorico(data);
-  } catch (error) {
-    console.error("Erro ao carregar histórico:", error);
-  }
-}
-
-function exportarExcel(tableId, fileName) {
-  const table = document.getElementById(tableId);
-  if (!table || table.rows.length <= 1) {
-    alert("Não há dados para exportar.");
-    return;
-  }
-
-  const wb = XLSX.utils.table_to_book(table, { sheet: fileName });
-  XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
-}
-
-function setMedia(valor) {
-  const mediaVal = parseFloat(valor);
-  const txt = mediaVal.toFixed(1).replace('.', ',');
-  
-  if(document.getElementById('resMedia')) document.getElementById('resMedia').textContent = txt;
-  if(document.getElementById('sumMedia')) document.getElementById('sumMedia').textContent = txt;
-  
-  const paginas = Math.round(mediaVal * 500);
-  if(document.getElementById('resPaginas')) {
-    document.getElementById('resPaginas').textContent = paginas.toLocaleString('pt-BR');
-  }
-}
-
-function mostrarLoading(show) {
-  const loader = document.getElementById('loadingIndicator');
-  if (show) loader.classList.remove('hidden');
-  else loader.classList.add('hidden');
-}
-
-function mostrarResultado() {
-  document.getElementById('resultContainer').classList.remove('hidden');
-}
-
-function ocultarResultado() {
-  document.getElementById('resultContainer').classList.add('hidden');
-  resetarSelecao();
-}
-
-function resetarSelecao() {
-  state.opcaoSelecionada = null;
-  document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('sumOpcaoText').textContent = 'Selecione uma opção acima';
-  document.getElementById('editLine').classList.add('hidden');
-  document.getElementById('formLineOs').classList.add('hidden');
-  document.getElementById('formLineObs').classList.add('hidden');
-  document.getElementById('actionRow').classList.add('hidden');
-  document.getElementById('inputOs').value = '';
-  document.getElementById('inputObs').value = '';
-  document.getElementById('resProximaSolicitacao').textContent = '---';
-}
-async function carregarRelatorios() {
-  const tbody = document.getElementById('rankingTbody');
-  tbody.innerHTML = '<tr><td colspan="7" class="text-center">Gerando ranking... <i data-lucide="loader" class="spin"></i></td></tr>';
-  lucide.createIcons();
-
-  try {
-    const data = await sbFetch('/view_top_equipamentos?limit=20');
+    const tbody = document.getElementById('historicoTbody');
+    tbody.innerHTML = '<tr><td colspan="9">Carregando...</td></tr>';
     
-    if (!data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center">Sem dados suficientes para gerar o ranking.</td></tr>';
-      return;
-    }
+    try {
+        const data = await API.fetch('/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos(serie,secretaria)&order=data_registro.desc&limit=50');
+        tbody.innerHTML = data.map(i => `
+            <tr>
+                <td>${new Date(i.data_registro).toLocaleDateString()}</td>
+                <td>${i.cliente?.nome || 'N/D'}</td>
+                <td>${i.equipamento?.secretaria || 'N/D'}</td>
+                <td>${i.equipamento?.serie || 'N/D'}</td>
+                <td>${i.media_consumo_mensal}</td>
+                <td>${i.opcao_entrega === 0 ? 'Manual' : i.opcao_entrega+'x'}</td>
+                <td>${i.quantidade_definida}</td>
+                <td>${i.numero_os}</td>
+                <td><span class="status-badge status-${i.status}">${i.status}</span></td>
+            </tr>
+        `).join('');
+        
+        const total = data.reduce((a, b) => a + (b.quantidade_definida || 0), 0);
+        document.getElementById('totalResmas').innerText = total;
+        document.getElementById('historicoTfoot').classList.remove('hidden');
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="9">Erro.</td></tr>'; }
+}
 
-    tbody.innerHTML = data.map((item, index) => `
-      <tr class="rank-${index + 1}">
-        <td><span class="rank-badge">${index + 1}º</span></td>
-        <td><strong>${item.serie}</strong></td>
-        <td>${item.secretaria}</td>
-        <td>${item.cliente_nome}</td>
-        <td class="text-center">${item.total_chamados}</td>
-        <td class="text-center highlight-gold">${item.total_resmas}</td>
-        <td class="text-center">${parseFloat(item.media_media).toFixed(1)}</td>
-      </tr>
-    `).join('');
+async function carregarRelatorios() {
+    const tbody = document.getElementById('rankingTbody');
+    tbody.innerHTML = '<tr><td colspan="7">Carregando...</td></tr>';
+    try {
+        const data = await API.fetch('/view_top_equipamentos?limit=20');
+        tbody.innerHTML = data.map((i, idx) => `
+            <tr class="rank-${idx+1}">
+                <td><span class="rank-badge">${idx+1}º</span></td>
+                <td>${i.serie}</td>
+                <td>${i.secretaria}</td>
+                <td>${i.cliente_nome}</td>
+                <td class="text-center">${i.total_chamados}</td>
+                <td class="text-center">${i.total_resmas}</td>
+                <td class="text-center">${parseFloat(i.media_media).toFixed(1)}</td>
+            </tr>
+        `).join('');
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="7">Erro.</td></tr>'; }
+}
 
-  } catch (error) {
-    console.error("Erro ao carregar relatórios:", error);
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Erro ao carregar dados do ranking.</td></tr>';
-  }
+function exportarExcel(id, name) {
+    const table = document.getElementById(id);
+    const wb = XLSX.utils.table_to_book(table);
+    XLSX.writeFile(wb, `${name}.xlsx`);
+}
+
+function setLoading(s) { document.getElementById('loadingIndicator').classList.toggle('hidden', !s); }
+function setBtnLoading(s) { 
+    const b = document.getElementById('btnSalvar');
+    b.disabled = s;
+    b.innerText = s ? "SALVANDO..." : "CONFIRMAR BALANCEAMENTO";
+}
+function resetUI() {
+    document.getElementById('resultContainer').classList.add('hidden');
+    document.getElementById('formLineOs').classList.add('hidden');
+    document.getElementById('formLineObs').classList.add('hidden');
+    document.getElementById('actionRow').classList.add('hidden');
 }
