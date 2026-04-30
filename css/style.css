@@ -180,10 +180,29 @@ body {
   color: var(--gold);
 }
 
+.sugg-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.tag-sm {
+  font-size: 0.65rem;
+  background: var(--bg-0);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
 .suggestion-item .sub {
   display: block;
   font-size: 0.75rem;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 input[type="text"], input[type="number"] {

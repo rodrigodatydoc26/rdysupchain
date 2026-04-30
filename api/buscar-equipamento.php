@@ -13,9 +13,9 @@ if (strlen($q) < 3) {
 }
 
 if ($type === 'list') {
-    // Busca lista para autocomplete
+    // Busca lista para autocomplete (Serie, Patrimonio e Cliente)
     $url = $supabaseUrl . '/rest/v1/equipamentos'
-         . '?select=serie,patrimonio'
+         . '?select=serie,patrimonio,cliente:clientes(nome)'
          . '&or=(serie.ilike.*' . urlencode($q) . '*,patrimonio.ilike.*' . urlencode($q) . '*)'
          . '&limit=8';
     

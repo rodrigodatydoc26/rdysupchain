@@ -57,8 +57,11 @@ function renderizarSugestoes(itens) {
   const list = document.getElementById('suggestionsList');
   list.innerHTML = itens.map(item => `
     <div class="suggestion-item" onclick="selecionarSugestao('${item.serie}')">
-      <strong>${item.serie}</strong>
-      ${item.patrimonio ? `<span class="sub">Patrimônio: ${item.patrimonio}</span>` : ''}
+      <div class="sugg-main">
+        <strong>${item.serie}</strong>
+        ${item.patrimonio ? `<span class="tag-sm">Pat: ${item.patrimonio}</span>` : ''}
+      </div>
+      <span class="sub">${item.cliente ? item.cliente.nome : 'Sem cliente'}</span>
     </div>
   `).join('');
   list.classList.remove('hidden');
