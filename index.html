@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RDY - DOC CONTROL · Balanceamento</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  
+  <div class="app-container">
+    <header class="topbar">
+      <div class="logo">
+        <i data-lucide="package"></i>
+        <h1>RDY - DOC CONTROL</h1>
+      </div>
+      <div class="module-title">Balanceamento de Entregas</div>
+    </header>
+
+    <main class="main-content">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="balancear">Balancear Entregas</button>
+        <button class="tab-btn" data-tab="historico">Histórico</button>
+      </div>
+
+      <!-- TAB BALANCEAR -->
+      <section id="tab-balancear" class="tab-content active">
+        
+        <div class="search-card">
+          <h2><i data-lucide="search"></i> Buscar equipamento</h2>
+          <div class="search-input-wrapper">
+            <input type="text" id="searchInput" placeholder="Nº Série ou Patrimônio...">
+            <button id="searchBtn" class="btn-primary">BUSCAR</button>
+          </div>
+          <div class="search-helper">ou consulte as últimas entregas no Histórico</div>
+        </div>
+
+        <!-- Resultados da Busca e Opções -->
+        <div id="resultContainer" class="hidden result-container">
+          
+          <div class="info-card">
+            <div class="info-header">
+              <h3 id="resCliente">Cliente: ---</h3>
+              <div class="equip-tags">
+                <span class="tag tag-secretaria" id="resSecretaria">SETOR: ---</span>
+                <span class="tag">Patrimônio: <strong id="resPatrimonio">---</strong></span>
+                <span class="tag">Série: <strong id="resSerie">---</strong></span>
+              </div>
+            </div>
+            <p class="modelo-txt">Modelo: <span id="resModelo">---</span></p>
+          </div>
+
+          <div class="media-card">
+            <h4><i data-lucide="bar-chart-2"></i> MÉDIA DE CONSUMO MENSAL</h4>
+            <p>▸ Baseado nos últimos 3 meses: <strong class="highlight" id="resMedia">0.0</strong> resmas/mês</p>
+          </div>
+
+          <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
+            <h4><i data-lucide="history"></i> Últimas entregas registradas</h4>
+            <div class="mini-table-wrapper">
+              <table class="mini-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Qtd (Resmas)</th>
+                    <th>O.S.</th>
+                  </tr>
+                </thead>
+                <tbody id="lastDeliveriesTbody">
+                  <!-- Populado via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="options-section">
+            <h4><i data-lucide="box"></i> OPÇÕES DE ENTREGA</h4>
+            <div class="options-grid">
+              
+              <div class="option-card" data-opcao="1" onclick="selecionarOpcao(1)">
+                <div class="opt-header">1x por mês</div>
+                <div class="opt-body">
+                  <span class="qtd" id="opt1Qtd">0</span> resmas
+                </div>
+                <div class="opt-footer">entrega única</div>
+              </div>
+
+              <div class="option-card" data-opcao="2" onclick="selecionarOpcao(2)">
+                <div class="opt-header">2x por mês</div>
+                <div class="opt-body">
+                  <span class="qtd" id="opt2Qtd">0</span> resmas
+                </div>
+                <div class="opt-footer">cada entrega</div>
+              </div>
+
+              <div class="option-card" data-opcao="3" onclick="selecionarOpcao(3)">
+                <div class="opt-header">3x por mês</div>
+                <div class="opt-body">
+                  <span class="qtd" id="opt3Qtd">0</span> resmas
+                </div>
+                <div class="opt-footer">cada entrega</div>
+              </div>
+
+              <div class="option-card" data-opcao="0" onclick="selecionarOpcao(0)">
+                <div class="opt-header">Entrega Manual</div>
+                <div class="opt-body">
+                  <span class="qtd">--</span>
+                </div>
+                <div class="opt-footer">avulsa</div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-line">
+              <span>Opção selecionada:</span>
+              <strong id="sumOpcaoText" class="highlight-gold">Selecione uma opção acima</strong>
+            </div>
+            <div class="summary-line edit-line hidden" id="editLine">
+              <span>Quantidade por visita:</span>
+              <div class="edit-qtd">
+                <input type="number" id="inputQtd" min="1" step="1">
+                <span>resmas</span>
+              </div>
+            </div>
+            <div class="summary-line form-line hidden" id="formLineOs">
+              <span>Nº O.S.:</span>
+              <input type="text" id="inputOs" placeholder="Obrigatório" required>
+            </div>
+            <div class="summary-line form-line hidden" id="formLineObs">
+              <span>Observação:</span>
+              <input type="text" id="inputObs" placeholder="(Opcional)">
+            </div>
+            
+            <div class="action-row hidden" id="actionRow">
+              <button class="btn-success" id="btnConfirmar" onclick="salvarBalanceamento()">
+                <i data-lucide="check-circle"></i> CONFIRMAR BALANCEAMENTO
+              </button>
+            </div>
+          </div>
+
+        </div>
+        
+        <div id="loadingIndicator" class="hidden loading">
+           <i data-lucide="loader" class="spin"></i> Buscando dados...
+        </div>
+        
+      </section>
+
+      <!-- TAB HISTÓRICO -->
+      <section id="tab-historico" class="tab-content">
+        <div class="historico-header">
+          <h2>Últimos Balanceamentos</h2>
+          <button class="btn-outline" onclick="carregarHistorico()"><i data-lucide="refresh-cw"></i> Atualizar</button>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Série</th>
+                <th>Média/mês</th>
+                <th>Frequência</th>
+                <th>Qtd/visita</th>
+                <th>O.S.</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historicoTbody">
+              <tr><td colspan="8" class="text-center">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
