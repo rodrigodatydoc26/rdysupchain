@@ -417,9 +417,18 @@ function exportarExcel() {
 }
 
 function setMedia(valor) {
-  const txt = parseFloat(valor).toFixed(1).replace('.', ',');
-  document.getElementById('resMedia').textContent = txt;
-  document.getElementById('sumMedia').textContent = txt;
+  const mediaVal = parseFloat(valor);
+  const txt = mediaVal.toFixed(1).replace('.', ',');
+  
+  // Elementos na UI
+  if(document.getElementById('resMedia')) document.getElementById('resMedia').textContent = txt;
+  if(document.getElementById('sumMedia')) document.getElementById('sumMedia').textContent = txt;
+  
+  // Cálculo de páginas (1 resma = 500 páginas)
+  const paginas = Math.round(mediaVal * 500);
+  if(document.getElementById('resPaginas')) {
+    document.getElementById('resPaginas').textContent = paginas.toLocaleString('pt-BR');
+  }
 }
 
 // Utilitários de UI

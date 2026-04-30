@@ -55,27 +55,38 @@
           </div>
 
           <div class="media-card">
-            <h4><i data-lucide="bar-chart-2"></i> MÉDIA DE CONSUMO MENSAL</h4>
-            <p>▸ Baseado nos últimos 3 meses: <strong class="highlight" id="resMedia">0.0</strong> resmas/mês</p>
-          </div>
-
-          <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
-            <h4><i data-lucide="history"></i> Últimas entregas registradas</h4>
-            <div class="mini-table-wrapper">
-              <table class="mini-table">
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Qtd (Resmas)</th>
-                    <th>O.S.</th>
-                  </tr>
-                </thead>
-                <tbody id="lastDeliveriesTbody">
-                  <!-- Populado via JS -->
-                </tbody>
-              </table>
+            <div class="media-header">
+              <div class="media-title">
+                <i data-lucide="calculator"></i>
+                <div>
+                  <h4>Cálculo de Consumo</h4>
+                  <p class="sub-txt">Baseado no delta de contadores e histórico</p>
+                </div>
+              </div>
+              <div class="capacity-tag">
+                <i data-lucide="info"></i> 1 resma = 500 páginas
+              </div>
+            </div>
+            
+            <div class="media-stats">
+              <div class="stat-item">
+                <span class="label">Média Mensal</span>
+                <div class="value-wrapper">
+                  <span class="value gold-text" id="resMedia">0,0</span>
+                  <span class="unit">resmas/mês</span>
+                </div>
+              </div>
+              <div class="stat-divider"></div>
+              <div id="numeradorInfo" class="stat-item">
+                <span class="label">Consumo em Páginas</span>
+                <div class="value-wrapper">
+                  <span class="value" id="resPaginas">---</span>
+                  <span class="unit">páginas/mês</span>
+                </div>
+              </div>
             </div>
           </div>
+
 
           <div class="options-section">
             <h4><i data-lucide="box"></i> OPÇÕES DE ENTREGA</h4>
@@ -164,6 +175,24 @@
               <button class="btn-success" id="btnConfirmar" onclick="salvarBalanceamento()">
                 <i data-lucide="check-circle"></i> CONFIRMAR BALANCEAMENTO
               </button>
+            </div>
+          </div>
+
+          <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
+            <h4><i data-lucide="history"></i> Últimas entregas registradas</h4>
+            <div class="mini-table-wrapper">
+              <table class="mini-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Qtd (Resmas)</th>
+                    <th>O.S.</th>
+                  </tr>
+                </thead>
+                <tbody id="lastDeliveriesTbody">
+                  <!-- Populado via JS -->
+                </tbody>
+              </table>
             </div>
           </div>
 
