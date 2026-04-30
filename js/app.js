@@ -156,14 +156,7 @@ function ativarModoDemo(query) {
     document.getElementById('opt2Qtd').textContent = mockMedia.sugestoes[2];
     document.getElementById('opt3Qtd').textContent = mockMedia.sugestoes[3];
     
-    const tbody = document.getElementById('lastDeliveriesTbody');
-    tbody.innerHTML = mockMedia.entregas.map(e => `
-      <tr>
-        <td>${new Date(e.data_entrega).toLocaleDateString('pt-BR')}</td>
-        <td>${e.quantidade}</td>
-        <td>${e.numero_os}</td>
-      </tr>
-    `).join('');
+    renderizarUltimasEntregas(mockMedia.entregas);
     document.getElementById('lastDeliveriesCard').classList.remove('hidden');
 
     mostrarResultado();
@@ -176,6 +169,24 @@ function ativarModoDemo(query) {
     document.body.appendChild(notify);
     setTimeout(() => notify.remove(), 4000);
   }, 800);
+}
+
+function renderizarUltimasEntregas(entregas) {
+  const tbody = document.getElementById('lastDeliveriesTbody');
+  tbody.innerHTML = '';
+  
+  if (!entregas || entregas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center" style="padding: 20px; color: var(--text-dim);">Nenhuma entrega recente.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = entregas.map(e => `
+    <tr>
+      <td>${new Date(e.data_entrega).toLocaleDateString('pt-BR')}</td>
+      <td>${e.quantidade}</td>
+      <td>${e.numero_os}</td>
+    </tr>
+  `).join('');
 }
 
 function preencherInfoEquipamento(eq) {
@@ -257,17 +268,10 @@ async function calcularMedia(id) {
       document.getElementById('opt3Qtd').textContent = data.sugestoes[3];
       
       // Preencher últimas entregas
-      const tbody = document.getElementById('lastDeliveriesTbody');
       const card = document.getElementById('lastDeliveriesCard');
+      renderizarUltimasEntregas(data.entregas);
       
       if (data.entregas && data.entregas.length > 0) {
-        tbody.innerHTML = data.entregas.map(e => `
-          <tr>
-            <td>${new Date(e.data_entrega || e.created_at).toLocaleDateString('pt-BR')}</td>
-            <td>${e.quantidade}</td>
-            <td>${e.numero_os || '---'}</td>
-          </tr>
-        `).join('');
         card.classList.remove('hidden');
       } else {
         card.classList.add('hidden');
@@ -377,6 +381,35 @@ async function salvarBalanceamento() {
   }
 }
 
+async function renderizarHistorico(dados) {
+  const tbody = document.getElementById('historicoTbody');
+  tbody.innerHTML = '';
+  
+  if (!dados || dados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 40px; color: var(--text-dim);">Nenhum registro de balanceamento encontrado.</td></tr>';
+    return;
+  }
+
+  dados.forEach(item => {
+    const tr = document.createElement('tr');
+    const dataFormatada = new Date(item.data_registro).toLocaleDateString('pt-BR');
+    const nomeCliente = item.cliente ? item.cliente.nome : 'N/D';
+    const serieEquip = item.equipamento ? item.equipamento.serie : 'N/D';
+
+    tr.innerHTML = `
+      <td>${dataFormatada}</td>
+      <td>${nomeCliente}</td>
+      <td>${serieEquip}</td>
+      <td>${item.media_consumo_mensal}</td>
+      <td>${item.opcao_entrega === 0 ? 'Manual' : item.opcao_entrega + 'x'}</td>
+      <td>${item.quantidade_definida}</td>
+      <td>${item.numero_os}</td>
+      <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 async function carregarHistorico() {
   const tbody = document.getElementById('historicoTbody');
   tbody.innerHTML = '<tr><td colspan="8" class="text-center">Carregando... <i data-lucide="loader" class="spin"></i></td></tr>';
@@ -401,60 +434,15 @@ async function carregarHistorico() {
     }
 
     const data = await res.json();
-
-    if (data && data.length > 0) {
-      tbody.innerHTML = '';
-      data.forEach(item => {
-        const tr = document.createElement('tr');
-        const dataFormatada = new Date(item.data_registro).toLocaleDateString('pt-BR');
-        
-        // Evitar erro se não tiver a relação cliente / equipamento retornado
-        const nomeCliente = item.cliente ? item.cliente.nome : 'N/D';
-        const serieEquip = item.equipamento ? item.equipamento.serie : 'N/D';
-
-        tr.innerHTML = `
-          <td>${dataFormatada}</td>
-          <td>${nomeCliente}</td>
-          <td>${serieEquip}</td>
-          <td>${item.media_consumo_mensal}</td>
-          <td>${item.opcao_entrega === 0 ? 'Manual' : item.opcao_entrega + 'x'}</td>
-          <td>${item.quantidade_definida}</td>
-          <td>${item.numero_os}</td>
-          <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } else {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center">Nenhum histórico encontrado.</td></tr>';
-    }
+    renderizarHistorico(data);
   } catch (error) {
     console.warn("Erro ao carregar histórico (Modo Demo Ativo):", error);
-    mostrarHistoricoDemo();
+    const mockData = [
+      { data_registro: new Date().toISOString(), cliente: {nome: 'PM INDAIATUBA'}, equipamento: {serie: 'BRBSQ6J14HD'}, media_consumo_mensal: 4.5, opcao_entrega: 1, quantidade_definida: 6, numero_os: 'OS-9988', status: 'confirmado' },
+      { data_registro: new Date(Date.now() - 5*24*60*60*1000).toISOString(), cliente: {nome: 'PM LIMEIRA'}, equipamento: {serie: 'CZC3345'}, media_consumo_mensal: 12.0, opcao_entrega: 2, quantidade_definida: 24, numero_os: 'OS-9977', status: 'confirmado' }
+    ];
+    renderizarHistorico(mockData);
   }
-}
-
-function mostrarHistoricoDemo() {
-  const tbody = document.getElementById('historicoTbody');
-  const mockData = [
-    { data_registro: new Date().toISOString(), cliente: {nome: 'CLIENTE DEMO 1'}, equipamento: {serie: 'SERIE123'}, media_consumo_mensal: 10.5, opcao_entrega: 2, quantidade_definida: 6, numero_os: 'OS-123', status: 'confirmado' },
-    { data_registro: new Date().toISOString(), cliente: {nome: 'SECRETARIA ADM'}, equipamento: {serie: 'BRB456'}, media_consumo_mensal: 4.2, opcao_entrega: 1, quantidade_definida: 5, numero_os: 'OS-456', status: 'confirmado' }
-  ];
-  
-  tbody.innerHTML = '';
-  mockData.forEach(item => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${new Date(item.data_registro).toLocaleDateString('pt-BR')}</td>
-      <td>${item.cliente.nome}</td>
-      <td>${item.equipamento.serie}</td>
-      <td>${item.media_consumo_mensal}</td>
-      <td>${item.opcao_entrega === 0 ? 'Manual' : item.opcao_entrega + 'x'}</td>
-      <td>${item.quantidade_definida}</td>
-      <td>${item.numero_os}</td>
-      <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
 }
 
 function exportarExcel() {
