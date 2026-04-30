@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's|https://jvwrbrypyrwnaaqijbqm.supabase.co|https://iedkbtceqgrawgubxslh.supabase.co|g' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/buscar-equipamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/salvar-balanceamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/listar-balanceamentos.php')",
+      "Bash(sed -i 's|__TRACKED_VAR__|__TRACKED_VAR__|g' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/buscar-equipamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/salvar-balanceamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/listar-balanceamentos.php')"
+    ]
+  }
+}
