@@ -141,7 +141,7 @@
               <div class="summary-line">
                 <span>Contador Atual:</span>
                 <div class="edit-qtd">
-                  <input type="number" id="inputContador" placeholder="OBRIGATÓRIO" title="O contador atual é obrigatório para salvar" oninput="atualizarProximaSolicitacao()">
+                  <input type="number" id="inputContador" placeholder="0" title="Inserir contador atual" oninput="atualizarProximaSolicitacao()">
                   <button class="btn-calc" onclick="recalcularComContador()" title="Recalcular média com este contador">
                     <i data-lucide="refresh-cw"></i>
                   </button>
@@ -168,7 +168,7 @@
 
             <div class="summary-line form-line hidden" id="formLineOs">
               <span>Nº O.S.:</span>
-              <input type="text" id="inputOs" placeholder="OBRIGATÓRIO" title="O número da O.S. é obrigatório para salvar">
+              <input type="text" id="inputOs" placeholder="(Opcional)" title="Número da O.S.">
             </div>
             <div class="summary-line form-line hidden" id="formLineObs">
               <span>Observação:</span>

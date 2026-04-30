@@ -340,20 +340,9 @@ async function salvarBalanceamento() {
   
   const obs = document.getElementById('inputObs').value.trim();
   const contadorAtual = parseInt(document.getElementById('inputContador').value) || null;
-
-  if (!os) { alert("O número da O.S. é obrigatório!"); return; }
-  if (!qtd || qtd <= 0) { alert("Quantidade inválida!"); return; }
-  
   const antigo = state.equipamentoAtual.ultimo_contador || 0;
-  if (!contadorAtual || contadorAtual <= 0) {
-    alert("O Contador Atual é obrigatório para registrar a entrega!");
-    return;
-  }
-  
-  if (contadorAtual <= antigo) {
-    alert(`Erro: O contador atual (${contadorAtual}) não pode ser menor ou igual ao anterior (${antigo}).`);
-    return;
-  }
+
+  if (!qtd || qtd <= 0) { alert("Quantidade inválida!"); return; }
 
   // REAJUSTE AUTOMÁTICO DE MÉDIA: Se o contador mudou, calculamos a média real deste período
   const dataAntiga = state.equipamentoAtual.data_ultimo_contador;
