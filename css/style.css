@@ -178,6 +178,19 @@ body {
   border-bottom: none;
 }
 
+.card-input {
+  width: 70px;
+  background: var(--bg-0);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  border-radius: 4px;
+  padding: 4px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  outline: none;
+}
+
 .suggestion-item:hover {
   background: var(--bg-2);
   color: var(--gold);

@@ -284,29 +284,42 @@ function selecionarOpcao(opcao) {
   state.opcaoSelecionada = opcao;
   let qtd = state.sugestoes[opcao] || 0;
   
-  if (opcao === 0) qtd = 1;
+  if (opcao === 0) {
+    qtd = parseInt(document.getElementById('inputManualQtd').value) || 1;
+  }
   
   document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
   document.querySelector(`.option-card[data-opcao="${opcao}"]`).classList.add('selected');
   
   if (opcao === 0) {
-    document.getElementById('sumOpcaoText').textContent = `Entrega Manual (Avulsa)`;
+    document.getElementById('sumOpcaoText').textContent = `Entrega Manual (Avulsa: ${qtd} resmas)`;
   } else {
     document.getElementById('sumOpcaoText').textContent = `${opcao}x por mês (${qtd} resmas por visita)`;
   }
   
-  document.getElementById('editLine').classList.remove('hidden');
   document.getElementById('formLineOs').classList.remove('hidden');
   document.getElementById('formLineObs').classList.remove('hidden');
   document.getElementById('actionRow').classList.remove('hidden');
-  document.getElementById('inputQtd').value = qtd;
   
   atualizarProximaSolicitacao();
 }
 
+function atualizarQtdManual(val) {
+  if (state.opcaoSelecionada === 0) {
+    document.getElementById('sumOpcaoText').textContent = `Entrega Manual (Avulsa: ${val} resmas)`;
+    atualizarProximaSolicitacao();
+  }
+}
+
 function atualizarProximaSolicitacao() {
   const contador = parseInt(document.getElementById('inputContador').value) || 0;
-  const qtd = parseInt(document.getElementById('inputQtd').value) || 0;
+  let qtd = 0;
+  
+  if (state.opcaoSelecionada === 0) {
+    qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
+  } else if (state.opcaoSelecionada !== null) {
+    qtd = state.sugestoes[state.opcaoSelecionada] || 0;
+  }
   
   if (contador > 0 && qtd > 0) {
     const proxima = contador + (qtd * 500);
@@ -318,7 +331,13 @@ function atualizarProximaSolicitacao() {
 
 async function salvarBalanceamento() {
   const os = document.getElementById('inputOs').value.trim();
-  const qtd = parseInt(document.getElementById('inputQtd').value);
+  let qtd = 0;
+  if (state.opcaoSelecionada === 0) {
+    qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
+  } else {
+    qtd = state.sugestoes[state.opcaoSelecionada] || 0;
+  }
+  
   const obs = document.getElementById('inputObs').value.trim();
   const contadorAtual = parseInt(document.getElementById('inputContador').value) || null;
 

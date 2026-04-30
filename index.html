@@ -124,9 +124,9 @@
               <div class="option-card" data-opcao="0" onclick="selecionarOpcao(0)">
                 <div class="opt-header">Entrega Manual</div>
                 <div class="opt-body">
-                  <span class="qtd">--</span>
+                  <input type="number" id="inputManualQtd" class="card-input" value="1" min="1" onclick="event.stopPropagation()" oninput="atualizarQtdManual(this.value)">
                 </div>
-                <div class="opt-footer">avulsa</div>
+                <div class="opt-footer">AVULSA</div>
               </div>
 
             </div>
@@ -163,13 +163,7 @@
                 <strong id="sumOpcaoText" class="highlight-gold">Selecione uma opção acima</strong>
               </div>
 
-              <div class="summary-line edit-line hidden" id="editLine">
-                <span>Quantidade por visita:</span>
-                <div class="edit-qtd">
-                  <input type="number" id="inputQtd" min="1" step="1" placeholder="0" title="Quantidade de resmas por visita" oninput="atualizarProximaSolicitacao()">
-                  <span>resmas</span>
-                </div>
-              </div>
+              <!-- Quantidade por visita removida conforme solicitado -->
             </div>
 
             <div class="summary-line form-line hidden" id="formLineOs">
