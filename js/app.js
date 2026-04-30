@@ -174,15 +174,7 @@ function preencherInfoEquipamento(eq) {
   const contador = eq.ultimo_contador || 0;
   document.getElementById('resContador').textContent = contador;
 
-  // Preencher média projetada do Excel
-  const mediaExcel = parseFloat(eq.media_referencia) || 0;
-  const inputMedia = document.getElementById('inputMediaProjetada');
-  inputMedia.value = mediaExcel.toFixed(1);
-  
-  if (mediaExcel > 0) {
-    usarMediaProjetada(mediaExcel);
-  }
-  
+  // A média projetada agora é usada internamente no cálculo de média se não houver histórico
   document.getElementById('sumContadorAnterior').textContent = contador;
   document.getElementById('inputContador').value = '';
 }
