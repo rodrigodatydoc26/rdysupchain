@@ -81,9 +81,9 @@
               </div>
               <div class="stat-divider"></div>
               <div class="stat-item">
-                <span class="label">Média Projetada</span>
+                <label for="inputMediaProjetada" class="label">Média Projetada</label>
                 <div class="value-wrapper">
-                  <input type="number" id="inputMediaProjetada" class="inline-input gold-text" value="0.0" step="0.1" oninput="usarMediaProjetada(this.value)">
+                  <input type="number" id="inputMediaProjetada" title="Média mensal informada no Excel" class="inline-input gold-text" value="0.0" step="0.1" oninput="usarMediaProjetada(this.value)">
                   <span class="unit">resmas/mês</span>
                 </div>
               </div>
@@ -266,8 +266,8 @@
               <tr><td colspan="9" class="text-center">Carregando...</td></tr>
             </tbody>
             <tfoot id="historicoTfoot" class="hidden">
-              <tr style="background: var(--bg-2); font-weight: 700;">
-                <td colspan="5" style="text-align: right;">TOTAL NO PERÍODO:</td>
+              <tr class="total-row">
+                <td colspan="5" class="text-right">TOTAL NO PERÍODO:</td>
                 <td id="totalResmas" class="gold-text">0</td>
                 <td colspan="3">resmas entregues</td>
               </tr>

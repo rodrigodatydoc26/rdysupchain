@@ -48,7 +48,7 @@ async function buscarSugestoes(query) {
       ocultarSugestoes();
     }
   } catch (error) {
-    console.warn("Erro ao buscar sugestões:", error);
+    console.error("Erro ao buscar sugestões:", error);
     ocultarSugestoes();
   }
 }
@@ -96,12 +96,6 @@ async function buscarEquipamento(query) {
 
   try {
     const res = await fetch(`/api/buscar-equipamento.php?q=${encodeURIComponent(query)}`);
-    
-    // Se falhar o fetch (ex: arquivo não encontrado ou sem servidor PHP)
-    if (!res.ok && window.location.protocol === 'file:') {
-       throw new Error('Ambiente local sem PHP');
-    }
-
     const data = await res.json();
 
     if (data && data.id) {
@@ -113,62 +107,10 @@ async function buscarEquipamento(query) {
       mostrarLoading(false);
     }
   } catch (error) {
-    console.warn("API PHP não detectada. Ativando MODO DEMONSTRAÇÃO para visualização.", error);
-    ativarModoDemo(query);
-  }
-}
-
-function ativarModoDemo(query) {
-  // Dados mockados para teste sem servidor
-  const mockEquip = {
-    id: 'demo-uuid-123',
-    serie: query.toUpperCase(),
-    patrimonio: 'DEMO-001',
-    modelo: 'HP LaserJet Pro M404n (DEMO)',
-    cliente: { id: 'cli-1', nome: 'PM INDAIATUBA' },
-    secretaria: 'SECRETARIA DE SAÚDE'
-  };
-  
-  state.equipamentoAtual = mockEquip;
-  preencherInfoEquipamento(mockEquip);
-  
-  // Simular resposta de média
-  const mockMedia = {
-    media: 4.5,
-    sugestoes: {
-      1: 6,
-      2: 3,
-      3: 2
-    },
-    entregas: [
-      { data_entrega: new Date().toISOString(), quantidade: 5, numero_os: 'OS-DEMO-A' },
-      { data_entrega: new Date(Date.now() - 30*24*60*60*1000).toISOString(), quantidade: 4, numero_os: 'OS-DEMO-B' },
-      { data_entrega: new Date(Date.now() - 60*24*60*60*1000).toISOString(), quantidade: 5, numero_os: 'OS-DEMO-C' }
-    ]
-  };
-  
-  setTimeout(() => {
-    state.mediaAtual = mockMedia.media;
-    state.sugestoes = mockMedia.sugestoes;
-    
-    setMedia(mockMedia.media);
-    document.getElementById('opt1Qtd').textContent = mockMedia.sugestoes[1];
-    document.getElementById('opt2Qtd').textContent = mockMedia.sugestoes[2];
-    document.getElementById('opt3Qtd').textContent = mockMedia.sugestoes[3];
-    
-    renderizarUltimasEntregas(mockMedia.entregas);
-    document.getElementById('lastDeliveriesCard').classList.remove('hidden');
-
-    mostrarResultado();
+    console.error("Erro ao buscar equipamento:", error);
+    alert("Erro na comunicação com o servidor.");
     mostrarLoading(false);
-    
-    // Notificação discreta
-    const notify = document.createElement('div');
-    notify.style = "position:fixed; bottom:20px; right:20px; background:var(--gold); color:#000; padding:10px 20px; border-radius:30px; font-weight:bold; font-size:12px; z-index:9999;";
-    notify.innerHTML = "✨ MODO DEMONSTRAÇÃO ATIVO";
-    document.body.appendChild(notify);
-    setTimeout(() => notify.remove(), 4000);
-  }, 800);
+  }
 }
 
 function renderizarUltimasEntregas(entregas) {
@@ -198,6 +140,17 @@ function preencherInfoEquipamento(eq) {
   
   const contador = eq.ultimo_contador || 0;
   document.getElementById('resContador').textContent = contador;
+
+  // Preencher média projetada do Excel
+  const mediaExcel = parseFloat(eq.media_referencia) || 0;
+  const inputMedia = document.getElementById('inputMediaProjetada');
+  inputMedia.value = mediaExcel.toFixed(1);
+  
+  // Se houver média no Excel, já sugerir com base nela
+  if (mediaExcel > 0) {
+    usarMediaProjetada(mediaExcel);
+  }
+  
   document.getElementById('sumContadorAnterior').textContent = contador;
   document.getElementById('inputContador').value = '';
 }
@@ -227,16 +180,12 @@ function recalcularComContador() {
   const consumoMensalPaginas = consumoDiario * 30;
   const consumoMensalResmas = consumoMensalPaginas / 500;
   
-  // Arredondar conforme regra (1 casa decimal)
   const mediaCalculada = Math.ceil(consumoMensalResmas * 10) / 10;
-  
   aplicarNovaMedia(mediaCalculada);
 }
 
 function aplicarNovaMedia(media) {
   state.mediaAtual = media;
-  
-  // Recalcular sugestões com margem de 15%
   const comMargem = media * 1.15;
   state.sugestoes = {
     1: Math.ceil(comMargem),
@@ -250,7 +199,6 @@ function aplicarNovaMedia(media) {
   document.getElementById('opt3Qtd').textContent = state.sugestoes[3];
   
   resetarSelecao();
-  alert("Média recalculada com base no consumo do numerador!");
 }
 
 async function calcularMedia(id) {
@@ -267,7 +215,6 @@ async function calcularMedia(id) {
       document.getElementById('opt2Qtd').textContent = data.sugestoes[2];
       document.getElementById('opt3Qtd').textContent = data.sugestoes[3];
       
-      // Preencher últimas entregas
       const card = document.getElementById('lastDeliveriesCard');
       renderizarUltimasEntregas(data.entregas);
       
@@ -282,7 +229,6 @@ async function calcularMedia(id) {
     }
   } catch (error) {
     console.error("Erro ao calcular média:", error);
-    alert("Erro ao calcular média de consumo.");
   } finally {
     mostrarLoading(false);
   }
@@ -292,27 +238,21 @@ function selecionarOpcao(opcao) {
   state.opcaoSelecionada = opcao;
   let qtd = state.sugestoes[opcao] || 0;
   
-  if (opcao === 0) {
-    qtd = 1; // Inicializar com 1 para manual
-  }
+  if (opcao === 0) qtd = 1;
   
-  // Atualiza UI dos cards
   document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
   document.querySelector(`.option-card[data-opcao="${opcao}"]`).classList.add('selected');
   
-  // Atualiza sumário
   if (opcao === 0) {
     document.getElementById('sumOpcaoText').textContent = `Entrega Manual (Avulsa)`;
   } else {
     document.getElementById('sumOpcaoText').textContent = `${opcao}x por mês (${qtd} resmas por visita)`;
   }
   
-  // Mostra campos adicionais
   document.getElementById('editLine').classList.remove('hidden');
   document.getElementById('formLineOs').classList.remove('hidden');
   document.getElementById('formLineObs').classList.remove('hidden');
   document.getElementById('actionRow').classList.remove('hidden');
-  
   document.getElementById('inputQtd').value = qtd;
 }
 
@@ -322,15 +262,8 @@ async function salvarBalanceamento() {
   const obs = document.getElementById('inputObs').value.trim();
   const contadorAtual = parseInt(document.getElementById('inputContador').value) || null;
 
-  if (!os) {
-    alert("O número da O.S. é obrigatório!");
-    return;
-  }
-
-  if (!qtd || qtd <= 0) {
-    alert("Quantidade inválida!");
-    return;
-  }
+  if (!os) { alert("O número da O.S. é obrigatório!"); return; }
+  if (!qtd || qtd <= 0) { alert("Quantidade inválida!"); return; }
 
   const payload = {
     equipamento_id: state.equipamentoAtual.id,
@@ -355,12 +288,6 @@ async function salvarBalanceamento() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
-    // Fallback para modo demo se o PHP falhar
-    if (!res.ok && window.location.protocol === 'file:') {
-       throw new Error('Offline');
-    }
-
     const result = await res.json();
     if (result.success) {
       alert("Balanceamento salvo com sucesso!");
@@ -370,10 +297,8 @@ async function salvarBalanceamento() {
       alert("Erro ao salvar: " + (result.error || "Desconhecido"));
     }
   } catch (error) {
-    console.warn("Erro ao salvar (Modo Demo Ativo):", error);
-    alert("✨ [MODO DEMO] Balanceamento simulado com sucesso!");
-    document.getElementById('searchInput').value = '';
-    ocultarResultado();
+    console.error("Erro ao salvar:", error);
+    alert("Erro ao conectar com o servidor.");
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="check-circle"></i> CONFIRMAR BALANCEAMENTO';
@@ -430,7 +355,7 @@ function usarMediaProjetada(valor) {
 
 async function carregarHistorico() {
   const tbody = document.getElementById('historicoTbody');
-  tbody.innerHTML = '<tr><td colspan="8" class="text-center">Carregando... <i data-lucide="loader" class="spin"></i></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" class="text-center">Carregando... <i data-lucide="loader" class="spin"></i></td></tr>';
   lucide.createIcons();
 
   const filterDataInicio = document.getElementById('filterDataInicio').value;
@@ -446,20 +371,10 @@ async function carregarHistorico() {
 
   try {
     const res = await fetch(`/api/listar-balanceamentos.php?${params.toString()}`);
-    
-    if (!res.ok && window.location.protocol === 'file:') {
-       throw new Error('Offline');
-    }
-
     const data = await res.json();
     renderizarHistorico(data);
   } catch (error) {
-    console.warn("Erro ao carregar histórico (Modo Demo Ativo):", error);
-    const mockData = [
-      { data_registro: new Date().toISOString(), cliente: {nome: 'PM INDAIATUBA'}, equipamento: {serie: 'BRBSQ6J14HD', secretaria: 'SAÚDE'}, media_consumo_mensal: 4.5, opcao_entrega: 1, quantidade_definida: 6, numero_os: 'OS-9988', status: 'confirmado' },
-      { data_registro: new Date(Date.now() - 5*24*60*60*1000).toISOString(), cliente: {nome: 'PM LIMEIRA'}, equipamento: {serie: 'CZC3345', secretaria: 'EDUCAÇÃO'}, media_consumo_mensal: 12.0, opcao_entrega: 2, quantidade_definida: 24, numero_os: 'OS-9977', status: 'confirmado' }
-    ];
-    renderizarHistorico(mockData);
+    console.error("Erro ao carregar histórico:", error);
   }
 }
 
@@ -478,18 +393,15 @@ function setMedia(valor) {
   const mediaVal = parseFloat(valor);
   const txt = mediaVal.toFixed(1).replace('.', ',');
   
-  // Elementos na UI
   if(document.getElementById('resMedia')) document.getElementById('resMedia').textContent = txt;
   if(document.getElementById('sumMedia')) document.getElementById('sumMedia').textContent = txt;
   
-  // Cálculo de páginas (1 resma = 500 páginas)
   const paginas = Math.round(mediaVal * 500);
   if(document.getElementById('resPaginas')) {
     document.getElementById('resPaginas').textContent = paginas.toLocaleString('pt-BR');
   }
 }
 
-// Utilitários de UI
 function mostrarLoading(show) {
   const loader = document.getElementById('loadingIndicator');
   if (show) loader.classList.remove('hidden');
