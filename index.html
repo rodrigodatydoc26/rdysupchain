@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   
@@ -178,21 +179,28 @@
       <section id="tab-historico" class="tab-content">
         <div class="historico-header">
           <h2>Últimos Balanceamentos</h2>
-          <button class="btn-outline" onclick="carregarHistorico()"><i data-lucide="refresh-cw"></i> Atualizar</button>
+          <div class="header-actions">
+            <button class="btn-outline btn-excel" onclick="exportarExcel()"><i data-lucide="file-spreadsheet"></i> Exportar Excel</button>
+            <button class="btn-outline" onclick="carregarHistorico()"><i data-lucide="refresh-cw"></i> Atualizar</button>
+          </div>
         </div>
 
         <div class="filters-bar">
           <div class="filter-group">
-            <label>Data:</label>
-            <input type="date" id="filterData">
+            <label>Período De:</label>
+            <input type="date" id="filterDataInicio" title="Data inicial do período">
+          </div>
+          <div class="filter-group">
+            <label>Até:</label>
+            <input type="date" id="filterDataFim" title="Data final do período">
           </div>
           <div class="filter-group">
             <label>Cliente:</label>
-            <input type="text" id="filterCliente" placeholder="Filtrar cliente...">
+            <input type="text" id="filterCliente" placeholder="Filtrar cliente..." title="Filtrar por nome do cliente">
           </div>
           <div class="filter-group">
             <label>Série/Patrimônio:</label>
-            <input type="text" id="filterSerie" placeholder="Nº Série/Patri...">
+            <input type="text" id="filterSerie" placeholder="Nº Série/Patri..." title="Filtrar por série ou patrimônio">
           </div>
           <div class="filter-group">
             <button class="btn-primary" onclick="carregarHistorico()">FILTRAR</button>

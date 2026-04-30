@@ -491,6 +491,21 @@ input[type="text"]:focus, input[type="number"]:focus {
   margin-bottom: 24px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-excel {
+  color: #107c41 !important; /* Cor do Excel */
+  border-color: #107c41 !important;
+}
+
+.btn-excel:hover {
+  background: #107c41 !important;
+  color: #fff !important;
+}
+
 .filters-bar {
   display: flex;
   flex-wrap: wrap;

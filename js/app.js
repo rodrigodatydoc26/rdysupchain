@@ -331,12 +331,14 @@ async function carregarHistorico() {
   tbody.innerHTML = '<tr><td colspan="8" class="text-center">Carregando... <i data-lucide="loader" class="spin"></i></td></tr>';
   lucide.createIcons();
 
-  const filterData = document.getElementById('filterData').value;
+  const filterDataInicio = document.getElementById('filterDataInicio').value;
+  const filterDataFim = document.getElementById('filterDataFim').value;
   const filterCliente = document.getElementById('filterCliente').value;
   const filterSerie = document.getElementById('filterSerie').value;
 
   const params = new URLSearchParams();
-  if (filterData) params.append('data', filterData);
+  if (filterDataInicio) params.append('data_inicio', filterDataInicio);
+  if (filterDataFim) params.append('data_fim', filterDataFim);
   if (filterCliente) params.append('cliente', filterCliente);
   if (filterSerie) params.append('serie', filterSerie);
 
@@ -395,13 +397,24 @@ function mostrarHistoricoDemo() {
       <td>${item.cliente.nome}</td>
       <td>${item.equipamento.serie}</td>
       <td>${item.media_consumo_mensal}</td>
-      <td>${item.opcao_entrega}x</td>
+      <td>${item.opcao_entrega === 0 ? 'Manual' : item.opcao_entrega + 'x'}</td>
       <td>${item.quantidade_definida}</td>
       <td>${item.numero_os}</td>
       <td><span class="status-badge status-${item.status}">${item.status}</span></td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+function exportarExcel() {
+  const table = document.querySelector(".data-table");
+  if (!table || table.rows.length <= 2 && table.rows[1].cells.length < 5) {
+    alert("Não há dados para exportar.");
+    return;
+  }
+
+  const wb = XLSX.utils.table_to_book(table, { sheet: "Balanceamentos" });
+  XLSX.writeFile(wb, `Balanceamentos_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
 // Utilitários de UI

@@ -9,10 +9,11 @@ $url = $supabaseUrl . '/rest/v1/balanceamento_entregas'
      . '&order=data_registro.desc';
 
 // Adicionar filtros se existirem
-if (!empty($_GET['data'])) {
-    $data = $_GET['data'];
-    $url .= '&data_registro=gte.' . urlencode($data . 'T00:00:00Z');
-    $url .= '&data_registro=lte.' . urlencode($data . 'T23:59:59Z');
+if (!empty($_GET['data_inicio'])) {
+    $url .= '&data_registro=gte.' . urlencode($_GET['data_inicio'] . 'T00:00:00Z');
+}
+if (!empty($_GET['data_fim'])) {
+    $url .= '&data_registro=lte.' . urlencode($_GET['data_fim'] . 'T23:59:59Z');
 }
 if (!empty($_GET['cliente'])) {
     $url .= '&cliente.nome=ilike.*' . urlencode($_GET['cliente']) . '*';
