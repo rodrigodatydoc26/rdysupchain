@@ -215,7 +215,7 @@ function aplicarNovaMedia(media) {
   state.mediaAtual = media;
   const comMargem = media * 1.15;
   state.sugestoes = {
-    1: Math.ceil(comMargem),
+    1: Math.ceil(media) + 1, // Regra solicitada: Média + 1 resma
     2: Math.ceil(comMargem / 2),
     3: Math.ceil(comMargem / 3)
   };
@@ -245,7 +245,7 @@ async function calcularMedia(id) {
     state.mediaAtual = media;
     const comMargem = media * 1.15;
     state.sugestoes = {
-      1: Math.ceil(comMargem),
+      1: Math.ceil(media) + 1, // Regra solicitada: Média + 1 resma
       2: Math.ceil(comMargem / 2),
       3: Math.ceil(comMargem / 3)
     };
