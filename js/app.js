@@ -39,6 +39,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if(e.target.dataset.tab === 'historico') {
       carregarHistorico();
     }
+    if(e.target.dataset.tab === 'relatorios') {
+      carregarRelatorios();
+    }
   });
 });
 
@@ -319,6 +322,23 @@ async function salvarBalanceamento() {
     return;
   }
 
+  // REAJUSTE AUTOMÁTICO DE MÉDIA: Se o contador mudou, calculamos a média real deste período
+  const dataAntiga = state.equipamentoAtual.data_ultimo_contador;
+  if (dataAntiga) {
+    const dataInicio = new Date(dataAntiga);
+    const dataFim = new Date();
+    const diffTime = Math.abs(dataFim - dataInicio);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    
+    const consumoPaginas = contadorAtual - antigo;
+    const consumoDiario = consumoPaginas / diffDays;
+    const consumoMensalPaginas = consumoDiario * 30;
+    const consumoMensalResmas = consumoMensalPaginas / 500;
+    
+    // Atualiza a média do estado para que o registro seja salvo com a média REAJUSTADA
+    state.mediaAtual = Math.ceil(consumoMensalResmas * 10) / 10;
+  }
+
   const payload = {
     equipamento_id: state.equipamentoAtual.id,
     cliente_id: state.equipamentoAtual.cliente.id,
@@ -486,4 +506,34 @@ function resetarSelecao() {
   document.getElementById('actionRow').classList.add('hidden');
   document.getElementById('inputOs').value = '';
   document.getElementById('inputObs').value = '';
+}
+async function carregarRelatorios() {
+  const tbody = document.getElementById('rankingTbody');
+  tbody.innerHTML = '<tr><td colspan="7" class="text-center">Gerando ranking... <i data-lucide="loader" class="spin"></i></td></tr>';
+  lucide.createIcons();
+
+  try {
+    const data = await sbFetch('/view_top_equipamentos?limit=20');
+    
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">Sem dados suficientes para gerar o ranking.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map((item, index) => `
+      <tr class="rank-${index + 1}">
+        <td><span class="rank-badge">${index + 1}º</span></td>
+        <td><strong>${item.serie}</strong></td>
+        <td>${item.secretaria}</td>
+        <td>${item.cliente_nome}</td>
+        <td class="text-center">${item.total_chamados}</td>
+        <td class="text-center highlight-gold">${item.total_resmas}</td>
+        <td class="text-center">${parseFloat(item.media_media).toFixed(1)}</td>
+      </tr>
+    `).join('');
+
+  } catch (error) {
+    console.error("Erro ao carregar relatórios:", error);
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Erro ao carregar dados do ranking.</td></tr>';
+  }
 }
