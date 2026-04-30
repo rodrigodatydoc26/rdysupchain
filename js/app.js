@@ -61,7 +61,7 @@ function renderizarSugestoes(itens) {
         <strong>${item.serie}</strong>
         ${item.patrimonio ? `<span class="tag-sm">Pat: ${item.patrimonio}</span>` : ''}
       </div>
-      <span class="sub">${item.cliente ? item.cliente.nome : 'Sem cliente'}</span>
+      <span class="sub">${item.cliente ? item.cliente.nome : ''} ${item.secretaria ? ' - ' + item.secretaria : ''}</span>
     </div>
   `).join('');
   list.classList.remove('hidden');
@@ -125,7 +125,8 @@ function ativarModoDemo(query) {
     serie: query.toUpperCase(),
     patrimonio: 'DEMO-001',
     modelo: 'HP LaserJet Pro M404n (DEMO)',
-    cliente: { id: 'cli-1', nome: 'CLIENTE DEMONSTRAÇÃO LTDA' }
+    cliente: { id: 'cli-1', nome: 'PM INDAIATUBA' },
+    secretaria: 'SECRETARIA DE SAÚDE'
   };
   
   state.equipamentoAtual = mockEquip;
