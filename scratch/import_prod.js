@@ -32,7 +32,6 @@ async function importFull() {
             if (clientMap.has(clienteNome)) {
                 clienteId = clientMap.get(clienteNome);
             } else {
-                // Upsert cliente
                 const resCli = await fetch(`${SUPABASE_URL}/rest/v1/clientes`, {
                     method: 'POST',
                     headers: { 
@@ -43,13 +42,18 @@ async function importFull() {
                     },
                     body: JSON.stringify({ nome: clienteNome, cidade: cidade })
                 });
+                
+                if (!resCli.ok) {
+                    const err = await resCli.text();
+                    throw new Error(`Erro ao criar cliente ${clienteNome}: ${err}`);
+                }
+
                 const cliData = await resCli.json();
                 clienteId = cliData[0].id;
                 clientMap.set(clienteNome, clienteId);
             }
 
-            // Inserir equipamento
-            await fetch(`${SUPABASE_URL}/rest/v1/equipamentos`, {
+            const resEquip = await fetch(`${SUPABASE_URL}/rest/v1/equipamentos`, {
                 method: 'POST',
                 headers: { 
                     'apikey': SUPABASE_KEY, 
@@ -65,6 +69,11 @@ async function importFull() {
                     patrimonio: 'Não informado'
                 })
             });
+
+            if (!resEquip.ok) {
+                const err = await resEquip.text();
+                console.error(`Erro ao criar equipamento ${serie}: ${err}`);
+            }
 
             if (i % 100 === 0) console.log(`Progresso: ${i}/${rows.length}...`);
         } catch (e) {

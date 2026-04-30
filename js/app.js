@@ -39,7 +39,7 @@ searchInput.addEventListener('input', (e) => {
 
 async function buscarSugestoes(query) {
   try {
-    const res = await fetch(`/api/buscar-equipamento.php?type=list&q=${encodeURIComponent(query)}`);
+    const res = await fetch(`api/buscar-equipamento.php?type=list&q=${encodeURIComponent(query)}`);
     const data = await res.json();
     
     if (Array.isArray(data) && data.length > 0) {
@@ -48,7 +48,7 @@ async function buscarSugestoes(query) {
       ocultarSugestoes();
     }
   } catch (error) {
-    console.error("Erro ao buscar sugestões:", error);
+    console.debug("Sugestões indisponíveis (servidor offline)");
     ocultarSugestoes();
   }
 }
@@ -95,7 +95,7 @@ async function buscarEquipamento(query) {
   ocultarResultado();
 
   try {
-    const res = await fetch(`/api/buscar-equipamento.php?q=${encodeURIComponent(query)}`);
+    const res = await fetch(`api/buscar-equipamento.php?q=${encodeURIComponent(query)}`);
     const data = await res.json();
 
     if (data && data.id) {
@@ -108,7 +108,7 @@ async function buscarEquipamento(query) {
     }
   } catch (error) {
     console.error("Erro ao buscar equipamento:", error);
-    alert("Erro na comunicação com o servidor.");
+    alert("Erro na comunicação com o servidor. Verifique se o Apache/PHP está rodando e se os arquivos estão na pasta correta.");
     mostrarLoading(false);
   }
 }
@@ -203,7 +203,7 @@ function aplicarNovaMedia(media) {
 
 async function calcularMedia(id) {
   try {
-    const res = await fetch(`/api/calcular-media.php?equipamento_id=${id}`);
+    const res = await fetch(`api/calcular-media.php?equipamento_id=${id}`);
     const data = await res.json();
     
     if (data && data.media !== undefined) {
@@ -283,7 +283,7 @@ async function salvarBalanceamento() {
   lucide.createIcons();
 
   try {
-    const res = await fetch('/api/salvar-balanceamento.php', {
+    const res = await fetch('api/salvar-balanceamento.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -370,7 +370,7 @@ async function carregarHistorico() {
   if (filterSerie) params.append('serie', filterSerie);
 
   try {
-    const res = await fetch(`/api/listar-balanceamentos.php?${params.toString()}`);
+    const res = await fetch(`api/listar-balanceamentos.php?${params.toString()}`);
     const data = await res.json();
     renderizarHistorico(data);
   } catch (error) {

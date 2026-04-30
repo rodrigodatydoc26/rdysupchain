@@ -15,7 +15,7 @@ if (strlen($q) < 3) {
 if ($type === 'list') {
     // Busca lista para autocomplete (Serie, Patrimonio e Cliente/Local)
     $url = $supabaseUrl . '/rest/v1/equipamentos'
-         . '?select=serie,patrimonio,secretaria,cliente:clientes(nome)'
+         . '?select=serie,patrimonio,secretaria,media_referencia,cliente:clientes(nome)'
          . '&or=(serie.ilike.*' . urlencode($q) . '*,patrimonio.ilike.*' . urlencode($q) . '*)'
          . '&limit=8';
     
@@ -33,7 +33,7 @@ if ($type === 'list') {
 
 $url = $supabaseUrl . '/rest/v1/equipamentos'
      . '?or=(serie.ilike.*' . urlencode($q) . '*,patrimonio.ilike.*' . urlencode($q) . '*)'
-     . '&select=id,serie,patrimonio,modelo,secretaria,cliente:clientes(id,nome,cidade)&limit=1';
+     . '&select=id,serie,patrimonio,modelo,secretaria,media_referencia,cliente:clientes(id,nome,cidade)&limit=1';
 
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
