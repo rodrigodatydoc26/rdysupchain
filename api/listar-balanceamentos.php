@@ -5,7 +5,7 @@ $supabaseUrl = getenv('SUPABASE_URL') ?: 'https://iedkbtceqgrawgubxslh.supabase.
 $supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllZGtidGNlcWdyYXdndWJ4c2xoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzU2ODA2NiwiZXhwIjoyMDkzMTQ0MDY2fQ.HPd4Dx63C3_IJ2F9so0UzYKGZDE0Rnak8FRGz1ymPs0';
 
 $url = $supabaseUrl . '/rest/v1/balanceamento_entregas'
-     . '?select=*,cliente:clientes(nome),equipamento:equipamentos(serie,patrimonio,modelo)'
+     . '?select=*,cliente:clientes(nome),equipamento:equipamentos(serie,secretaria)'
      . '&order=data_registro.desc';
 
 // Adicionar filtros se existirem

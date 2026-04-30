@@ -59,9 +59,9 @@ function renderizarSugestoes(itens) {
     <div class="suggestion-item" onclick="selecionarSugestao('${item.serie}')">
       <div class="sugg-main">
         <strong>${item.serie}</strong>
-        ${item.patrimonio ? `<span class="tag-sm">Pat: ${item.patrimonio}</span>` : ''}
+        <span class="tag-sm">${item.secretaria || 'OUTROS'}</span>
       </div>
-      <span class="sub">${item.cliente ? item.cliente.nome : ''} ${item.secretaria ? ' - ' + item.secretaria : ''}</span>
+      <span class="sub">${item.cliente ? item.cliente.nome : ''}</span>
     </div>
   `).join('');
   list.classList.remove('hidden');
@@ -386,7 +386,7 @@ async function renderizarHistorico(dados) {
   tbody.innerHTML = '';
   
   if (!dados || dados.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 40px; color: var(--text-dim);">Nenhum registro de balanceamento encontrado.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 40px; color: var(--text-dim);">Nenhum registro de balanceamento encontrado.</td></tr>';
     return;
   }
 
@@ -394,11 +394,13 @@ async function renderizarHistorico(dados) {
     const tr = document.createElement('tr');
     const dataFormatada = new Date(item.data_registro).toLocaleDateString('pt-BR');
     const nomeCliente = item.cliente ? item.cliente.nome : 'N/D';
+    const localSetor = item.equipamento ? item.equipamento.secretaria : 'N/D';
     const serieEquip = item.equipamento ? item.equipamento.serie : 'N/D';
 
     tr.innerHTML = `
       <td>${dataFormatada}</td>
       <td>${nomeCliente}</td>
+      <td>${localSetor}</td>
       <td>${serieEquip}</td>
       <td>${item.media_consumo_mensal}</td>
       <td>${item.opcao_entrega === 0 ? 'Manual' : item.opcao_entrega + 'x'}</td>
@@ -438,8 +440,8 @@ async function carregarHistorico() {
   } catch (error) {
     console.warn("Erro ao carregar histórico (Modo Demo Ativo):", error);
     const mockData = [
-      { data_registro: new Date().toISOString(), cliente: {nome: 'PM INDAIATUBA'}, equipamento: {serie: 'BRBSQ6J14HD'}, media_consumo_mensal: 4.5, opcao_entrega: 1, quantidade_definida: 6, numero_os: 'OS-9988', status: 'confirmado' },
-      { data_registro: new Date(Date.now() - 5*24*60*60*1000).toISOString(), cliente: {nome: 'PM LIMEIRA'}, equipamento: {serie: 'CZC3345'}, media_consumo_mensal: 12.0, opcao_entrega: 2, quantidade_definida: 24, numero_os: 'OS-9977', status: 'confirmado' }
+      { data_registro: new Date().toISOString(), cliente: {nome: 'PM INDAIATUBA'}, equipamento: {serie: 'BRBSQ6J14HD', secretaria: 'SAÚDE'}, media_consumo_mensal: 4.5, opcao_entrega: 1, quantidade_definida: 6, numero_os: 'OS-9988', status: 'confirmado' },
+      { data_registro: new Date(Date.now() - 5*24*60*60*1000).toISOString(), cliente: {nome: 'PM LIMEIRA'}, equipamento: {serie: 'CZC3345', secretaria: 'EDUCAÇÃO'}, media_consumo_mensal: 12.0, opcao_entrega: 2, quantidade_definida: 24, numero_os: 'OS-9977', status: 'confirmado' }
     ];
     renderizarHistorico(mockData);
   }
