@@ -126,7 +126,7 @@
               <div class="option-card" data-opcao="0" onclick="selecionarOpcao(0)">
                 <div class="opt-header">Entrega Manual</div>
                 <div class="opt-body">
-                  <input type="number" id="inputManualQtd" class="card-input" value="1" min="1" onclick="event.stopPropagation()" oninput="atualizarQtdManual(this.value)">
+                  <input type="number" id="inputManualQtd" class="card-input" value="1" min="1" title="Quantidade de resmas manual" onclick="event.stopPropagation()" oninput="atualizarQtdManual(this.value)">
                 </div>
                 <div class="opt-footer">AVULSA</div>
               </div>
@@ -174,7 +174,7 @@
             </div>
             <div class="summary-line form-line hidden" id="formLineObs">
               <span>Observação:</span>
-              <input type="text" id="inputObs" placeholder="(Opcional)">
+              <input type="text" id="inputObs" placeholder="(Opcional)" title="Observações adicionais">
             </div>
             
             <div class="action-row hidden" id="actionRow">
@@ -223,7 +223,7 @@
                     <i data-lucide="plus-circle"></i> Novo Cliente
                   </button>
                 </div>
-                <select id="cadCliente" class="form-select">
+                <select id="cadCliente" class="form-select" title="Selecione o cliente">
                   <option value="">Carregando clientes...</option>
                 </select>
                 <input type="text" id="cadNovoCliente" class="hidden" placeholder="Digite o nome do novo cliente...">
@@ -268,10 +268,10 @@
               <span>ATÉ</span>
               <input type="date" id="consultarDataFim" title="Data Final">
             </div>
-            <select id="filterConsultaCliente" class="select-inline-premium">
+            <select id="filterConsultaCliente" class="select-inline-premium" title="Filtrar por cliente">
               <option value="">Todos os Clientes</option>
             </select>
-            <button class="btn-filter-premium" onclick="realizarConsulta()">
+            <button class="btn-filter-premium" onclick="realizarConsulta()" title="Filtrar">
               <i data-lucide="filter"></i>
             </button>
           </div>
