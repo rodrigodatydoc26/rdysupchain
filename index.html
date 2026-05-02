@@ -24,6 +24,8 @@
       <nav class="nav-tabs">
       <button class="tab-btn active" data-tab="balancear"><i data-lucide="scale"></i> Balancear</button>
       <button class="tab-btn" data-tab="historico"><i data-lucide="history"></i> Histórico</button>
+      <button class="tab-btn" data-tab="cadastrar"><i data-lucide="plus-circle"></i> Cadastrar</button>
+      <button class="tab-btn" data-tab="consultar"><i data-lucide="search-code"></i> Consultar</button>
       <button class="tab-btn" data-tab="relatorios"><i data-lucide="bar-chart-2"></i> Relatórios</button>
     </nav>
 
@@ -206,6 +208,108 @@
            <i data-lucide="loader" class="spin"></i> Buscando dados...
         </div>
         
+      </section>
+
+      <!-- TAB CADASTRAR -->
+      <section id="tab-cadastrar" class="tab-content">
+        <div class="search-card">
+          <h2><i data-lucide="plus-circle"></i> Cadastrar Novo Equipamento</h2>
+          <form id="formCadastro" class="form-container">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <div class="label-row">
+                  <label>Cliente</label>
+                  <button type="button" class="btn-text" id="toggleNovoCliente">
+                    <i data-lucide="plus-circle"></i> Novo Cliente
+                  </button>
+                </div>
+                <select id="cadCliente" class="form-select">
+                  <option value="">Carregando clientes...</option>
+                </select>
+                <input type="text" id="cadNovoCliente" class="hidden" placeholder="Digite o nome do novo cliente...">
+              </div>
+              <div class="form-group">
+                <label>Nº de Série</label>
+                <input type="text" id="cadSerie" placeholder="Ex: SN123456" required>
+              </div>
+              <div class="form-group">
+                <label>Patrimônio</label>
+                <input type="text" id="cadPatrimonio" placeholder="Ex: PAT-001">
+              </div>
+              <div class="form-group">
+                <label>Modelo</label>
+                <input type="text" id="cadModelo" placeholder="Ex: HP LaserJet 400">
+              </div>
+              <div class="form-group">
+                <label>Secretaria / Setor</label>
+                <input type="text" id="cadSecretaria" placeholder="Ex: SAÚDE">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary btn-large">
+                <i data-lucide="save"></i> SALVAR EQUIPAMENTO
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB CONSULTAR -->
+      <section id="tab-consultar" class="tab-content">
+        <div class="consultar-header">
+          <h2>Consulta Geral e Consumo</h2>
+          <div class="filter-controls-wide">
+            <div class="search-input-group">
+              <i data-lucide="search"></i>
+              <input type="text" id="globalSearchInput" placeholder="Série, patrimônio, modelo ou cliente...">
+            </div>
+            <div class="date-range-group">
+              <input type="date" id="consultarDataInicio" title="Data Inicial">
+              <span>ATÉ</span>
+              <input type="date" id="consultarDataFim" title="Data Final">
+            </div>
+            <select id="filterConsultaCliente" class="select-inline-premium">
+              <option value="">Todos os Clientes</option>
+            </select>
+            <button class="btn-filter-premium" onclick="realizarConsulta()">
+              <i data-lucide="filter"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="consultarDashboard" class="hidden">
+          <div class="dashboard-grid">
+            <div class="dash-card">
+              <span class="dash-label">Total Equipamentos</span>
+              <span class="dash-value" id="dashTotalEquip">0</span>
+            </div>
+            <div class="dash-card">
+              <span class="dash-label">Consumo Médio Total</span>
+              <div class="dash-value-wrapper">
+                <span class="dash-value gold-text" id="dashTotalConsumo">0,0</span>
+                <span class="dash-unit">resmas/mês</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Série</th>
+                  <th>Patrimônio</th>
+                  <th>Modelo</th>
+                  <th>Setor</th>
+                  <th class="text-center">Consumo Médio</th>
+                  <th class="text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="consultarTbody">
+                <!-- Populado via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- TAB HISTÓRICO -->
