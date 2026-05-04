@@ -720,13 +720,23 @@ async function carregarHistorico() {
                 <td>${i.quantidade_definida}</td>
                 <td>${i.numero_os || '-'}</td>
                 <td><span class="status-badge status-${i.status}">${i.status}</span></td>
+                <td class="text-center">
+                    <div class="action-btns">
+                        <button class="btn-edit-icon" onclick="prepararEdicaoHistorico('${i.id}')" title="Editar Registro">
+                            <i data-lucide="edit-2"></i>
+                        </button>
+                        <button class="btn-delete-icon" onclick="excluirRegistroHistorico('${i.id}')" title="Excluir Registro">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </td>
             </tr>
         `).join('');
 
         const total = data.reduce((a, b) => a + (b.quantidade_definida || 0), 0);
         document.getElementById('totalResmas').innerText = total;
         document.getElementById('historicoTfoot').classList.remove('hidden');
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="9">Erro ao carregar histórico.</td></tr>'; }
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="10">Erro ao carregar histórico.</td></tr>'; }
 }
 
 async function carregarRelatorios() {
