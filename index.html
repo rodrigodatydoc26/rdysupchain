@@ -309,6 +309,7 @@
                   <th>Patrimônio</th>
                   <th>Modelo</th>
                   <th>Setor</th>
+                  <th class="text-center">Numerador</th>
                   <th class="text-center">Consumo Médio</th>
                   <th class="text-center">Ações</th>
                 </tr>
@@ -403,13 +404,14 @@
                     <th>Equipamento (Série)</th>
                     <th>Setor</th>
                     <th>Cliente</th>
+                    <th class="text-center">Numerador</th>
                     <th class="text-center">Chamados</th>
                     <th class="text-center">Total Resmas</th>
                     <th class="text-center">Média Real</th>
                   </tr>
                 </thead>
                 <tbody id="rankingTbody">
-                  <tr><td colspan="7" class="text-center">Clique em atualizar para carregar os dados.</td></tr>
+                  <tr><td colspan="8" class="text-center">Clique em atualizar para carregar os dados.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -418,6 +420,51 @@
       </section>
 
     </main>
+
+    <!-- MODAL EDIÇÃO -->
+    <div id="modalEdicao" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i data-lucide="edit-3"></i> Editar Equipamento</h3>
+          <button class="btn-close" onclick="fecharModalEdicao()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="formEdicao" class="form-container">
+            <input type="hidden" id="editId">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editSerie">Nº de Série</label>
+                <input type="text" id="editSerie" title="Número de Série" placeholder="Ex: ABC123456" required>
+              </div>
+              <div class="form-group">
+                <label for="editPatrimonio">Patrimônio</label>
+                <input type="text" id="editPatrimonio" title="Patrimônio" placeholder="Ex: 001234">
+              </div>
+              <div class="form-group">
+                <label for="editModelo">Modelo</label>
+                <input type="text" id="editModelo" title="Modelo do Equipamento" placeholder="Ex: HP M428fdw">
+              </div>
+              <div class="form-group">
+                <label for="editSecretaria">Setor / Local</label>
+                <input type="text" id="editSecretaria" title="Setor ou Local" placeholder="Ex: Secretaria de Saúde">
+              </div>
+              <div class="form-group">
+                <label for="editMediaRef">Média Referência (Resmas)</label>
+                <input type="number" id="editMediaRef" step="0.1" title="Média de Referência" placeholder="Ex: 2.5">
+              </div>
+              <div class="form-group">
+                <label for="editContador">Último Contador</label>
+                <input type="number" id="editContador" title="Último Contador" placeholder="Ex: 15000">
+              </div>
+            </div>
+            <div class="form-actions modal-actions">
+              <button type="button" class="btn-secondary" onclick="fecharModalEdicao()" title="Cancelar Edição">CANCELAR</button>
+              <button type="submit" class="btn-primary" title="Salvar Alterações">SALVAR ALTERAÇÕES</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="js/app.js"></script>

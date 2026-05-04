@@ -46,6 +46,22 @@ const API = {
         });
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         return res.json();
+    },
+
+    async patch(endpoint, data) {
+        const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
+        const res = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        return res.json();
     }
 };
 
@@ -53,7 +69,53 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     initTabs();
     initSearch();
+    initModalEdicao();
 });
+
+function initModalEdicao() {
+    const form = document.getElementById('formEdicao');
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerText = 'SALVANDO...';
+
+        const novoContador = parseInt(document.getElementById('editContador').value) || 0;
+
+        const payload = {
+            serie: document.getElementById('editSerie').value.trim(),
+            patrimonio: document.getElementById('editPatrimonio').value.trim(),
+            modelo: document.getElementById('editModelo').value.trim(),
+            secretaria: document.getElementById('editSecretaria').value.trim(),
+            media_referencia: parseFloat(document.getElementById('editMediaRef').value) || 0
+        };
+
+        try {
+            await API.patch(`/equipamentos?id=eq.${currentEditingId}`, payload);
+
+            // Contador vai para ordens_servico, não para equipamentos
+            if (novoContador > 0) {
+                const equip = state._editEquip;
+                await API.post('/ordens_servico', {
+                    equipamento_id: currentEditingId,
+                    cliente_id: equip.cliente_id,
+                    numero_os: '',
+                    contador_atual: novoContador
+                });
+            }
+
+            alert("Equipamento atualizado com sucesso!");
+            fecharModalEdicao();
+            realizarConsulta();
+        } catch (err) {
+            alert("Erro ao atualizar: " + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'SALVAR ALTERAÇÕES';
+        }
+    });
+}
 
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -249,15 +311,6 @@ function selecionarOpcao(n) {
     updateProxima();
 }
 
-function alterarQtdManual(delta) {
-    const input = document.getElementById('inputManualQtd');
-    let val = parseInt(input.value) + delta;
-    if (val < 1) val = 1;
-    input.value = val;
-    atualizarQtdManual(val);
-}
-
-// Chamado pelos botões +/- do card de entrega manual
 function alterarQtdManual(delta) {
     const input = document.getElementById('inputManualQtd');
     const novaQtd = Math.max(1, (parseInt(input.value) || 1) + delta);
@@ -469,7 +522,7 @@ async function realizarConsulta() {
         let endpoint = `/equipamentos?select=*,cliente:clientes(nome),balanceamento_entregas(media_consumo_mensal,status,data_registro)&order=serie.asc`;
         
         if (clienteId) endpoint += `&cliente_id=eq.${clienteId}`;
-        if (q) endpoint += `&or=(serie.ilike.*${q}*,patrimonio.ilike.*${q}*,modelo.ilike.*${q}*,secretaria.ilike.*${q}*)`;
+        if (q) endpoint += `&or=(serie.like.*${q}*,patrimonio.like.*${q}*,modelo.like.*${q}*,secretaria.like.*${q}*)`;
 
         // Se houver datas, aplicamos o filtro na sub-query via parâmetro de URL
         if (dataInicio) endpoint += `&balanceamento_entregas.data_registro=gte.${dataInicio}`;
@@ -479,9 +532,9 @@ async function realizarConsulta() {
         
         // Filtro manual para o nome do cliente se houver busca por texto
         const filteredData = q ? data.filter(item => {
-            const matchFields = (item.serie + (item.patrimonio||'') + (item.modelo||'') + (item.secretaria||'')).toLowerCase();
-            const matchClient = (item.cliente?.nome || '').toLowerCase();
-            return matchFields.includes(q.toLowerCase()) || matchClient.includes(q.toLowerCase());
+            const matchFields = (item.serie + (item.patrimonio||'') + (item.modelo||'') + (item.secretaria||''));
+            const matchClient = (item.cliente?.nome || '');
+            return matchFields.includes(q) || matchClient.includes(q);
         }) : data;
 
         document.getElementById('consultarDashboard').classList.remove('hidden');
@@ -508,14 +561,20 @@ async function realizarConsulta() {
                     <td>${eq.patrimonio || '-'}</td>
                     <td>${eq.modelo || '-'}</td>
                     <td>${eq.secretaria || '-'} <br><small class="text-dim">${eq.cliente?.nome || 'N/D'}</small></td>
+                    <td class="text-center"><strong>${eq.ultimo_contador || 0}</strong></td>
                     <td class="text-center">
                         <span class="gold-text"><strong>${mediaEquip.toFixed(1).replace('.', ',')}</strong></span> 
                         <br><small class="text-dim">${confirmadas.length} reg.</small>
                     </td>
                     <td class="text-center">
-                        <button class="btn-primary btn-sm" onclick="selecionarParaBalancear('${eq.serie}')">
-                            <i data-lucide="scale"></i> BALANCEAR
-                        </button>
+                        <div class="action-btns" style="gap: 16px;">
+                            <button class="btn-primary btn-sm" onclick="selecionarParaBalancear('${eq.serie}')">
+                                <i data-lucide="scale"></i> BALANCEAR
+                            </button>
+                            <button class="btn-edit-icon" onclick="prepararEdicao('${eq.id}')" title="Editar Equipamento">
+                                <i data-lucide="edit-2"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -623,4 +682,42 @@ function resetUI() {
     document.getElementById('formLineOs').classList.add('hidden');
     document.getElementById('formLineObs').classList.add('hidden');
     document.getElementById('actionRow').classList.add('hidden');
+}
+
+// EDIÇÃO DE EQUIPAMENTO
+let currentEditingId = null;
+
+async function prepararEdicao(id) {
+    const senha = prompt("Digite a senha para editar:");
+    if (senha !== 'Doc2026') return alert("Senha incorreta!");
+
+    currentEditingId = id;
+    try {
+        const [eq] = await API.fetch(`/equipamentos?id=eq.${id}&select=*,cliente:clientes(nome)`);
+        if (!eq) return alert("Equipamento não encontrado!");
+
+        // Buscar último contador em ordens_servico
+        const os = await API.fetch(`/ordens_servico?equipamento_id=eq.${id}&order=data_os.desc&limit=1&select=contador_atual`);
+        const ultimoContador = os[0]?.contador_atual || 0;
+
+        state._editEquip = eq; // guardar para usar no save
+
+        document.getElementById('editSerie').value = eq.serie;
+        document.getElementById('editPatrimonio').value = eq.patrimonio || '';
+        document.getElementById('editModelo').value = eq.modelo || '';
+        document.getElementById('editSecretaria').value = eq.secretaria || '';
+        document.getElementById('editMediaRef').value = eq.media_referencia || '';
+        document.getElementById('editContador').value = ultimoContador || '';
+
+        document.getElementById('modalEdicao').classList.remove('hidden');
+        lucide.createIcons();
+    } catch (e) {
+        alert("Erro ao buscar dados: " + e.message);
+    }
+}
+
+function fecharModalEdicao() {
+    document.getElementById('modalEdicao').classList.add('hidden');
+    currentEditingId = null;
+    state._editEquip = null;
 }
