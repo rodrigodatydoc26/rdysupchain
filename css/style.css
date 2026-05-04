@@ -412,23 +412,29 @@ input[type="text"]:focus, input[type="number"]:focus {
 }
 
 .btn-theme {
-  background: var(--surface);
+  background: var(--bg-2);
   border: 1px solid var(--border);
   color: var(--gold);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px; /* Mudado para arredondado moderno */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .btn-theme:hover {
   border-color: var(--gold);
-  transform: rotate(15deg) scale(1.1);
+  background: var(--surface);
+  transform: translateY(-2px);
+}
+
+.btn-theme i {
+  width: 20px;
+  height: 20px;
 }
 
 .topbar-actions {
