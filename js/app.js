@@ -574,6 +574,7 @@ async function salvarEquipamento(e) {
 // CONSULTA
 async function carregarClientesParaConsulta() {
     const select = document.getElementById('filterConsultaCliente');
+    if (!select) return; // substituído por autocomplete em consultarCliente
     if (select.dataset.init) return;
 
     try {
