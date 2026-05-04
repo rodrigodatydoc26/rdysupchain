@@ -44,7 +44,10 @@ const API = {
             },
             body: JSON.stringify(data)
         });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        if (!res.ok) {
+            const errBody = await res.text();
+            throw new Error(`HTTP ${res.status}: ${errBody}`);
+        }
         return res.json();
     },
 
@@ -60,7 +63,10 @@ const API = {
             },
             body: JSON.stringify(data)
         });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        if (!res.ok) {
+            const errBody = await res.text();
+            throw new Error(`HTTP ${res.status}: ${errBody}`);
+        }
         return res.json();
     },
 
@@ -73,7 +79,10 @@ const API = {
                 'Authorization': `Bearer ${SUPABASE_KEY}`
             }
         });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        if (!res.ok) {
+            const errBody = await res.text();
+            throw new Error(`HTTP ${res.status}: ${errBody}`);
+        }
         return true;
     }
 };
@@ -458,6 +467,7 @@ async function salvarBalanceamento() {
             const dias = Math.ceil(Math.abs(new Date() - new Date(state.equipamento.data_ultimo_contador)) / (1000 * 60 * 60 * 24)) || 1;
             finalMedia = Math.ceil(((cont - state.equipamento.ultimo_contador) / dias * 30 / 500) * 10) / 10;
         }
+        if (!isFinite(finalMedia) || isNaN(finalMedia) || finalMedia < 0) finalMedia = state.media || 0;
 
         await API.post('/balanceamento_entregas', {
             equipamento_id: state.equipamento.id,
