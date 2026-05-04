@@ -126,9 +126,11 @@ async function buscarEquipamento(serie) {
 
         const equip = data[0];
 
-        const os = await API.fetch(`/ordens_servico?equipamento_id=eq.${equip.id}&order=data_os.desc&limit=1`);
-        equip.ultimo_contador = os[0]?.contador_atual || 0;
-        equip.data_ultimo_contador = os[0]?.data_os || null;
+        // Busca todo o histórico de contadores (ordens_servico) para calibração
+        const osHistory = await API.fetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.asc`);
+        const ultimaOs = osHistory.length > 0 ? osHistory[osHistory.length - 1] : null;
+        equip.ultimo_contador = ultimaOs?.contador_atual || 0;
+        equip.data_ultimo_contador = ultimaOs?.data_os || null;
 
         state.equipamento = equip;
 
@@ -140,9 +142,9 @@ async function buscarEquipamento(serie) {
         document.getElementById('resContador').innerText = equip.ultimo_contador;
         document.getElementById('sumContadorAnterior').innerText = equip.ultimo_contador;
 
-        // Busca todo o histórico confirmado para calibrar a média
+        // Busca histórico de entregas para fallback da calibração
         const entregas = await API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=eq.confirmado&order=data_registro.asc`);
-        const media = calcularMediaCalibrada(entregas, parseFloat(equip.media_referencia) || 0);
+        const media = calcularMediaCalibrada(osHistory, entregas, parseFloat(equip.media_referencia) || 0);
 
         updateMedia(media);
         document.getElementById('resultContainer').classList.remove('hidden');
@@ -171,31 +173,26 @@ async function buscarEquipamento(serie) {
     }
 }
 
-// Calibra a média de consumo usando todo o histórico disponível.
-// Prioridade 1: delta real entre leituras de contador consecutivas (média ponderada, meses recentes valem mais).
-// Prioridade 2: média simples dos valores de media_consumo_mensal salvos.
-// Prioridade 3: media_referencia do cadastro do equipamento.
-function calcularMediaCalibrada(entregas, mediaReferencia) {
-    if (!entregas || entregas.length === 0) return mediaReferencia;
-
-    // Ordenar crescente por data (já vem ordenado, mas garante)
-    const ordenadas = [...entregas].sort((a, b) => new Date(a.data_registro) - new Date(b.data_registro));
-
-    // Passo 1: calcular consumo real entre leituras consecutivas de contador
-    const comContador = ordenadas.filter(e => e.contador_atual != null && e.contador_atual > 0);
-    if (comContador.length >= 2) {
+// Calibra a média usando:
+// 1. Deltas reais de contador (ordens_servico) — mais preciso, peso maior para meses recentes
+// 2. media_consumo_mensal das entregas confirmadas — fallback sem contador
+// 3. media_referencia do cadastro — fallback final
+function calcularMediaCalibrada(osHistory, entregas, mediaReferencia) {
+    // Passo 1: usar histórico de contadores (ordens_servico) para cálculo real
+    if (osHistory && osHistory.length >= 2) {
+        const ordenadas = [...osHistory].sort((a, b) => new Date(a.data_os) - new Date(b.data_os));
         const consumos = [];
-        for (let i = 1; i < comContador.length; i++) {
-            const deltaPages = comContador[i].contador_atual - comContador[i - 1].contador_atual;
+        for (let i = 1; i < ordenadas.length; i++) {
+            const deltaPages = ordenadas[i].contador_atual - ordenadas[i - 1].contador_atual;
             const deltaDias = Math.ceil(
-                Math.abs(new Date(comContador[i].data_registro) - new Date(comContador[i - 1].data_registro)) / (1000 * 60 * 60 * 24)
+                Math.abs(new Date(ordenadas[i].data_os) - new Date(ordenadas[i - 1].data_os)) / (1000 * 60 * 60 * 24)
             ) || 1;
             const resmasMes = (deltaPages / deltaDias) * 30 / 500;
             if (resmasMes > 0) consumos.push(resmasMes);
         }
 
         if (consumos.length > 0) {
-            // Média ponderada: o mês mais recente tem peso N, o mais antigo tem peso 1
+            // Média ponderada: mês mais recente tem peso maior
             let totalPeso = 0, somaTotal = 0;
             consumos.forEach((v, i) => {
                 const peso = i + 1;
@@ -206,10 +203,12 @@ function calcularMediaCalibrada(entregas, mediaReferencia) {
         }
     }
 
-    // Passo 2: sem contador suficiente — média dos valores históricos salvos
-    const valores = ordenadas.map(e => parseFloat(e.media_consumo_mensal)).filter(v => v > 0);
-    if (valores.length > 0) {
-        return Math.round((valores.reduce((s, v) => s + v, 0) / valores.length) * 10) / 10;
+    // Passo 2: sem histórico de contador — usa media_consumo_mensal das entregas
+    if (entregas && entregas.length > 0) {
+        const valores = entregas.map(e => parseFloat(e.media_consumo_mensal)).filter(v => v > 0);
+        if (valores.length > 0) {
+            return Math.round((valores.reduce((s, v) => s + v, 0) / valores.length) * 10) / 10;
+        }
     }
 
     // Passo 3: fallback para referência inicial do cadastro
@@ -250,10 +249,20 @@ function selecionarOpcao(n) {
     updateProxima();
 }
 
-function atualizarQtdManual(v) {
-    if (state.opcao === 0) {
-        document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${v} resmas)`;
-        updateProxima();
+function alterarQtdManual(delta) {
+    const input = document.getElementById('inputManualQtd');
+    let val = parseInt(input.value) + delta;
+    if (val < 1) val = 1;
+    input.value = val;
+    atualizarQtdManual(val);
+}
+
+function atualizarQtdManual(val) {
+    const card = document.querySelector('.option-card[data-opcao="0"]');
+    if (card.classList.contains('active')) {
+        const res = parseFloat(val);
+        document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${res} resmas)`;
+        atualizarProximaSolicitacao();
     }
 }
 
@@ -313,7 +322,6 @@ async function salvarBalanceamento() {
             media_consumo_mensal: finalMedia,
             opcao_entrega: state.opcao,
             quantidade_definida: qtd,
-            contador_atual: cont,
             observacao: obs || null,
             status: 'confirmado'
         });
@@ -336,6 +344,7 @@ async function salvarBalanceamento() {
         setBtnLoading(false);
     }
 }
+
 
 // CADASTRO
 async function carregarClientesParaCadastro() {
