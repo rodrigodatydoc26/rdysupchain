@@ -1489,3 +1489,31 @@ input[type="text"]:focus, input[type="number"]:focus {
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.history-summary {
+  display: flex;
+  gap: 12px;
+}
+
+.summary-item {
+  background: rgba(212, 175, 55, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summary-item strong {
+  color: var(--gold);
+  font-size: 1rem;
+}

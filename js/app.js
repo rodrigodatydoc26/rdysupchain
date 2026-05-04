@@ -138,6 +138,10 @@ function initSearch() {
     // Busca Global (Aba Consultar)
     setupAutocomplete('globalSearchInput', 'globalSearchSuggestions', 'equip');
     // Filtros de Histórico
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('filterDataInicio').value = today;
+    document.getElementById('filterDataFim').value = today;
+
     setupAutocomplete('filterSerie', 'filterSerieSuggestions', 'equip');
     setupAutocomplete('filterCliente', 'filterClienteSuggestions', 'cliente');
     // Filtros de Consulta
@@ -689,7 +693,7 @@ function selecionarParaBalancear(serie) {
 // HISTÓRICO com filtros
 async function carregarHistorico() {
     const tbody = document.getElementById('historicoTbody');
-    tbody.innerHTML = '<tr><td colspan="9">Carregando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center">Carregando...</td></tr>';
 
     const dataInicio = document.getElementById('filterDataInicio').value;
     const dataFim = document.getElementById('filterDataFim').value;
@@ -735,6 +739,11 @@ async function carregarHistorico() {
 
         const total = data.reduce((a, b) => a + (b.quantidade_definida || 0), 0);
         document.getElementById('totalResmas').innerText = total;
+        
+        // Atualizar resumo no header
+        document.getElementById('histSummaryResmas').innerText = total;
+        document.getElementById('histSummaryRegs').innerText = data.length;
+
         document.getElementById('historicoTfoot').classList.remove('hidden');
         lucide.createIcons();
     } catch (e) { tbody.innerHTML = '<tr><td colspan="10">Erro ao carregar histórico.</td></tr>'; }

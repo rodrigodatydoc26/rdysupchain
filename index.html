@@ -339,7 +339,13 @@
       <!-- TAB HISTÓRICO -->
       <section id="tab-historico" class="tab-content">
         <div class="historico-header">
-          <h2>Últimos Balanceamentos</h2>
+          <div class="header-title-group">
+            <h2>Últimos Balanceamentos</h2>
+            <div class="history-summary">
+              <span class="summary-item"><strong id="histSummaryResmas">0</strong> resmas</span>
+              <span class="summary-item"><strong id="histSummaryRegs">0</strong> registros</span>
+            </div>
+          </div>
           <div class="header-actions">
             <button class="btn-outline btn-excel" onclick="exportarExcel('historicoTable', 'Historico_Balanceamentos')"><i data-lucide="file-spreadsheet"></i> Exportar Excel</button>
             <button class="btn-outline" onclick="carregarHistorico()"><i data-lucide="refresh-cw"></i> Atualizar</button>
