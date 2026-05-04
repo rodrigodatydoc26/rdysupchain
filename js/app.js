@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     initSearch();
     initModalEdicao();
+    initTheme();
 });
 
 function initModalEdicao() {
@@ -558,6 +559,11 @@ async function realizarConsulta() {
 
             totalMediaGeral += mediaEquip;
 
+            const s15 = Math.ceil(mediaEquip / 2);
+            const s30 = Math.ceil(mediaEquip);
+            const s45 = Math.ceil(mediaEquip * 1.5);
+            const s60 = Math.ceil(mediaEquip * 2);
+
             return `
                 <tr>
                     <td><strong>${eq.serie}</strong></td>
@@ -570,9 +576,17 @@ async function realizarConsulta() {
                         <br><small class="text-dim">${confirmadas.length} reg.</small>
                     </td>
                     <td class="text-center">
-                        <div class="action-btns" style="gap: 16px;">
-                            <button class="btn-primary btn-sm" onclick="selecionarParaBalancear('${eq.serie}')">
-                                <i data-lucide="scale"></i> BALANCEAR
+                        <div class="suggestion-circles-mini">
+                            <div class="circle-mini" title="Sugestão 15 dias"><span>${s15}</span><label>15d</label></div>
+                            <div class="circle-mini" title="Sugestão 30 dias"><span>${s30}</span><label>30d</label></div>
+                            <div class="circle-mini" title="Sugestão 45 dias"><span>${s45}</span><label>45d</label></div>
+                            <div class="circle-mini" title="Sugestão 60 dias"><span>${s60}</span><label>60d</label></div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="action-btns">
+                            <button class="btn-primary btn-sm" onclick="selecionarParaBalancear('${eq.serie}')" title="Balancear este Equipamento">
+                                <i data-lucide="scale"></i>
                             </button>
                             <button class="btn-edit-icon" onclick="prepararEdicao('${eq.id}')" title="Editar Equipamento">
                                 <i data-lucide="edit-2"></i>
@@ -716,6 +730,35 @@ async function prepararEdicao(id) {
         lucide.createIcons();
     } catch (e) {
         alert("Erro ao buscar dados: " + e.message);
+    }
+}
+
+function initTheme() {
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    const icon = btn.querySelector('i');
+    
+    // Default to 'light' if no theme is saved
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme, icon);
+
+    btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        updateThemeIcon(next, icon);
+    });
+}
+
+function updateThemeIcon(theme, icon) {
+    if (!icon) return;
+    const newIconName = theme === 'dark' ? 'sun' : 'moon';
+    icon.outerHTML = `<i data-lucide="${newIconName}"></i>`;
+    if (window.lucide) {
+        setTimeout(() => lucide.createIcons(), 10);
     }
 }
 

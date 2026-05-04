@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY - DOC CONTROL · Balanceamento</title>
   <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -17,7 +17,12 @@
         <i data-lucide="package"></i>
         <h1>RDY - DOC CONTROL</h1>
       </div>
-      <div class="module-title">Balanceamento de Entregas</div>
+      <div class="topbar-actions">
+        <button id="themeToggle" class="btn-theme" title="Alternar Tema">
+          <i data-lucide="moon"></i>
+        </button>
+        <span class="module-title">Balanceamento de Entregas</span>
+      </div>
     </header>
 
     <main class="main-content">
@@ -308,9 +313,10 @@
                   <th>Série</th>
                   <th>Patrimônio</th>
                   <th>Modelo</th>
-                  <th>Setor</th>
+                  <th>Setor / Cliente</th>
                   <th class="text-center">Numerador</th>
-                  <th class="text-center">Consumo Médio</th>
+                  <th class="text-center">Média Real</th>
+                  <th class="text-center">Sugestões (Resmas)</th>
                   <th class="text-center">Ações</th>
                 </tr>
               </thead>
@@ -332,26 +338,23 @@
           </div>
         </div>
 
-        <div class="filters-bar">
-          <div class="filter-group">
-            <label>Período De:</label>
-            <input type="date" id="filterDataInicio" title="Data inicial do período">
+        <div class="filter-controls-wide">
+          <div class="date-range-group">
+            <input type="date" id="filterDataInicio" title="Data Inicial">
+            <span>ATÉ</span>
+            <input type="date" id="filterDataFim" title="Data Final">
           </div>
-          <div class="filter-group">
-            <label>Até:</label>
-            <input type="date" id="filterDataFim" title="Data final do período">
+          <div class="search-input-group">
+            <i data-lucide="users"></i>
+            <input type="text" id="filterCliente" placeholder="Filtrar por cliente...">
           </div>
-          <div class="filter-group">
-            <label>Cliente:</label>
-            <input type="text" id="filterCliente" placeholder="Filtrar cliente..." title="Filtrar por nome do cliente">
+          <div class="search-input-group">
+            <i data-lucide="hash"></i>
+            <input type="text" id="filterSerie" placeholder="Série ou Patrimônio...">
           </div>
-          <div class="filter-group">
-            <label>Série/Patrimônio:</label>
-            <input type="text" id="filterSerie" placeholder="Nº Série/Patri..." title="Filtrar por série ou patrimônio">
-          </div>
-          <div class="filter-group">
-            <button class="btn-primary" onclick="carregarHistorico()">FILTRAR</button>
-          </div>
+          <button class="btn-filter-premium" onclick="carregarHistorico()" title="Filtrar">
+            <i data-lucide="filter"></i>
+          </button>
         </div>
         
         <div class="table-responsive">
