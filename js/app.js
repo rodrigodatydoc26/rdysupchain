@@ -318,11 +318,11 @@ async function salvarBalanceamento() {
         await API.post('/balanceamento_entregas', {
             equipamento_id: state.equipamento.id,
             cliente_id: state.equipamento.cliente.id,
-            numero_os: os || null,
+            numero_os: os || '',
             media_consumo_mensal: finalMedia,
             opcao_entrega: state.opcao,
             quantidade_definida: qtd,
-            observacao: obs || null,
+            observacao: obs || '',
             status: 'confirmado'
         });
 
@@ -330,7 +330,7 @@ async function salvarBalanceamento() {
             await API.post('/ordens_servico', {
                 equipamento_id: state.equipamento.id,
                 cliente_id: state.equipamento.cliente.id,
-                numero_os: os || null,
+                numero_os: os || '',
                 contador_atual: cont
             });
         }
