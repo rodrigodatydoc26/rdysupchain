@@ -257,12 +257,18 @@ function alterarQtdManual(delta) {
     atualizarQtdManual(val);
 }
 
+// Chamado pelos botões +/- do card de entrega manual
+function alterarQtdManual(delta) {
+    const input = document.getElementById('inputManualQtd');
+    const novaQtd = Math.max(1, (parseInt(input.value) || 1) + delta);
+    input.value = novaQtd;
+    atualizarQtdManual(novaQtd);
+}
+
 function atualizarQtdManual(val) {
-    const card = document.querySelector('.option-card[data-opcao="0"]');
-    if (card.classList.contains('active')) {
-        const res = parseFloat(val);
-        document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${res} resmas)`;
-        atualizarProximaSolicitacao();
+    if (state.opcao === 0) {
+        document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${val} resmas)`;
+        updateProxima();
     }
 }
 
