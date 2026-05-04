@@ -370,7 +370,7 @@ function selecionarOpcao(n) {
     if (n === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 1;
 
     document.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.opcao) === n));
-    document.getElementById('sumOpcaoText').innerText = n === 0 ? `Entrega Manual (${qtd} resmas)` : `${n}x por mês (${qtd} resmas/visita)`;
+    document.getElementById('sumOpcaoText').innerText = n === 0 ? `Entrega Manual (${qtd} resmas)` : `${n}x por mês (${qtd} resmas por visita)`;
 
     document.getElementById('formLineOs').classList.remove('hidden');
     document.getElementById('formLineObs').classList.remove('hidden');
@@ -865,4 +865,87 @@ function fecharModalEdicao() {
     document.getElementById('modalEdicao').classList.add('hidden');
     currentEditingId = null;
     state._editEquip = null;
+}
+
+// GESTÃO DE HISTÓRICO (SENHA PROTEGIDA)
+async function authAction(callback) {
+    const pass = prompt("Digite a senha para continuar:");
+    if (pass === "Doc2026") {
+        callback();
+    } else {
+        if (pass !== null) alert("Senha incorreta!");
+    }
+}
+
+async function excluirRegistroHistorico(id) {
+    authAction(async () => {
+        if (confirm("Tem certeza que deseja excluir este registro permanentemente?")) {
+            try {
+                setLoading(true);
+                await API.fetch(`/balanceamento_entregas?id=eq.${id}`, { method: 'DELETE' });
+                alert("Registro excluído com sucesso!");
+                carregarHistorico();
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao excluir registro.");
+            } finally {
+                setLoading(false);
+            }
+        }
+    });
+}
+
+async function prepararEdicaoHistorico(id) {
+    authAction(async () => {
+        try {
+            setLoading(true);
+            const data = await API.fetch(`/balanceamento_entregas?id=eq.${id}&select=*,equipamento:equipamentos(serie),cliente:clientes(nome)`);
+            if (data.length === 0) return;
+            const item = data[0];
+            
+            // Preencher modal de edição de histórico
+            document.getElementById('editHistId').value = item.id;
+            document.getElementById('editHistEquip').innerText = `${item.equipamento.serie} - ${item.cliente.nome}`;
+            document.getElementById('editHistQtd').value = item.quantidade_definida;
+            document.getElementById('editHistOs').value = item.numero_os || '';
+            document.getElementById('editHistStatus').value = item.status;
+            
+            document.getElementById('modalEdicaoHistorico').classList.remove('hidden');
+        } catch (e) {
+            console.error(e);
+            alert("Erro ao carregar dados para edição.");
+        } finally {
+            setLoading(false);
+        }
+    });
+}
+
+async function salvarEdicaoHistorico() {
+    const id = document.getElementById('editHistId').value;
+    const payload = {
+        quantidade_definida: parseFloat(document.getElementById('editHistQtd').value),
+        numero_os: document.getElementById('editHistOs').value,
+        status: document.getElementById('editHistStatus').value
+    };
+
+    try {
+        setLoading(true);
+        await API.fetch(`/balanceamento_entregas?id=eq.${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        alert("Registro atualizado com sucesso!");
+        fecharModalEdicaoHistorico();
+        carregarHistorico();
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao salvar alterações.");
+    } finally {
+        setLoading(false);
+    }
+}
+
+function fecharModalEdicaoHistorico() {
+    document.getElementById('modalEdicaoHistorico').classList.add('hidden');
 }

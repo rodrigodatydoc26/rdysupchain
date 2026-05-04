@@ -1460,3 +1460,32 @@ input[type="text"]:focus, input[type="number"]:focus {
   color: var(--text-dim);
   text-transform: uppercase;
 }
+
+.btn-delete-icon {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-delete-icon:hover {
+  background: #ff4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
+.modal-subtitle {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
