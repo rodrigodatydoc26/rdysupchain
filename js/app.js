@@ -736,6 +736,7 @@ async function carregarHistorico() {
         const total = data.reduce((a, b) => a + (b.quantidade_definida || 0), 0);
         document.getElementById('totalResmas').innerText = total;
         document.getElementById('historicoTfoot').classList.remove('hidden');
+        lucide.createIcons();
     } catch (e) { tbody.innerHTML = '<tr><td colspan="10">Erro ao carregar histórico.</td></tr>'; }
 }
 
