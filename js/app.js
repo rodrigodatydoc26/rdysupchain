@@ -447,6 +447,9 @@ async function salvarEquipamento(e) {
     if (isNovo && !novoNome) return alert("Digite o nome do novo cliente!");
     if (!isNovo && !clienteId) return alert("Selecione um cliente!");
 
+    const senha = prompt("Digite a senha para cadastrar:");
+    if (senha !== 'Doc2026') return alert("Senha incorreta!");
+
     btn.disabled = true;
     btn.innerHTML = 'PROCESSANDO...';
 
