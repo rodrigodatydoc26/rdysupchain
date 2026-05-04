@@ -18,10 +18,15 @@
         <h1>RDY - DOC CONTROL</h1>
       </div>
       <div class="topbar-actions">
-        <button id="themeToggle" class="btn-theme" title="Alternar Tema">
+        <div class="color-selector">
+          <button class="color-dot theme-gold active" onclick="changeColor('#d4af37')" title="Ouro"></button>
+          <button class="color-dot theme-cyan" onclick="changeColor('#0078d4')" title="Ciano"></button>
+          <button class="color-dot theme-magenta" onclick="changeColor('#ff00cc')" title="Magenta"></button>
+          <button class="color-dot theme-yellow" onclick="changeColor('#ffcc00')" title="Amarelo"></button>
+        </div>
+        <button id="themeToggle" class="btn-theme-circle" title="Alternar Tema">
           <i data-lucide="moon"></i>
         </button>
-        <span class="module-title">Balanceamento de Entregas</span>
       </div>
     </header>
 
@@ -273,9 +278,10 @@
         <div class="consultar-header">
           <h2>Consulta Geral e Consumo</h2>
           <div class="filter-controls-wide">
-            <div class="search-input-group">
+            <div class="search-input-group autocomplete-container">
               <i data-lucide="search"></i>
-              <input type="text" id="globalSearchInput" placeholder="Série, patrimônio, modelo ou cliente...">
+              <input type="text" id="globalSearchInput" placeholder="Série, patrimônio, modelo ou cliente..." autocomplete="off">
+              <div id="globalSearchSuggestions" class="suggestions-list hidden"></div>
             </div>
             <div class="date-range-group">
               <input type="date" id="consultarDataInicio" title="Data Inicial">
@@ -351,9 +357,10 @@
             <input type="text" id="filterCliente" placeholder="Filtrar por cliente..." autocomplete="off">
             <div id="filterClienteSuggestions" class="suggestions-list hidden"></div>
           </div>
-          <div class="search-input-group">
+          <div class="search-input-group autocomplete-container">
             <i data-lucide="hash"></i>
-            <input type="text" id="filterSerie" placeholder="Série ou Patrimônio...">
+            <input type="text" id="filterSerie" placeholder="Série ou Patrimônio..." autocomplete="off">
+            <div id="filterSerieSuggestions" class="suggestions-list hidden"></div>
           </div>
           <button class="btn-filter-premium" onclick="carregarHistorico()" title="Filtrar">
             <i data-lucide="filter"></i>
@@ -471,7 +478,6 @@
         </div>
       </div>
     </div>
-  </div>
 
   <script src="js/app.js"></script>
   <script>lucide.createIcons();</script>

@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     initTabs();
     initSearch();
-    initClientSearch();
     initModalEdicao();
     initTheme();
 });
@@ -134,39 +133,25 @@ function initTabs() {
 }
 
 function initSearch() {
-    const input = document.getElementById('searchInput');
-    const list = document.getElementById('suggestionsList');
-    let timeout;
+    // Busca Principal (Aba Balancear)
+    setupAutocomplete('searchInput', 'suggestionsList', 'equip');
+    // Busca Global (Aba Consultar)
+    setupAutocomplete('globalSearchInput', 'globalSearchSuggestions', 'equip');
+    // Filtros de Histórico
+    setupAutocomplete('filterSerie', 'filterSerieSuggestions', 'equip');
+    setupAutocomplete('filterCliente', 'filterClienteSuggestions', 'cliente');
+    // Filtros de Consulta
+    setupAutocomplete('consultarCliente', 'consultarClienteSuggestions', 'cliente');
 
-    input.addEventListener('input', () => {
-        clearTimeout(timeout);
-        const q = input.value.trim();
-        if (q.length < 3) return list.classList.add('hidden');
-        timeout = setTimeout(async () => {
-            try {
-                const data = await API.fetch(`/equipamentos?select=serie,patrimonio,secretaria,cliente:clientes(nome)&or=(serie.ilike.*${q}*,patrimonio.ilike.*${q}*)&limit=8`);
-                if (data.length > 0) {
-                    list.innerHTML = data.map(item => `
-                        <div class="suggestion-item" onclick="selecionarSugestao('${item.serie}')">
-                            <div class="sugg-main">
-                                <strong>${item.serie}</strong>
-                                <span class="tag-sm">${item.secretaria || 'OUTROS'}</span>
-                            </div>
-                            <span class="sub">${item.cliente ? item.cliente.nome : ''}</span>
-                        </div>
-                    `).join('');
-                    list.classList.remove('hidden');
-                } else {
-                    list.classList.add('hidden');
-                }
-            } catch (e) {
-                console.warn("Search error:", e);
-            }
-        }, 300);
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        const val = document.getElementById('searchInput').value.trim();
+        buscarEquipamento(val);
+    });
+    
+    document.getElementById('searchInput').addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter') buscarEquipamento(e.target.value.trim()); 
     });
 
-    document.getElementById('searchBtn').addEventListener('click', () => buscarEquipamento(input.value.trim()));
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') buscarEquipamento(input.value.trim()); });
     document.addEventListener('click', (e) => { 
         if (!e.target.closest('.autocomplete-container') && !e.target.closest('.search-input-group')) {
             document.querySelectorAll('.suggestions-list').forEach(l => l.classList.add('hidden'));
@@ -174,50 +159,81 @@ function initSearch() {
     });
 }
 
-function initClientSearch() {
-    const fields = [
-        { inputId: 'filterCliente', listId: 'filterClienteSuggestions' },
-        { inputId: 'consultarCliente', listId: 'consultarClienteSuggestions' }
-    ];
+function setupAutocomplete(inputId, listId, type) {
+    const input = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+    if (!input || !list) return;
 
-    fields.forEach(({ inputId, listId }) => {
-        const input = document.getElementById(inputId);
-        const list = document.getElementById(listId);
-        if (!input || !list) return;
+    let debounceTimer;
+    input.addEventListener('input', () => {
+        fecharTodasSugestoes(); // FECHAR TODOS ANTES
+        clearTimeout(debounceTimer);
+        const val = input.value.trim();
+        if (val.length < 2) {
+            list.classList.add('hidden');
+            return;
+        }
 
-        let debounceTimer;
-        input.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            const val = input.value.trim();
-            if (val.length < 2) {
-                list.classList.add('hidden');
-                return;
-            }
-
-            debounceTimer = setTimeout(async () => {
-                try {
-                    const data = await API.fetch(`/clientes?nome=ilike.*${encodeURIComponent(val)}*&select=id,nome&limit=10`);
-                    if (data.length > 0) {
-                        list.innerHTML = data.map(item => `
-                            <div class="suggestion-item" onclick="selecionarClienteSugestao('${inputId}', '${listId}', '${item.nome}')">
-                                <strong>${item.nome}</strong>
-                            </div>
-                        `).join('');
-                        list.classList.remove('hidden');
-                    } else {
-                        list.classList.add('hidden');
+        debounceTimer = setTimeout(async () => {
+            try {
+                let data = [];
+                if (type === 'equip') {
+                    // Busca por Série ou Patrimônio
+                    data = await API.fetch(`/equipamentos?or=(serie.ilike.*${encodeURIComponent(val)}*,patrimonio.ilike.*${encodeURIComponent(val)}*)&select=*,cliente:clientes(nome)&limit=10`);
+                    
+                    // Se não achou muito, tenta por nome do cliente
+                    if (data.length < 5) {
+                        try {
+                            const porCliente = await API.fetch(`/equipamentos?select=*,cliente:clientes!inner(nome)&cliente.nome=ilike.*${encodeURIComponent(val)}*&limit=10`);
+                            const ids = new Set(data.map(i => i.id));
+                            porCliente.forEach(item => { if(!ids.has(item.id)) data.push(item); });
+                        } catch(err) { /* ignore join errors */ }
                     }
-                } catch (e) { console.warn("Client search error:", e); }
-            }, 300);
-        });
+                } else {
+                    // Busca apenas por Cliente
+                    data = await API.fetch(`/clientes?nome=ilike.*${encodeURIComponent(val)}*&select=id,nome&limit=10`);
+                }
+
+                if (data.length > 0) {
+                    list.innerHTML = data.map(item => {
+                        if (type === 'equip') {
+                            return `
+                                <div class="suggestion-item" onclick="selecionarSugestaoGeral('${inputId}', '${listId}', '${item.serie}', 'equip')">
+                                    <div class="sugg-main">
+                                        <strong>${item.serie}</strong>
+                                        <span class="tag-sm">${item.secretaria || 'OUTROS'}</span>
+                                    </div>
+                                    <span class="sub">${item.cliente ? item.cliente.nome : (item.patrimonio || '')}</span>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="suggestion-item" onclick="selecionarSugestaoGeral('${inputId}', '${listId}', '${item.nome}', 'cliente')">
+                                    <strong>${item.nome}</strong>
+                                </div>
+                            `;
+                        }
+                    }).join('');
+                    list.classList.remove('hidden');
+                } else {
+                    list.classList.add('hidden');
+                }
+            } catch (e) { console.warn("Autocomplete error:", e); }
+        }, 300);
     });
 }
 
-function selecionarClienteSugestao(inputId, listId, nome) {
-    document.getElementById(inputId).value = nome;
+function selecionarSugestaoGeral(inputId, listId, valor, type) {
+    document.getElementById(inputId).value = valor;
     document.getElementById(listId).classList.add('hidden');
-    // Se for na aba de consulta, já dispara a busca
-    if (inputId === 'consultarCliente') realizarConsulta();
+
+    if (inputId === 'searchInput') {
+        buscarEquipamento(valor);
+    } else if (inputId === 'globalSearchInput' || inputId === 'consultarCliente') {
+        realizarConsulta();
+    } else if (inputId === 'filterSerie' || inputId === 'filterCliente') {
+        carregarHistorico();
+    }
 }
 
 async function selecionarSugestao(serie) {
@@ -561,23 +577,22 @@ async function carregarClientesParaConsulta() {
 }
 
 async function realizarConsulta() {
-    const clienteId = document.getElementById('filterConsultaCliente').value;
     const q = document.getElementById('globalSearchInput').value.trim();
+    const clienteNome = document.getElementById('consultarCliente').value.trim();
     const dataInicio = document.getElementById('consultarDataInicio').value;
     const dataFim = document.getElementById('consultarDataFim').value;
     
-    if (!clienteId && !q && !dataInicio) return document.getElementById('consultarDashboard').classList.add('hidden');
+    if (!clienteNome && !q && !dataInicio) return document.getElementById('consultarDashboard').classList.add('hidden');
     
     setLoading(true);
     const tbody = document.getElementById('consultarTbody');
-    tbody.innerHTML = '<tr><td colspan="6">Buscando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8">Buscando...</td></tr>';
     
     try {
         // Construir query de equipamentos
         let endpoint = `/equipamentos?select=*,cliente:clientes(nome),balanceamento_entregas(media_consumo_mensal,status,data_registro)&order=serie.asc`;
         
-        if (clienteId) endpoint += `&cliente_id=eq.${clienteId}`;
-        if (q) endpoint += `&or=(serie.like.*${q}*,patrimonio.like.*${q}*,modelo.like.*${q}*,secretaria.like.*${q}*)`;
+        if (q) endpoint += `&or=(serie.ilike.*${encodeURIComponent(q)}*,patrimonio.ilike.*${encodeURIComponent(q)}*,modelo.ilike.*${encodeURIComponent(q)}*,secretaria.ilike.*${encodeURIComponent(q)}*)`;
 
         // Se houver datas, aplicamos o filtro na sub-query via parâmetro de URL
         if (dataInicio) endpoint += `&balanceamento_entregas.data_registro=gte.${dataInicio}`;
@@ -585,12 +600,18 @@ async function realizarConsulta() {
 
         const data = await API.fetch(endpoint);
         
-        // Filtro manual para o nome do cliente se houver busca por texto
-        const filteredData = q ? data.filter(item => {
-            const matchFields = (item.serie + (item.patrimonio||'') + (item.modelo||'') + (item.secretaria||''));
-            const matchClient = (item.cliente?.nome || '');
-            return matchFields.includes(q) || matchClient.includes(q);
-        }) : data;
+        // Filtro manual para o nome do cliente
+        const filteredData = data.filter(item => {
+            const matchQ = !q || (
+                (item.serie||'').toLowerCase().includes(q.toLowerCase()) ||
+                (item.patrimonio||'').toLowerCase().includes(q.toLowerCase()) ||
+                (item.modelo||'').toLowerCase().includes(q.toLowerCase()) ||
+                (item.secretaria||'').toLowerCase().includes(q.toLowerCase()) ||
+                (item.cliente?.nome || '').toLowerCase().includes(q.toLowerCase())
+            );
+            const matchClient = !clienteNome || (item.cliente?.nome || '').toLowerCase().includes(clienteNome.toLowerCase());
+            return matchQ && matchClient;
+        });
 
         document.getElementById('consultarDashboard').classList.remove('hidden');
         document.getElementById('dashTotalEquip').innerText = filteredData.length;
@@ -672,8 +693,8 @@ async function carregarHistorico() {
 
     const dataInicio = document.getElementById('filterDataInicio').value;
     const dataFim = document.getElementById('filterDataFim').value;
-    const cliente = document.getElementById('filterCliente').value.trim().toLowerCase();
-    const serie = document.getElementById('filterSerie').value.trim().toLowerCase();
+    const cliente = document.getElementById('filterCliente').value.trim();
+    const serie = document.getElementById('filterSerie').value.trim();
 
     let endpoint = '/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos(serie,patrimonio,secretaria)&order=data_registro.desc&limit=100';
     if (dataInicio) endpoint += `&data_registro=gte.${dataInicio}`;
@@ -794,6 +815,10 @@ function initTheme() {
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme, icon);
 
+    // Color Theme
+    const savedColor = localStorage.getItem('themeColor') || '#d4af37';
+    changeColor(savedColor, false);
+
     btn.addEventListener('click', () => {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
@@ -802,6 +827,31 @@ function initTheme() {
         localStorage.setItem('theme', next);
         updateThemeIcon(next, icon);
     });
+}
+
+function changeColor(color, save = true) {
+    document.documentElement.style.setProperty('--gold', color);
+    if (save) localStorage.setItem('themeColor', color);
+    
+    // Update active dot
+    document.querySelectorAll('.color-dot').forEach(dot => {
+        const title = dot.getAttribute('title').toLowerCase();
+        dot.classList.toggle('active', getColorHex(title) === color.toLowerCase());
+    });
+}
+
+function getColorHex(name) {
+    const map = {
+        'ouro': '#d4af37',
+        'ciano': '#0078d4',
+        'magenta': '#ff00cc',
+        'amarelo': '#ffcc00'
+    };
+    return map[name] || '';
+}
+
+function fecharTodasSugestoes() {
+    document.querySelectorAll('.suggestions-list').forEach(l => l.classList.add('hidden'));
 }
 
 function updateThemeIcon(theme, icon) {
