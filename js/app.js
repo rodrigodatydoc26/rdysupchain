@@ -378,10 +378,9 @@ function updateMedia(val) {
     document.getElementById('sumMedia').innerText = txt;
     document.getElementById('resPaginas').innerText = (val * 500).toLocaleString('pt-BR');
 
-    const margem = val * 1.15;
     const s1 = Math.floor(val + 1);
-    const s2 = Math.ceil(margem / 2);
-    const s3 = Math.ceil(margem / 3);
+    const s2 = Math.ceil(val / 2);
+    const s3 = Math.ceil(val / 3);
 
     document.getElementById('opt1Qtd').innerText = s1;
     document.getElementById('opt2Qtd').innerText = s2;
@@ -413,8 +412,9 @@ function alterarQtdManual(delta) {
 }
 
 function atualizarQtdManual(val) {
+    const num = parseInt(val) || 1;
     if (state.opcao === 0) {
-        document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${val} resmas)`;
+        document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${num} resmas)`;
         updateProxima();
     }
 }

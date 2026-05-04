@@ -140,7 +140,7 @@
                     <button class="qty-btn" onclick="alterarQtdManual(-1)" title="Diminuir">
                       <i data-lucide="minus"></i>
                     </button>
-                    <input type="number" id="inputManualQtd" class="qty-input" value="1" min="1" readonly title="Quantidade manual">
+                    <input type="number" id="inputManualQtd" class="qty-input" value="1" min="1" oninput="atualizarQtdManual(this.value)" title="Quantidade manual">
                     <button class="qty-btn" onclick="alterarQtdManual(1)" title="Aumentar">
                       <i data-lucide="plus"></i>
                     </button>
