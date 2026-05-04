@@ -282,9 +282,11 @@
               <span>ATÉ</span>
               <input type="date" id="consultarDataFim" title="Data Final">
             </div>
-            <select id="filterConsultaCliente" class="select-inline-premium" title="Filtrar por cliente">
-              <option value="">Todos os Clientes</option>
-            </select>
+            <div class="search-input-group autocomplete-container">
+              <i data-lucide="users"></i>
+              <input type="text" id="consultarCliente" placeholder="Filtrar por Cliente..." autocomplete="off">
+              <div id="consultarClienteSuggestions" class="suggestions-list hidden"></div>
+            </div>
             <button class="btn-filter-premium" onclick="realizarConsulta()" title="Filtrar">
               <i data-lucide="filter"></i>
             </button>
@@ -344,9 +346,10 @@
             <span>ATÉ</span>
             <input type="date" id="filterDataFim" title="Data Final">
           </div>
-          <div class="search-input-group">
+          <div class="search-input-group autocomplete-container">
             <i data-lucide="users"></i>
-            <input type="text" id="filterCliente" placeholder="Filtrar por cliente...">
+            <input type="text" id="filterCliente" placeholder="Filtrar por cliente..." autocomplete="off">
+            <div id="filterClienteSuggestions" class="suggestions-list hidden"></div>
           </div>
           <div class="search-input-group">
             <i data-lucide="hash"></i>

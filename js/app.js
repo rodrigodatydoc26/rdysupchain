@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     initTabs();
     initSearch();
+    initClientSearch();
     initModalEdicao();
     initTheme();
 });
@@ -166,7 +167,57 @@ function initSearch() {
 
     document.getElementById('searchBtn').addEventListener('click', () => buscarEquipamento(input.value.trim()));
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') buscarEquipamento(input.value.trim()); });
-    document.addEventListener('click', (e) => { if (!e.target.closest('.autocomplete-container')) list.classList.add('hidden'); });
+    document.addEventListener('click', (e) => { 
+        if (!e.target.closest('.autocomplete-container') && !e.target.closest('.search-input-group')) {
+            document.querySelectorAll('.suggestions-list').forEach(l => l.classList.add('hidden'));
+        }
+    });
+}
+
+function initClientSearch() {
+    const fields = [
+        { inputId: 'filterCliente', listId: 'filterClienteSuggestions' },
+        { inputId: 'consultarCliente', listId: 'consultarClienteSuggestions' }
+    ];
+
+    fields.forEach(({ inputId, listId }) => {
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        if (!input || !list) return;
+
+        let debounceTimer;
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const val = input.value.trim();
+            if (val.length < 2) {
+                list.classList.add('hidden');
+                return;
+            }
+
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const data = await API.fetch(`/clientes?nome=ilike.*${encodeURIComponent(val)}*&select=id,nome&limit=10`);
+                    if (data.length > 0) {
+                        list.innerHTML = data.map(item => `
+                            <div class="suggestion-item" onclick="selecionarClienteSugestao('${inputId}', '${listId}', '${item.nome}')">
+                                <strong>${item.nome}</strong>
+                            </div>
+                        `).join('');
+                        list.classList.remove('hidden');
+                    } else {
+                        list.classList.add('hidden');
+                    }
+                } catch (e) { console.warn("Client search error:", e); }
+            }, 300);
+        });
+    });
+}
+
+function selecionarClienteSugestao(inputId, listId, nome) {
+    document.getElementById(inputId).value = nome;
+    document.getElementById(listId).classList.add('hidden');
+    // Se for na aba de consulta, já dispara a busca
+    if (inputId === 'consultarCliente') realizarConsulta();
 }
 
 async function selecionarSugestao(serie) {
@@ -738,7 +789,7 @@ function initTheme() {
     if (!btn) return;
     const icon = btn.querySelector('i');
     
-    // Default to 'light' if no theme is saved
+    // Default to 'light'
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme, icon);
@@ -755,11 +806,9 @@ function initTheme() {
 
 function updateThemeIcon(theme, icon) {
     if (!icon) return;
-    const newIconName = theme === 'dark' ? 'sun' : 'moon';
-    icon.outerHTML = `<i data-lucide="${newIconName}"></i>`;
-    if (window.lucide) {
-        setTimeout(() => lucide.createIcons(), 10);
-    }
+    const name = theme === 'dark' ? 'sun' : 'moon';
+    icon.setAttribute('data-lucide', name);
+    lucide.createIcons();
 }
 
 function fecharModalEdicao() {
