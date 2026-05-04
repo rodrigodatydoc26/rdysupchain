@@ -62,6 +62,19 @@ const API = {
         });
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         return res.json();
+    },
+
+    async delete(endpoint) {
+        const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        return true;
     }
 };
 
@@ -902,7 +915,7 @@ async function excluirRegistroHistorico(id) {
         if (confirm("Tem certeza que deseja excluir este registro permanentemente?")) {
             try {
                 setLoading(true);
-                await API.fetch(`/balanceamento_entregas?id=eq.${id}`, { method: 'DELETE' });
+                await API.delete(`/balanceamento_entregas?id=eq.${id}`);
                 alert("Registro excluído com sucesso!");
                 carregarHistorico();
             } catch (e) {
@@ -950,11 +963,7 @@ async function salvarEdicaoHistorico() {
 
     try {
         setLoading(true);
-        await API.fetch(`/balanceamento_entregas?id=eq.${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        await API.patch(`/balanceamento_entregas?id=eq.${id}`, payload);
         alert("Registro atualizado com sucesso!");
         fecharModalEdicaoHistorico();
         carregarHistorico();
