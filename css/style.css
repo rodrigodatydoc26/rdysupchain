@@ -433,20 +433,46 @@ input[type="text"]:focus, input[type="number"]:focus {
   background: var(--border);
 }
 
+.balancear-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.summary-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 24px;
+}
+
 .last-deliveries-card {
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
+  animation: fadeIn 0.4s ease-out;
 }
 
 .last-deliveries-card h4 {
-  margin-bottom: 16px;
+  font-family: var(--font-syne);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
   color: var(--text-dim);
-  font-size: 0.875rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .mini-table-wrapper {
@@ -884,53 +910,107 @@ input[type="text"]:focus, input[type="number"]:focus {
 .consultar-header {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 16px;
   margin-bottom: 32px;
 }
 
-.filter-controls-wide {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 60px;
-  gap: 12px;
-  width: 100%;
-  margin-top: 16px;
-  height: 54px;
+/* Manual Qty Selector */
+.manual-qty-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
 }
 
-.search-input-group {
-  position: relative;
+.qty-btn {
+  background: var(--bg-3);
+  color: var(--gold);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.qty-btn:hover {
+  background: var(--gold);
+  color: #000;
+}
+
+.qty-input {
+  background: transparent !important;
+  border: none !important;
+  width: 50px !important;
+  text-align: center !important;
+  font-family: var(--font-syne) !important;
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: var(--text) !important;
+  padding: 0 !important;
+}
+
+.filter-controls-wide {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  width: 100%;
+  margin: 16px 0;
+  height: 56px;
   align-items: center;
 }
 
+.search-input-group {
+  flex: 1; /* Ocupa todo o espaço disponível */
+  position: relative;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.search-input-group:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.1);
+}
+
 .search-input-group i {
-  position: absolute;
-  left: 20px;
+  margin-left: 20px;
   color: var(--gold);
-  pointer-events: none;
-  z-index: 5;
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .search-input-group input {
-  width: 100% !important;
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 20px 0 12px !important;
   height: 100% !important;
-  background: var(--bg-1) !important;
-  border: 1px solid var(--border) !important;
-  padding: 0 20px 0 54px !important;
-  border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+  color: var(--text);
+  font-size: 1rem;
 }
 
 .date-range-group {
+  width: 320px; /* Largura fixa para datas */
   display: flex;
   align-items: center;
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 0 12px;
-  gap: 8px;
+  padding: 0 16px;
+  gap: 12px;
 }
 
 .date-range-group input {
@@ -939,29 +1019,22 @@ input[type="text"]:focus, input[type="number"]:focus {
   padding: 0 !important;
   height: 100%;
   color: var(--text);
-  font-size: 0.85rem;
-  width: 105px;
-  text-align: center;
-}
-
-.date-range-group span {
-  font-size: 10px;
-  color: var(--text-dim);
-  font-weight: 800;
-  text-transform: uppercase;
+  font-size: 0.9rem;
+  width: 110px;
 }
 
 .select-inline-premium {
+  width: 250px; /* Largura fixa para cliente */
   background: var(--bg-1);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: var(--radius-sm);
   padding: 0 16px;
   font-family: var(--font-syne);
-  cursor: pointer;
 }
 
 .btn-filter-premium {
+  width: 56px;
   background: var(--gold);
   color: #000;
   border: none;
@@ -970,12 +1043,6 @@ input[type="text"]:focus, input[type="number"]:focus {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-filter-premium:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
 }
 
 .dashboard-grid {

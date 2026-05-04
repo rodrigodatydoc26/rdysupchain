@@ -126,7 +126,15 @@
               <div class="option-card" data-opcao="0" onclick="selecionarOpcao(0)">
                 <div class="opt-header">Entrega Manual</div>
                 <div class="opt-body">
-                  <input type="number" id="inputManualQtd" class="card-input" value="1" min="1" title="Quantidade de resmas manual" onclick="event.stopPropagation()" oninput="atualizarQtdManual(this.value)">
+                  <div class="manual-qty-selector" onclick="event.stopPropagation()">
+                    <button class="qty-btn" onclick="alterarQtdManual(-1)" title="Diminuir">
+                      <i data-lucide="minus"></i>
+                    </button>
+                    <input type="number" id="inputManualQtd" class="qty-input" value="1" min="1" readonly title="Quantidade manual">
+                    <button class="qty-btn" onclick="alterarQtdManual(1)" title="Aumentar">
+                      <i data-lucide="plus"></i>
+                    </button>
+                  </div>
                 </div>
                 <div class="opt-footer">AVULSA</div>
               </div>
@@ -134,73 +142,74 @@
             </div>
           </div>
 
-          <div class="summary-card">
-            <div class="result-summary">
-              <div class="summary-line">
-                <span>Contador Anterior:</span>
-                <strong id="sumContadorAnterior">0</strong>
-              </div>
-              <div class="summary-line">
-                <span>Contador Atual:</span>
-                <div class="edit-qtd">
-                  <input type="number" id="inputContador" placeholder="0" title="Inserir contador atual" oninput="atualizarProximaSolicitacao()">
-                  <button class="btn-calc" onclick="recalcularComContador()" title="Recalcular média com este contador">
-                    <i data-lucide="refresh-cw"></i>
-                  </button>
+          <div class="summary-column">
+            <div class="summary-card">
+              <div class="result-summary">
+                <div class="summary-line">
+                  <span>Contador Anterior:</span>
+                  <strong id="sumContadorAnterior">0</strong>
+                </div>
+                <div class="summary-line">
+                  <span>Contador Atual:</span>
+                  <div class="edit-qtd">
+                    <input type="number" id="inputContador" placeholder="0" title="Inserir contador atual" oninput="atualizarProximaSolicitacao()">
+                    <button class="btn-calc" onclick="recalcularComContador()" title="Recalcular média com este contador">
+                      <i data-lucide="refresh-cw"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="summary-line highlight-line">
+                  <span>Próxima solicitação de papel em:</span>
+                  <strong id="resProximaSolicitacao" class="highlight-gold">---</strong>
+                </div>
+
+                <div class="summary-line">
+                  <span>Média de consumo mensal:</span>
+                  <strong class="gold-text"><span id="sumMedia">0</span> resmas</strong>
+                </div>
+                
+                <div class="summary-line">
+                  <span>Opção selecionada:</span>
+                  <strong id="sumOpcaoText" class="highlight-gold">Selecione uma opção acima</strong>
                 </div>
               </div>
 
-              <div class="summary-line highlight-line">
-                <span>Próxima solicitação de papel em:</span>
-                <strong id="resProximaSolicitacao" class="highlight-gold">---</strong>
+              <div class="summary-line form-line hidden" id="formLineOs">
+                <span>Nº O.S.:</span>
+                <input type="text" id="inputOs" placeholder="(Opcional)" title="Número da O.S.">
               </div>
-
-              <div class="summary-line">
-                <span>Média de consumo mensal:</span>
-                <strong class="gold-text"><span id="sumMedia">0</span> resmas</strong>
+              <div class="summary-line form-line hidden" id="formLineObs">
+                <span>Observação:</span>
+                <input type="text" id="inputObs" placeholder="(Opcional)" title="Observações adicionais">
               </div>
               
-              <div class="summary-line">
-                <span>Opção selecionada:</span>
-                <strong id="sumOpcaoText" class="highlight-gold">Selecione uma opção acima</strong>
+              <div class="action-row hidden" id="actionRow">
+                <button class="btn-success" id="btnConfirmar" onclick="salvarBalanceamento()" title="Confirmar">
+                  <i data-lucide="check-circle"></i> CONFIRMAR BALANCEAMENTO
+                </button>
               </div>
-
-              <!-- Quantidade por visita removida conforme solicitado -->
             </div>
 
-            <div class="summary-line form-line hidden" id="formLineOs">
-              <span>Nº O.S.:</span>
-              <input type="text" id="inputOs" placeholder="(Opcional)" title="Número da O.S.">
-            </div>
-            <div class="summary-line form-line hidden" id="formLineObs">
-              <span>Observação:</span>
-              <input type="text" id="inputObs" placeholder="(Opcional)" title="Observações adicionais">
-            </div>
-            
-            <div class="action-row hidden" id="actionRow">
-              <button class="btn-success" id="btnConfirmar" onclick="salvarBalanceamento()">
-                <i data-lucide="check-circle"></i> CONFIRMAR BALANCEAMENTO
-              </button>
+            <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
+              <h4><i data-lucide="history"></i> Últimas 3 Entregas</h4>
+              <div class="mini-table-wrapper">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Qtd</th>
+                      <th>O.S.</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lastDeliveriesTbody">
+                    <!-- Populado via JS -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
-            <h4><i data-lucide="history"></i> Últimas entregas registradas</h4>
-            <div class="mini-table-wrapper">
-              <table class="mini-table">
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Qtd (Resmas)</th>
-                    <th>O.S.</th>
-                  </tr>
-                </thead>
-                <tbody id="lastDeliveriesTbody">
-                  <!-- Populado via JS -->
-                </tbody>
-              </table>
-            </div>
-          </div>
 
         </div>
         
