@@ -474,7 +474,7 @@ async function salvarBalanceamento() {
             cliente_id: state.equipamento.cliente.id,
             numero_os: os || '',
             media_consumo_mensal: finalMedia,
-            opcao_entrega: state.opcao,
+            opcao_entrega: state.opcao === 0 ? null : state.opcao,
             quantidade_definida: qtd,
             observacao: obs || '',
             status: 'confirmado'
