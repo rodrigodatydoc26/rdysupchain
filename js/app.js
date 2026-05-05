@@ -33,7 +33,8 @@ const API = {
     },
 
     async post(endpoint, data) {
-        const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`;
         const res = await fetch(url, {
             method: 'POST',
             headers: {
@@ -52,7 +53,8 @@ const API = {
     },
 
     async patch(endpoint, data) {
-        const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`;
         const res = await fetch(url, {
             method: 'PATCH',
             headers: {
@@ -71,7 +73,8 @@ const API = {
     },
 
     async delete(endpoint) {
-        const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`;
         const res = await fetch(url, {
             method: 'DELETE',
             headers: {
