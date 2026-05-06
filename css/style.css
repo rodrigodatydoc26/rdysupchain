@@ -1597,3 +1597,57 @@ input[type="text"]:focus, input[type="number"]:focus {
 .page-indicator strong {
   color: var(--text);
 }
+
+/* QUICK FILTERS */
+.quick-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.quick-filters-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-chip {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-chip:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(212, 175, 55, 0.05);
+  transform: translateY(-1px);
+}
+
+.filter-chip i {
+  width: 14px;
+  height: 14px;
+}
+
+.filter-chip.active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+}
+

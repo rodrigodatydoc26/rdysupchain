@@ -783,6 +783,25 @@ function selecionarParaBalancear(serie) {
     buscarEquipamento(serie);
 }
 
+function aplicarFiltroRapido(termo) {
+    // Definir o cliente
+    document.getElementById('filterCliente').value = termo;
+    
+    // Opcional: Limpar outros filtros para garantir a busca ampla
+    document.getElementById('filterSerie').value = '';
+    
+    // Resetar para a primeira página
+    state.historico.pagina = 1;
+    
+    // Destacar o chip ativo (opcional, visual)
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.innerText.includes(termo));
+    });
+    
+    // Carregar
+    carregarHistorico();
+}
+
 // HISTÓRICO com filtros e paginação
 async function carregarHistorico() {
     const tbody = document.getElementById('historicoTbody');
@@ -797,7 +816,8 @@ async function carregarHistorico() {
     const offset = (state.historico.pagina - 1) * limit;
 
     // Construção do endpoint com filtros e paginação
-    let endpoint = `/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos!inner(serie,patrimonio,secretaria)&order=data_registro.desc&limit=${limit}&offset=${offset}`;
+    let selectClause = `*,cliente:clientes${cliente ? '!inner' : ''}(nome),equipamento:equipamentos!inner(serie,patrimonio,secretaria)`;
+    let endpoint = `/balanceamento_entregas?select=${selectClause}&order=data_registro.desc&limit=${limit}&offset=${offset}`;
     
     if (dataInicio) endpoint += `&data_registro=gte.${dataInicio}`;
     if (dataFim) endpoint += `&data_registro=lte.${dataFim}T23:59:59`;

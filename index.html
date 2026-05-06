@@ -359,6 +359,19 @@
           </div>
         </div>
 
+        <div class="quick-filters">
+          <span class="quick-filters-label"><i data-lucide="zap"></i> Filtros Rápidos:</span>
+          <button class="filter-chip" onclick="aplicarFiltroRapido('LIMEIRA')">
+            <i data-lucide="map-pin"></i> LIMEIRA
+          </button>
+          <button class="filter-chip" onclick="aplicarFiltroRapido('INDAIATUBA')">
+            <i data-lucide="map-pin"></i> INDAIATUBA
+          </button>
+          <button class="filter-chip" onclick="aplicarFiltroRapido('')" title="Limpar Filtros">
+            <i data-lucide="x-circle"></i> LIMPAR
+          </button>
+        </div>
+
         <div class="filter-controls-wide">
           <div class="date-range-group">
             <input type="date" id="filterDataInicio" title="Data Inicial">
