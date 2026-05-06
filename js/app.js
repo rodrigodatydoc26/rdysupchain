@@ -6,25 +6,39 @@ let state = {
     equipamento: null,
     media: 0,
     opcao: null,
-    entregas: []
+    entregas: [],
+    historico: {
+        pagina: 1,
+        tamanho: 15,
+        total: 0
+    }
 };
 
 const API = {
-    async fetch(endpoint) {
+    async fetch(endpoint, fullResponse = false) {
         const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         try {
+            const headers = {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json'
+            };
+            
+            // Se for histórico, pede o total de registros
+            if (endpoint.includes('balanceamento_entregas')) {
+                headers['Prefer'] = 'count=exact';
+            }
+
             const res = await fetch(url, {
                 signal: controller.signal,
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
             clearTimeout(timeoutId);
             if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+            
+            if (fullResponse) return res;
             return res.json();
         } catch (e) {
             clearTimeout(timeoutId);
@@ -769,7 +783,7 @@ function selecionarParaBalancear(serie) {
     buscarEquipamento(serie);
 }
 
-// HISTÓRICO com filtros
+// HISTÓRICO com filtros e paginação
 async function carregarHistorico() {
     const tbody = document.getElementById('historicoTbody');
     tbody.innerHTML = '<tr><td colspan="10" class="text-center">Carregando...</td></tr>';
@@ -779,24 +793,31 @@ async function carregarHistorico() {
     const cliente = document.getElementById('filterCliente').value.trim();
     const serie = document.getElementById('filterSerie').value.trim();
 
-    let endpoint = '/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos!inner(serie,patrimonio,secretaria)&order=data_registro.desc&limit=200';
+    const limit = state.historico.tamanho;
+    const offset = (state.historico.pagina - 1) * limit;
 
+    // Construção do endpoint com filtros e paginação
+    let endpoint = `/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos!inner(serie,patrimonio,secretaria)&order=data_registro.desc&limit=${limit}&offset=${offset}`;
+    
     if (dataInicio) endpoint += `&data_registro=gte.${dataInicio}`;
     if (dataFim) endpoint += `&data_registro=lte.${dataFim}T23:59:59`;
+    
+    if (serie) {
+        endpoint += `&equipamento.or=(serie.ilike.*${encodeURIComponent(serie)}*,patrimonio.ilike.*${encodeURIComponent(serie)}*)`;
+    }
+
+    if (cliente) {
+        endpoint += `&cliente.nome=ilike.*${encodeURIComponent(cliente)}*`;
+    }
 
     try {
-        let data = await API.fetch(endpoint);
+        const res = await API.fetch(endpoint, true);
+        const data = await res.json();
 
-        if (serie) {
-            const s = serie.toLowerCase();
-            data = data.filter(i =>
-                (i.equipamento?.serie || '').toLowerCase().includes(s) ||
-                (i.equipamento?.patrimonio || '').toLowerCase().includes(s)
-            );
-        }
-        if (cliente) {
-            const c = cliente.toLowerCase();
-            data = data.filter(i => (i.cliente?.nome || '').toLowerCase().includes(c));
+        // Extrair total do header Content-Range (ex: "0-14/123")
+        const contentRange = res.headers.get('Content-Range');
+        if (contentRange) {
+            state.historico.total = parseInt(contentRange.split('/')[1]) || 0;
         }
 
         if (data.length === 0) {
@@ -804,6 +825,7 @@ async function carregarHistorico() {
             document.getElementById('totalResmas').innerText = '0';
             document.getElementById('histSummaryResmas').innerText = '0';
             document.getElementById('histSummaryRegs').innerText = '0';
+            updatePaginationUI();
             return;
         }
 
@@ -831,16 +853,43 @@ async function carregarHistorico() {
             </tr>
         `).join('');
 
-        const total = data.reduce((a, b) => a + (b.quantidade_definida || 0), 0);
-        document.getElementById('totalResmas').innerText = total;
+        // Totais e Sumários
+        const totalP = data.reduce((acc, curr) => acc + parseFloat(curr.quantidade_definida), 0);
+        document.getElementById('totalResmas').innerText = totalP;
+        document.getElementById('histSummaryResmas').innerText = totalP;
+        document.getElementById('histSummaryRegs').innerText = state.historico.total;
         
-        // Atualizar resumo no header
-        document.getElementById('histSummaryResmas').innerText = total;
-        document.getElementById('histSummaryRegs').innerText = data.length;
-
-        document.getElementById('historicoTfoot').classList.remove('hidden');
+        updatePaginationUI();
         lucide.createIcons();
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="10">Erro ao carregar histórico.</td></tr>'; }
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center">Erro ao carregar histórico.</td></tr>';
+    }
+}
+
+function updatePaginationUI() {
+    const totalPaginas = Math.ceil(state.historico.total / state.historico.tamanho) || 1;
+    document.getElementById('currentPageDisplay').innerText = state.historico.pagina;
+    document.getElementById('totalPagesDisplay').innerText = totalPaginas;
+    
+    document.getElementById('btnPrevPage').disabled = state.historico.pagina <= 1;
+    document.getElementById('btnNextPage').disabled = state.historico.pagina >= totalPaginas;
+}
+
+function mudarPagina(delta) {
+    const novaPagina = state.historico.pagina + delta;
+    const totalPaginas = Math.ceil(state.historico.total / state.historico.tamanho) || 1;
+    
+    if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+        state.historico.pagina = novaPagina;
+        carregarHistorico();
+    }
+}
+
+function mudarTamanhoPagina(novoTamanho) {
+    state.historico.tamanho = parseInt(novoTamanho);
+    state.historico.pagina = 1; // Volta para a primeira página ao mudar o tamanho
+    carregarHistorico();
 }
 
 async function carregarRelatorios() {

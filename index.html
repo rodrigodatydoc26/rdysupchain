@@ -408,6 +408,22 @@
             </tfoot>
           </table>
         </div>
+
+        <div class="pagination-container">
+          <div class="pagination-info">
+            Exibindo <select id="paginationSize" onchange="mudarTamanhoPagina(this.value)">
+              <option value="15" selected>15</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select> por página
+          </div>
+          <div class="pagination-controls">
+            <button class="btn-page" id="btnPrevPage" onclick="mudarPagina(-1)"><i data-lucide="chevron-left"></i></button>
+            <span class="page-indicator">Pág. <strong id="currentPageDisplay">1</strong> de <strong id="totalPagesDisplay">1</strong></span>
+            <button class="btn-page" id="btnNextPage" onclick="mudarPagina(1)"><i data-lucide="chevron-right"></i></button>
+          </div>
+        </div>
       </section>
 
       <!-- TAB RELATÓRIOS -->
