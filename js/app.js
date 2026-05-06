@@ -5,7 +5,8 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let state = {
     equipamento: null,
     media: 0,
-    opcao: null
+    opcao: null,
+    entregas: []
 };
 
 const API = {
@@ -308,7 +309,18 @@ async function buscarEquipamento(serie) {
         updateMedia(media);
         document.getElementById('resultContainer').classList.remove('hidden');
 
+        // Preencher Última Entrega no Cabeçalho
+        const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
+        const resUltima = document.getElementById('resUltimaEntrega');
+        if (ultimaEntrega) {
+            const dt = new Date(ultimaEntrega.data_registro).toLocaleDateString('pt-BR');
+            resUltima.innerText = `${dt} (${ultimaEntrega.quantidade_definida} resmas)`;
+        } else {
+            resUltima.innerText = 'Nenhuma';
+        }
+
         // Últimas entregas (as 3 mais recentes para exibição)
+        state.entregas = entregas;
         const card = document.getElementById('lastDeliveriesCard');
         const tbody = document.getElementById('lastDeliveriesTbody');
         if (entregas.length > 0) {
@@ -330,6 +342,26 @@ async function buscarEquipamento(serie) {
     } finally {
         setLoading(false);
     }
+}
+
+function verTodoHistorico() {
+    if (!state.equipamento) return;
+    
+    // Mudar para a aba histórico
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === 'historico') btn.click();
+    });
+    
+    // Limpar todos os filtros (datas e cliente) para mostrar o histórico completo desta série
+    document.getElementById('filterDataInicio').value = '';
+    document.getElementById('filterDataFim').value = '';
+    document.getElementById('filterCliente').value = '';
+    
+    // Filtrar pela série atual
+    document.getElementById('filterSerie').value = state.equipamento.serie;
+    
+    // Recarregar
+    carregarHistorico();
 }
 
 // Calibra a média usando:
@@ -393,6 +425,26 @@ function updateMedia(val) {
 }
 
 function selecionarOpcao(n) {
+    // Verificar se já houve entrega no mês atual
+    if (state.entregas && state.entregas.length > 0) {
+        const agora = new Date();
+        const entregasMes = state.entregas.filter(e => {
+            const dataE = new Date(e.data_registro);
+            return dataE.getMonth() === agora.getMonth() && dataE.getFullYear() === agora.getFullYear();
+        });
+
+        if (entregasMes.length > 0) {
+            const detalhes = entregasMes.map(e => {
+                const qtd = e.quantidade_definida;
+                const unidade = qtd === 1 ? 'resma' : 'resmas';
+                return `• ${new Date(e.data_registro).toLocaleDateString('pt-BR')} (${qtd} ${unidade})`;
+            }).join('\n');
+
+            const msg = `Já houve ${entregasMes.length === 1 ? 'uma entrega' : entregasMes.length + ' entregas'} este mês:\n\n${detalhes}\n\nDeseja prosseguir para mais entregas?`;
+            if (!confirm(msg)) return;
+        }
+    }
+
     state.opcao = n;
     let qtd = state.sugestoes[n] || 0;
     if (n === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 1;
@@ -727,18 +779,33 @@ async function carregarHistorico() {
     const cliente = document.getElementById('filterCliente').value.trim();
     const serie = document.getElementById('filterSerie').value.trim();
 
-    let endpoint = '/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos(serie,patrimonio,secretaria)&order=data_registro.desc&limit=100';
+    let endpoint = '/balanceamento_entregas?select=*,cliente:clientes(nome),equipamento:equipamentos!inner(serie,patrimonio,secretaria)&order=data_registro.desc&limit=200';
+
     if (dataInicio) endpoint += `&data_registro=gte.${dataInicio}`;
     if (dataFim) endpoint += `&data_registro=lte.${dataFim}T23:59:59`;
 
     try {
         let data = await API.fetch(endpoint);
 
-        if (cliente) data = data.filter(i => (i.cliente?.nome || '').toLowerCase().includes(cliente));
-        if (serie) data = data.filter(i =>
-            (i.equipamento?.serie || '').toLowerCase().includes(serie) ||
-            (i.equipamento?.patrimonio || '').toLowerCase().includes(serie)
-        );
+        if (serie) {
+            const s = serie.toLowerCase();
+            data = data.filter(i =>
+                (i.equipamento?.serie || '').toLowerCase().includes(s) ||
+                (i.equipamento?.patrimonio || '').toLowerCase().includes(s)
+            );
+        }
+        if (cliente) {
+            const c = cliente.toLowerCase();
+            data = data.filter(i => (i.cliente?.nome || '').toLowerCase().includes(c));
+        }
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center">Nenhum registro encontrado para os filtros aplicados.</td></tr>';
+            document.getElementById('totalResmas').innerText = '0';
+            document.getElementById('histSummaryResmas').innerText = '0';
+            document.getElementById('histSummaryRegs').innerText = '0';
+            return;
+        }
 
         tbody.innerHTML = data.map(i => `
             <tr>

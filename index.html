@@ -65,6 +65,7 @@
                 <span class="tag">Patrimônio: <strong id="resPatrimonio">Não informado</strong></strong></span>
                 <span class="tag">Série: <strong id="resSerie">---</strong></span>
                 <span class="tag tag-counter">Último Contador: <strong id="resContador">---</strong></span>
+                <span class="tag tag-delivery">Última Entrega: <strong id="resUltimaEntrega">---</strong></span>
               </div>
             </div>
             <p class="modelo-txt">Modelo: <span id="resModelo">Não informado</span></p>
@@ -101,6 +102,29 @@
                   <span class="unit">páginas/mês</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
+            <div class="last-deliveries-header">
+              <h4><i data-lucide="history"></i> Últimas 3 Entregas</h4>
+              <button class="btn-text" onclick="verTodoHistorico()" title="Ver histórico completo deste equipamento">
+                <i data-lucide="list"></i> VER TODO O HISTÓRICO
+              </button>
+            </div>
+            <div class="mini-table-wrapper">
+              <table class="mini-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Qtd</th>
+                    <th>O.S.</th>
+                  </tr>
+                </thead>
+                <tbody id="lastDeliveriesTbody">
+                  <!-- Populado via JS -->
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -201,23 +225,6 @@
               </div>
             </div>
 
-            <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
-              <h4><i data-lucide="history"></i> Últimas 3 Entregas</h4>
-              <div class="mini-table-wrapper">
-                <table class="mini-table">
-                  <thead>
-                    <tr>
-                      <th>Data</th>
-                      <th>Qtd</th>
-                      <th>O.S.</th>
-                    </tr>
-                  </thead>
-                  <tbody id="lastDeliveriesTbody">
-                    <!-- Populado via JS -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
 
 
