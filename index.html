@@ -411,7 +411,7 @@
 
         <div class="pagination-container">
           <div class="pagination-info">
-            Exibindo <select id="paginationSize" onchange="mudarTamanhoPagina(this.value)">
+            Exibindo <select id="paginationSize" onchange="mudarTamanhoPagina(this.value)" title="Registros por página">
               <option value="15" selected>15</option>
               <option value="25">25</option>
               <option value="50">50</option>
@@ -419,9 +419,9 @@
             </select> por página
           </div>
           <div class="pagination-controls">
-            <button class="btn-page" id="btnPrevPage" onclick="mudarPagina(-1)"><i data-lucide="chevron-left"></i></button>
+            <button class="btn-page" id="btnPrevPage" onclick="mudarPagina(-1)" title="Página Anterior"><i data-lucide="chevron-left"></i></button>
             <span class="page-indicator">Pág. <strong id="currentPageDisplay">1</strong> de <strong id="totalPagesDisplay">1</strong></span>
-            <button class="btn-page" id="btnNextPage" onclick="mudarPagina(1)"><i data-lucide="chevron-right"></i></button>
+            <button class="btn-page" id="btnNextPage" onclick="mudarPagina(1)" title="Próxima Página"><i data-lucide="chevron-right"></i></button>
           </div>
         </div>
       </section>
@@ -468,7 +468,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3><i data-lucide="edit-3"></i> Editar Equipamento</h3>
-          <button class="btn-close" onclick="fecharModalEdicao()">&times;</button>
+          <button class="btn-close" onclick="fecharModalEdicao()" title="Fechar">&times;</button>
         </div>
         <div class="modal-body">
           <form id="formEdicao" class="form-container">
@@ -513,7 +513,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3><i data-lucide="history"></i> Editar Registro de Histórico</h3>
-          <button class="btn-close" onclick="fecharModalEdicaoHistorico()">&times;</button>
+          <button class="btn-close" onclick="fecharModalEdicaoHistorico()" title="Fechar">&times;</button>
         </div>
         <div class="modal-body">
           <form id="formEditHistorico" onsubmit="event.preventDefault(); salvarEdicaoHistorico();">
@@ -531,7 +531,7 @@
               </div>
               <div class="form-group">
                 <label for="editHistStatus">Status</label>
-                <select id="editHistStatus" class="form-select select-inline-premium">
+                <select id="editHistStatus" class="form-select select-inline-premium" title="Status do registro">
                   <option value="confirmado">CONFIRMADO</option>
                   <option value="pendente">PENDENTE</option>
                   <option value="entregue">ENTREGUE</option>
@@ -540,8 +540,8 @@
             </div>
             
             <div class="form-actions modal-actions">
-              <button type="button" class="btn-secondary" onclick="fecharModalEdicaoHistorico()">CANCELAR</button>
-              <button type="submit" class="btn-primary">SALVAR ALTERAÇÕES</button>
+              <button type="button" class="btn-secondary" onclick="fecharModalEdicaoHistorico()" title="Cancelar Edição">CANCELAR</button>
+              <button type="submit" class="btn-primary" title="Salvar Alterações">SALVAR ALTERAÇÕES</button>
             </div>
           </form>
         </div>
