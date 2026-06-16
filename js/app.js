@@ -1933,7 +1933,7 @@ function initTheme() {
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme, icon);
 
-    const savedColor = localStorage.getItem('themeColor') || '#d4af37';
+    const savedColor = localStorage.getItem('themeColor') || '#e60000';
     changeColor(savedColor, false);
 
     btn.addEventListener('click', () => {

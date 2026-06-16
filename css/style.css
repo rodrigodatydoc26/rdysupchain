@@ -8,7 +8,7 @@
   --border-hover: rgba(255,255,255,0.15);
   --text: #f2f2f5;
   --text-dim: #a0a0ac;
-  --gold: #d4af37;
+  --gold: #e60000;
   --accent: #7c3aed;
   --success: #10b981;
   --danger: #ef4444;
@@ -32,7 +32,7 @@
   --border-hover: rgba(0,0,0,0.3);
   --text: #111827;
   --text-dim: #4b5563;
-  --gold: #b8860b; 
+  --gold: #e60000; 
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
