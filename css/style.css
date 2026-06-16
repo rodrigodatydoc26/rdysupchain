@@ -2038,9 +2038,10 @@ color: var(--gold);
 @media (max-width: 768px) {
   .sync-label { display: none; }
   .sync-indicator { padding: 8px 10px; }
-  .app-container { padding: 12px 16px; }
-  .consultar-header, .historico-header { padding: 16px; }
-  .header-title-group { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .app-container { padding: 12px 16px; overflow-x: hidden; }
+  .consultar-header, .historico-header { padding: 16px; width: 100%; overflow: hidden; }
+  .header-title-group { flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; }
+  .historico-header h2 { white-space: normal; word-wrap: break-word; font-size: 1.4rem; line-height: 1.2; width: 100%; margin-left: 0 !important; }
   .topbar { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; }
   .stat-divider { width: 100%; height: 1px; margin: 4px 0; }
   .topbar-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 10px; }
@@ -2049,8 +2050,6 @@ color: var(--gold);
   .nav-tabs {
     overflow-x: auto;
     flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
     padding-bottom: 2px;
     gap: 4px;
   }
@@ -2070,15 +2069,21 @@ color: var(--gold);
   .filter-controls-wide { flex-direction: column; }
   .filter-controls-wide .search-input-group,
   .filter-controls-wide .date-range-group { width: 100%; }
-  .date-range-group { flex-wrap: wrap; justify-content: center; }
+  .date-range-group { flex-wrap: nowrap; justify-content: space-between; padding: 0 4px; height: 56px !important; }
+  .date-range-group input { font-size: 0.9rem; padding: 0; text-align: center; width: 40%; }
+  .date-separator { font-size: 0.8rem; padding: 0; }
   .media-header { flex-direction: column; gap: 12px; }
   .media-stats { flex-direction: column; gap: 12px; align-items: flex-start; }
 
   /* Filtros — remove min-width fixo que estoura a tela */
   .filter-row-premium { flex-direction: column; gap: 10px; }
-  .filter-input-group, .filter-select-group { width: 100%; min-width: 0; height: 56px; }
-  .search-input-group, .date-range-group, .select-inline-premium { min-width: 0; width: 100%; height: 56px; }
-  .btn-filter-premium { width: 100%; justify-content: center; margin-top: 4px; }
+  .filter-input-group, .filter-select-group { width: 100%; min-width: 0; height: 64px !important; }
+  .search-input-group, .select-inline-premium { min-width: 0; width: 100%; height: 64px !important; }
+  
+  .search-input-group input { height: 100% !important; padding: 0 16px 0 48px !important; font-size: 1.15rem !important; }
+  .search-input-group i { width: 22px; height: 22px; left: 16px; }
+  
+  .btn-filter-premium { width: 100%; justify-content: center; margin-top: 4px; height: 64px !important; font-size: 1.1rem; }
 
   /* Actions */
   .header-actions { width: 100%; display: flex; flex-wrap: wrap; margin-top: 12px; }
@@ -2087,7 +2092,8 @@ color: var(--gold);
 
   /* Layout */
   .dashboard-grid, .form-grid { grid-template-columns: 1fr; }
-  .legend-row { flex-wrap: wrap; gap: 10px; flex-direction: column; align-items: flex-start; }
+  .legend-row { flex-wrap: wrap; gap: 8px; flex-direction: row; align-items: center; justify-content: flex-start; }
+  .legend-row .btn-outline { padding: 6px 12px; font-size: 0.8rem; }
 
   /* Tabela — reduz fonte para caber no scroll horizontal */
   .data-table { font-size: 0.8rem; }
