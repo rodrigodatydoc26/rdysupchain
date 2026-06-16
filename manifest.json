@@ -1,6 +1,6 @@
 {
   "name": "RDY Doc Control",
-  "short_name": "RDY Doc Control",
+  "short_name": "RDY DOC",
   "description": "Balanceamento de Papel - Antigravit",
   "start_url": "./index.html",
   "display": "standalone",
