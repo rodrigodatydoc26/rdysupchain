@@ -4,7 +4,9 @@
       "Bash(sed -i 's|https://jvwrbrypyrwnaaqijbqm.supabase.co|https://iedkbtceqgrawgubxslh.supabase.co|g' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/buscar-equipamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/salvar-balanceamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/listar-balanceamentos.php')",
       "Bash(sed -i 's|__TRACKED_VAR__|__TRACKED_VAR__|g' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/buscar-equipamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/salvar-balanceamento.php' 'C:/Users/Rodrigo Daty/Desktop/balanceamento/api/listar-balanceamentos.php')",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "PowerShell(Start-Process \"http://localhost:8080\")",
+      "Bash(node --check \"C:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\\\\js\\\\app.js\")"
     ]
   }
 }
