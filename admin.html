@@ -462,6 +462,29 @@
           </button>
           </div>
         </div>
+
+        <div class="admin-filters-grid" style="margin-bottom: 16px;">
+          <div class="filter-row-top">
+            <div class="filter-input-group" style="position:relative;">
+              <i data-lucide="search" style="position:absolute; margin:10px; color:var(--text-dim); width:18px;"></i>
+              <input type="text" id="filtroGovNome" class="input-text" placeholder="Buscar por Nome ou Usuário..." style="padding-left:36px;" onkeyup="filtrarGovernanca()">
+            </div>
+            <div class="filter-input-group" style="max-width: 200px;">
+              <select id="filtroGovPerfil" class="input-text" onchange="filtrarGovernanca()">
+                <option value="">Todos os Perfis</option>
+                <option value="cto">CTO</option>
+                <option value="gestor">Gestor</option>
+                <option value="tecnico">Técnico</option>
+              </select>
+            </div>
+            <div class="filter-input-group" style="max-width: 200px;">
+              <select id="filtroGovCidade" class="input-text" onchange="filtrarGovernanca()">
+                <option value="">Todas as Cidades</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="table-responsive">
           <table class="data-table">
             <thead>
@@ -1160,33 +1183,69 @@ function fecharSistemaOriginal() {
 // ════════════════════════════════════════════════════════
 // GOVERNANÇA (USUÁRIOS)
 // ════════════════════════════════════════════════════════
+window.govUsers = [];
+
 async function carregarGovernanca() {
   if (adminState.role !== 'cto') return; // Bloqueio de segurança front-end
   
   const tbody = document.getElementById('govTbody');
   try {
     const users = await API.fetch('/balanceamento_usuarios?order=username.asc');
-    tbody.innerHTML = users.length === 0
-      ? '<tr><td colspan="5" class="text-center">Nenhum usuário encontrado.</td></tr>'
-      : users.map(u => `
-          <tr>
-            <td><strong>${esc(u.username)}</strong></td>
-            <td>${esc(u.label)}</td>
-            <td><span class="status-badge ${u.role === 'cto' ? 'status-confirmado' : 'status-pendente'}">${esc(u.role)}</span></td>
-            <td>${esc(u.cidade || 'Todas')}</td>
-            <td class="text-center">
-              <div style="display:flex; justify-content:center; gap:8px;">
-                <button class="btn-outline" onclick="abrirModalUsuario('${esc(u.username)}')" title="Editar" style="padding:4px 8px"><i data-lucide="edit"></i></button>
-                <button class="btn-outline" onclick="excluirUsuario('${esc(u.username)}')" title="Excluir" style="padding:4px 8px; color:var(--danger); border-color:var(--danger)"><i data-lucide="trash-2"></i></button>
-              </div>
-            </td>
-          </tr>
-        `).join('');
-    safeCreateIcons();
+    window.govUsers = users;
+
+    const selectCidade = document.getElementById('filtroGovCidade');
+    if (selectCidade) {
+        const cidades = [...new Set(users.map(u => u.cidade).filter(c => c))].sort();
+        const currCity = selectCidade.value;
+        selectCidade.innerHTML = '<option value="">Todas as Cidades</option>' + 
+          cidades.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+        selectCidade.value = currCity;
+    }
+
+    renderizarGovernanca();
   } catch (err) {
     console.error(err);
     tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dim">Erro ao carregar usuários.</td></tr>';
   }
+}
+
+function renderizarGovernanca() {
+  const tbody = document.getElementById('govTbody');
+  const nomeFiltro = (document.getElementById('filtroGovNome')?.value || '').toLowerCase();
+  const perfilFiltro = (document.getElementById('filtroGovPerfil')?.value || '').toLowerCase();
+  const cidadeFiltro = (document.getElementById('filtroGovCidade')?.value || '');
+
+  const usersFiltrados = window.govUsers.filter(u => {
+    const nomeUser = ((u.username || '') + ' ' + (u.label || '')).toLowerCase();
+    const matchNome = nomeUser.includes(nomeFiltro);
+    const matchPerfil = perfilFiltro ? (u.role || '').toLowerCase() === perfilFiltro : true;
+    const matchCidade = cidadeFiltro ? u.cidade === cidadeFiltro : true;
+    return matchNome && matchPerfil && matchCidade;
+  });
+
+  tbody.innerHTML = usersFiltrados.length === 0
+    ? '<tr><td colspan="5" class="text-center">Nenhum usuário encontrado.</td></tr>'
+    : usersFiltrados.map(u => `
+        <tr>
+          <td><strong>${esc(u.username)}</strong></td>
+          <td>${esc(u.label)}</td>
+          <td><span class="status-badge ${u.role === 'cto' ? 'status-confirmado' : 'status-pendente'}">${esc(u.role)}</span></td>
+          <td>${esc(u.cidade || 'Todas')}</td>
+          <td class="text-center">
+            <div style="display:flex; justify-content:center; gap:8px;">
+              <button class="btn-outline" onclick="abrirModalUsuario('${esc(u.username)}')" title="Editar" style="padding:4px 8px"><i data-lucide="edit"></i></button>
+              <button class="btn-outline" onclick="excluirUsuario('${esc(u.username)}')" title="Excluir" style="padding:4px 8px; color:var(--danger); border-color:var(--danger)"><i data-lucide="trash-2"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+  if (typeof safeCreateIcons !== 'undefined') safeCreateIcons();
+}
+
+function filtrarGovernanca() {
+  renderizarGovernanca();
+}
+
   // Carrega cidades para o select do modal
   try {
     const clientes = await API.fetch('/clientes?select=cidade');
