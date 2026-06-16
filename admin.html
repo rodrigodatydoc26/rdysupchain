@@ -177,7 +177,19 @@
       background: var(--bg-1); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
     }
     .legend-title { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px; }
-    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text); }
+    .legend-item {
+      display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text);
+      cursor: pointer; transition: all 0.2s ease; padding: 4px 8px; border-radius: 6px;
+      user-select: none;
+    }
+    .legend-item:hover {
+      background: var(--bg-2);
+    }
+    .legend-item.active-legend .badge-tag {
+      transform: scale(1.1);
+      box-shadow: 0 0 8px var(--gold);
+      border-color: var(--gold);
+    }
 
     /* ── RESPONSIVO MOBILE ── */
     @media (max-width: 768px) {
@@ -408,11 +420,11 @@
         </div>
         <div class="legend-row">
           <span class="legend-title">Legenda de Sinais:</span>
-          <div class="legend-item"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Entregue</div>
-          <div class="legend-item"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
-          <div class="legend-item"><span class="badge-tag tag-superior-ultima"><i data-lucide="chevrons-up"></i></span> Superior à Última Entrega</div>
-          <div class="legend-item"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Via Novo Portal</div>
-          <div class="legend-item"><span class="badge-tag tag-antigo"><i data-lucide="archive"></i></span> Via Sistema Antigo</div>
+          <div class="legend-item" onclick="toggleLegendFilter('entregue')"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Entregue</div>
+          <div class="legend-item" onclick="toggleLegendFilter('acima-media')"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
+          <div class="legend-item" onclick="toggleLegendFilter('superior-ultima')"><span class="badge-tag tag-superior-ultima"><i data-lucide="chevrons-up"></i></span> Superior à Última Entrega</div>
+          <div class="legend-item" onclick="toggleLegendFilter('portal')"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Via Novo Portal</div>
+          <div class="legend-item" onclick="toggleLegendFilter('antigo')"><span class="badge-tag tag-antigo"><i data-lucide="archive"></i></span> Via Sistema Antigo</div>
         </div>
 
         <div class="table-responsive">
@@ -955,7 +967,58 @@ async function carregarDashboard() {
 // ════════════════════════════════════════════════════════
 // ENTREGAS
 // ════════════════════════════════════════════════════════
+let activeLegendFilters = new Set();
+
+function toggleLegendFilter(type) {
+  if (type === 'acima-media') {
+    const cb = document.getElementById('admFiltroAcimaMedia');
+    if (cb) cb.checked = !cb.checked;
+  } else if (type === 'superior-ultima') {
+    const cb = document.getElementById('admFiltroSuperiorUltima');
+    if (cb) cb.checked = !cb.checked;
+  } else {
+    if (activeLegendFilters.has(type)) {
+      activeLegendFilters.delete(type);
+    } else {
+      activeLegendFilters.add(type);
+    }
+  }
+  updateLegendUI();
+  carregarEntregas();
+}
+
+function updateLegendUI() {
+  const fAcima = document.getElementById('admFiltroAcimaMedia')?.checked || false;
+  const fSup = document.getElementById('admFiltroSuperiorUltima')?.checked || false;
+  
+  const hasActive = activeLegendFilters.size > 0 || fAcima || fSup;
+  
+  document.querySelectorAll('.legend-row .legend-item').forEach(item => {
+    const badge = item.querySelector('.badge-tag');
+    if (badge) {
+      let isActive = false;
+      if (badge.classList.contains('tag-acima-media')) isActive = fAcima;
+      else if (badge.classList.contains('tag-superior-ultima')) isActive = fSup;
+      else if (badge.classList.contains('tag-entregue')) isActive = activeLegendFilters.has('entregue');
+      else if (badge.classList.contains('tag-portal')) isActive = activeLegendFilters.has('portal');
+      else if (badge.classList.contains('tag-antigo')) isActive = activeLegendFilters.has('antigo');
+      
+      if (!hasActive) {
+        item.style.opacity = '1';
+        item.classList.remove('active-legend');
+      } else if (isActive) {
+        item.style.opacity = '1';
+        item.classList.add('active-legend');
+      } else {
+        item.style.opacity = '0.35';
+        item.classList.remove('active-legend');
+      }
+    }
+  });
+}
+
 async function carregarEntregas() {
+  updateLegendUI();
   const di = document.getElementById('admDataInicio').value;
   const df = document.getElementById('admDataFim').value;
   const fCidade = document.getElementById('admFiltroCidade').value.trim().toLowerCase();
@@ -999,6 +1062,23 @@ async function carregarEntregas() {
 
     if (fSuperiorUltima) {
         data = data.filter(e => e.observacao && e.observacao.includes('[SUPERIOR A ULTIMA]'));
+    }
+
+    // Filtros adicionais da legenda (Entregue / Portal / Antigo)
+    if (activeLegendFilters.size > 0) {
+        data = data.filter(e => {
+            let matchesAll = true;
+            if (activeLegendFilters.has('entregue')) {
+                if (e.status !== 'confirmado') matchesAll = false;
+            }
+            if (activeLegendFilters.has('portal')) {
+                if (e.criado_por !== 'Portal') matchesAll = false;
+            }
+            if (activeLegendFilters.has('antigo')) {
+                if (e.criado_por === 'Portal') matchesAll = false;
+            }
+            return matchesAll;
+        });
     }
     
     // Ordenação em Memória
