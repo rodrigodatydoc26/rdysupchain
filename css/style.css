@@ -1800,7 +1800,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   transform: translateY(-1px);
 }
 
-.filter-chip i {
+.filter-chip i, .filter-chip svg {
   width: 14px;
   height: 14px;
 }
@@ -1812,7 +1812,7 @@ input[type="text"]:focus, input[type="number"]:focus {
 }
 
 /* ── TOPBAR ACTIONS BUTTONS ── */
-.sync-indicator, .user-badge {
+.theme-toggle-btn, .sync-indicator, .user-badge {
   background: var(--bg-1);
   border: 1px solid var(--border);
   font-family: inherit;
@@ -1821,13 +1821,33 @@ input[type="text"]:focus, input[type="number"]:focus {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   transition: var(--transition);
+  height: 38px;
+  box-sizing: border-box;
+}
+
+.theme-toggle-btn {
+  width: 38px;
+  border-radius: 100px;
+  padding: 0;
+}
+
+.theme-toggle-btn i, .theme-toggle-btn svg {
+  color: var(--gold);
+  width: 18px;
+  height: 18px;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.05);
 }
 
 .sync-indicator {
   gap: 8px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  border-radius: 100px;
   font-size: 0.82rem;
 }
 
@@ -1855,7 +1875,7 @@ input[type="text"]:focus, input[type="number"]:focus {
 .user-badge {
   gap: 8px;
   border-radius: 100px;
-  padding: 6px 14px;
+  padding: 0 14px;
   font-size: 0.82rem;
 }
 
@@ -2006,84 +2026,19 @@ color: var(--gold);
   border-color: var(--gold);
 }
 
-/* ── TOPBAR ACTIONS BUTTONS ── */
-.sync-indicator, .user-badge {
-  background: var(--bg-1);
-  border: 1px solid var(--border);
-  font-family: inherit;
-  color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  transition: var(--transition);
-}
-
-.sync-indicator {
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 0.82rem;
-}
-
-.sync-indicator:hover {
-  border-color: var(--gold);
-  background: rgba(212, 175, 55, 0.05);
-}
-
-.sync-indicator i, .sync-indicator svg {
-  color: var(--gold);
-  width: 16px;
-  height: 16px;
-}
-
-.sync-indicator:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.sync-label {
-  color: var(--text-dim);
-  font-size: 0.82rem;
-}
-
-.user-badge {
-  gap: 8px;
-  border-radius: 100px;
-  padding: 6px 14px;
-  font-size: 0.82rem;
-}
-
-.user-badge:hover {
-  border-color: var(--danger);
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.user-badge:hover .btn-logout-icon {
-  color: var(--danger);
-  transform: translateX(2px);
-}
-
-.user-badge > i, .user-badge > svg {
-  color: var(--text);
-  width: 16px;
-  height: 16px;
-}
-
 .btn-logout-icon {
   color: var(--text-dim);
   width: 14px;
   height: 14px;
   margin-left: 2px;
   transition: var(--transition);
-  display: flex;
-  align-items: center;
 }
 
 @media (max-width: 768px) {
   .sync-label { display: none; }
   .sync-indicator { padding: 8px 10px; }
   .app-container { padding: 12px 16px; }
+  .consultar-header, .historico-header { padding: 16px; }
   .topbar { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; }
   .topbar-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 10px; }
 
