@@ -790,11 +790,13 @@ async function salvarBalanceamento() {
     
     document.getElementById('inputOs').value = os;
 
+    const isSistemaOriginal = window !== window.top;
+    
     const contVal = document.getElementById('inputContador').value.trim();
-    if (contVal === '' || isNaN(parseInt(contVal))) {
+    if (!isSistemaOriginal && (contVal === '' || isNaN(parseInt(contVal)))) {
         return alert("Por favor, insira o Contador/Numerador Atual!");
     }
-    const cont = parseInt(contVal);
+    const cont = parseInt(contVal) || 0;
 
     // Validar se o contador atual é menor que o anterior
     const entregas = state.entregas || [];
@@ -803,7 +805,7 @@ async function salvarBalanceamento() {
         ? parseInt(ultimaEntrega.contador_atual)
         : (state.equipamento?.ultimo_contador || 0);
 
-    if (cont < ultimoContador) {
+    if (!isSistemaOriginal && cont < ultimoContador) {
         return alert(`O contador atual (${cont.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${ultimoContador.toLocaleString('pt-BR')})!`);
     }
 
