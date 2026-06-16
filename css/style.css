@@ -469,6 +469,7 @@ input[type="text"]:focus, input[type="number"]:focus {
 .theme-cyan { background: #0078d4; }
 .theme-magenta { background: #ff00cc; }
 .theme-yellow { background: #ffcc00; }
+.theme-red { background: #e60000; }
 
 .media-stats {
   display: flex;
@@ -2076,24 +2077,71 @@ color: var(--gold);
   .sync-label { display: none; }
   .sync-indicator { padding: 8px 10px; }
   .app-container { padding: 12px 16px; }
-  .topbar { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; }
-  .topbar-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .nav-tabs { flex-wrap: wrap; width: 100%; }
-  .nav-tabs button { flex: 1 1 100%; justify-content: center; text-align: center; }
-  .filter-row-premium { flex-direction: column; gap: 12px; }
-  .filter-input-group, .filter-select-group { width: 100%; min-width: 100%; }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; }
+  .topbar-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 10px; }
+
+  /* Tabs: scroll horizontal em vez de empilhar */
+  .nav-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    gap: 4px;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tabs .tab-btn, .nav-tabs button {
+    flex: none;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    padding: 10px 14px;
+  }
+
+  /* Search */
+  .search-card { padding: 20px 16px; }
+  .search-card h2, .consultar-header h2 { font-size: 1.25rem; }
+  .search-input-wrapper { flex-direction: column; width: 100%; }
+  .search-input-wrapper .btn-primary { width: 100%; justify-content: center; }
+
+  /* Filtros — remove min-width fixo que estoura a tela */
+  .filter-row-premium { flex-direction: column; gap: 10px; }
+  .filter-input-group, .filter-select-group { width: 100%; min-width: 0; }
+  .search-input-group, .date-range-group, .select-inline-premium { min-width: 0; width: 100%; }
   .btn-filter-premium { width: 100%; justify-content: center; margin-top: 4px; }
+
+  /* Actions */
   .header-actions { width: 100%; display: flex; flex-wrap: wrap; margin-top: 12px; }
   .header-actions button { width: 100%; justify-content: center; }
   .section-hdr { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .search-input-wrapper { flex-direction: column; width: 100%; }
-  .search-input-wrapper .btn-primary { width: 100%; justify-content: center; }
+
+  /* Layout */
   .dashboard-grid, .form-grid { grid-template-columns: 1fr; }
   .legend-row { flex-wrap: wrap; gap: 10px; flex-direction: column; align-items: flex-start; }
+
+  /* Tabela — reduz fonte para caber no scroll horizontal */
+  .data-table { font-size: 0.8rem; }
+  .data-table th, .data-table td { padding: 8px 10px; }
+
+  /* Modal — evita sair da tela */
+  .modal-content {
+    width: calc(100% - 32px);
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .modal-content-sm, .modal-content-danger { max-width: calc(100% - 32px); }
+
+  /* Login */
   .login-screen { padding: 20px; box-sizing: border-box; }
-  .login-card { padding: 32px 20px; margin: auto; max-width: 100%; }
+  .login-card { padding: 28px 16px; margin: auto; max-width: 100%; }
   .login-logo { flex-direction: column; text-align: center; gap: 8px; }
-  .login-logo h1 { font-size: 1.25rem; }
+  .login-logo h1 { font-size: 1.1rem; }
+}
+
+@media (max-width: 480px) {
+  .color-selector { display: none; }
+  .kpi-value { font-size: 1.75rem; }
+  .admin-badge { font-size: 0.625rem; padding: 3px 8px; }
+  .topbar-actions { gap: 8px; }
 }
 
 
