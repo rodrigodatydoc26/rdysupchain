@@ -2083,7 +2083,7 @@ color: var(--gold);
   }
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tabs .tab-btn, .nav-tabs button {
-    flex: none;
+    flex: 1;
     white-space: nowrap;
     font-size: 0.85rem;
     padding: 0 16px;
