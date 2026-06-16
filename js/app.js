@@ -2,31 +2,212 @@
 const SUPABASE_URL = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
 
+// ════════════════════════════════════════════════════════
+// SEGURANÇA — Previne XSS em todos os innerHTML
+// ════════════════════════════════════════════════════════
+function esc(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+const escAttr = esc;
+
+// ── AUTH — perfis de acesso ─────────────────────────────
+// USERS removido - agora utilizando Supabase (tabela balanceamento_usuarios)
+
+let currentUser = null;
+
+function initLogin() {
+    const saved = sessionStorage.getItem('rdyUser');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.username && parsed.role) {
+                currentUser = parsed;
+                showApp();
+                return;
+            }
+        } catch (e) {}
+        // Sessão inválida — força novo login
+        sessionStorage.removeItem('rdyUser');
+        sessionStorage.removeItem('adm_user');
+        sessionStorage.removeItem('adm_tk');
+    }
+    const screen = document.getElementById('loginScreen');
+    if (screen) screen.style.display = 'flex';
+    const userIn = document.getElementById('loginUser');
+    if (userIn) { userIn.value = ''; userIn.focus(); }
+    const passIn = document.getElementById('loginPass');
+    if (passIn) passIn.value = '';
+}
+
+async function doLogin() {
+    const errEl = document.getElementById('loginError');
+
+    // Proteção contra força bruta: bloqueia após 5 tentativas por 15 minutos
+    const lockUntil = parseInt(sessionStorage.getItem('loginLockUntil') || 0);
+    if (Date.now() < lockUntil) {
+        const minutos = Math.ceil((lockUntil - Date.now()) / 60000);
+        errEl.textContent = `Acesso bloqueado. Tente novamente em ${minutos} minuto(s).`;
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    const username = document.getElementById('loginUser').value.trim().toLowerCase();
+    const password = document.getElementById('loginPass').value;
+
+    try {
+        const result = await API.fetch(`/balanceamento_usuarios?username=eq.${username}&select=*`);
+        const found = result[0];
+
+        if (!found || found.password !== password) {
+            const tentativas = parseInt(sessionStorage.getItem('loginTentativas') || 0) + 1;
+            sessionStorage.setItem('loginTentativas', tentativas);
+
+            if (tentativas >= 5) {
+                const bloqueioAte = Date.now() + 15 * 60 * 1000;
+                sessionStorage.setItem('loginLockUntil', bloqueioAte);
+                sessionStorage.removeItem('loginTentativas');
+                errEl.textContent = 'Acesso bloqueado por 15 minutos após múltiplas tentativas.';
+            } else {
+                errEl.textContent = `Usuário ou senha incorretos. (${tentativas}/5 tentativas)`;
+            }
+            errEl.classList.remove('hidden');
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginPass').focus();
+            return;
+        }
+
+        sessionStorage.removeItem('loginTentativas');
+        sessionStorage.removeItem('loginLockUntil');
+        errEl.textContent = 'Usuário ou senha incorretos.';
+        errEl.classList.add('hidden');
+        currentUser = found;
+        sessionStorage.setItem('rdyUser', JSON.stringify(currentUser));
+        showApp();
+    } catch(err) {
+        console.error("Login error:", err);
+        errEl.textContent = 'Erro ao se conectar ao servidor.';
+        errEl.classList.remove('hidden');
+    }
+}
+
+function doLogout() {
+    sessionStorage.removeItem('rdyUser');
+    sessionStorage.removeItem('adm_user');
+    sessionStorage.removeItem('adm_tk');
+    currentUser = null;
+    window.location.reload();
+}
+
+function toggleLoginPass() {
+    const input = document.getElementById('loginPass');
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    const btn = document.querySelector('.btn-eye');
+    btn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" id="loginEyeIcon"></i>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons({ root: btn });
+}
+
+function showApp() {
+    if (!currentUser) {
+        currentUser = null;
+        sessionStorage.removeItem('rdyUser');
+        const screen = document.getElementById('loginScreen');
+        if (screen) {
+            screen.style.display = 'flex';
+            const userIn = document.getElementById('loginUser');
+            if (userIn) userIn.focus();
+        }
+        return;
+    }
+    const { role } = currentUser;
+    if (role === 'cto') { showAdmin(); } else { showTech(); }
+}
+
+function showTech() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
+    applyRoleRestrictions();
+    lucide.createIcons();
+    initTabs();
+    initSearch();
+    initModalEdicao();
+    initTheme();
+    verificarAutoSync();
+}
+
+function applyRoleRestrictions() {
+    const { role, cidade, label } = currentUser;
+
+    // Exibir badge do usuário logado
+    document.getElementById('userLabel').innerText = label;
+    document.getElementById('userBadge').classList.remove('hidden');
+
+    if (role === 'tecnico' || role === 'gestor') {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (!['balancear', 'historico'].includes(btn.dataset.tab)) btn.style.display = 'none';
+        });
+    }
+
+    // Ocultar opções de entrega e resumo de balanceamento para usuários regionais (Indaiatuba e Limeira)
+    const isRegional = cidade === 'LIMEIRA' || cidade === 'INDAIATUBA';
+    document.querySelectorAll('.options-section, .summary-column').forEach(el => {
+        el.style.display = isRegional ? 'none' : '';
+    });
+
+    // Controlar exibição dos chips de filtros rápidos de cidade no histórico
+    const chipLimeira = document.getElementById('chip-limeira');
+    const chipIndaiatuba = document.getElementById('chip-indaiatuba');
+    if (chipLimeira && chipIndaiatuba) {
+        if (cidade === 'LIMEIRA') {
+            chipLimeira.style.display = '';
+            chipIndaiatuba.style.display = 'none';
+        } else if (cidade === 'INDAIATUBA') {
+            chipLimeira.style.display = 'none';
+            chipIndaiatuba.style.display = '';
+        } else {
+            chipLimeira.style.display = '';
+            chipIndaiatuba.style.display = '';
+        }
+    }
+}
+
+function canEdit() {
+    return currentUser?.role !== 'tecnico';
+}
+
+// Retorna o filtro de cidade do usuário atual (para consultas)
+function getCidadeFiltro() {
+    return currentUser?.cidade || null;
+}
+
+// ── STATE ───────────────────────────────────────────────
 let state = {
     equipamento: null,
     media: 0,
     opcao: null,
     entregas: [],
-    historico: {
-        pagina: 1,
-        tamanho: 15,
-        total: 0
-    }
+    sugestoes: {},
+    historico: { pagina: 1, tamanho: 15, total: 0 }
 };
 
 const API = {
     async fetch(endpoint, fullResponse = false) {
         const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
         try {
             const headers = {
                 'apikey': SUPABASE_KEY,
                 'Authorization': `Bearer ${SUPABASE_KEY}`,
                 'Content-Type': 'application/json'
             };
-            
-            // Se for histórico, pede o total de registros
+
             if (endpoint.includes('balanceamento_entregas')) {
                 headers['Prefer'] = 'count=exact';
             }
@@ -37,7 +218,7 @@ const API = {
             });
             clearTimeout(timeoutId);
             if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-            
+
             if (fullResponse) return res;
             return res.json();
         } catch (e) {
@@ -47,18 +228,17 @@ const API = {
         }
     },
 
-    async post(endpoint, data) {
+    async _mutate(method, endpoint, data) {
         const sep = endpoint.includes('?') ? '&' : '?';
         const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`;
+        const headers = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+        };
+        if (data !== undefined) headers['Prefer'] = 'return=representation';
         const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(data)
+            method, headers, body: data !== undefined ? JSON.stringify(data) : undefined
         });
         if (!res.ok) {
             const errBody = await res.text();
@@ -67,50 +247,28 @@ const API = {
         return res.json();
     },
 
-    async patch(endpoint, data) {
-        const sep = endpoint.includes('?') ? '&' : '?';
-        const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`;
-        const res = await fetch(url, {
-            method: 'PATCH',
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(data)
-        });
-        if (!res.ok) {
-            const errBody = await res.text();
-            throw new Error(`HTTP ${res.status}: ${errBody}`);
-        }
-        return res.json();
-    },
+    post(endpoint, data)  { return this._mutate('POST',  endpoint, data); },
+    patch(endpoint, data) { return this._mutate('PATCH', endpoint, data); },
 
     async delete(endpoint) {
         const sep = endpoint.includes('?') ? '&' : '?';
         const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`;
         const res = await fetch(url, {
             method: 'DELETE',
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`
-            }
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
-        if (!res.ok) {
-            const errBody = await res.text();
-            throw new Error(`HTTP ${res.status}: ${errBody}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
         return true;
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Esconde a barra de rolagem horizontal das abas no Firefox programaticamente
+    document.querySelectorAll('.nav-tabs').forEach(el => {
+        el.style.scrollbarWidth = 'none';
+    });
     lucide.createIcons();
-    initTabs();
-    initSearch();
-    initModalEdicao();
-    initTheme();
+    initLogin();
 });
 
 function initModalEdicao() {
@@ -135,7 +293,6 @@ function initModalEdicao() {
         try {
             await API.patch(`/equipamentos?id=eq.${currentEditingId}`, payload);
 
-            // Contador vai para ordens_servico, não para equipamentos
             if (novoContador > 0) {
                 const equip = state._editEquip;
                 await API.post('/ordens_servico', {
@@ -167,36 +324,31 @@ function initTabs() {
             if (tabId === 'historico') carregarHistorico();
             if (tabId === 'relatorios') carregarRelatorios();
             if (tabId === 'cadastrar') carregarClientesParaCadastro();
-            if (tabId === 'consultar') carregarClientesParaConsulta();
         });
     });
 }
 
 function initSearch() {
-    // Busca Principal (Aba Balancear)
     setupAutocomplete('searchInput', 'suggestionsList', 'equip');
-    // Busca Global (Aba Consultar)
     setupAutocomplete('globalSearchInput', 'globalSearchSuggestions', 'equip');
-    // Filtros de Histórico
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('filterDataInicio').value = today;
     document.getElementById('filterDataFim').value = today;
 
     setupAutocomplete('filterSerie', 'filterSerieSuggestions', 'equip');
     setupAutocomplete('filterCliente', 'filterClienteSuggestions', 'cliente');
-    // Filtros de Consulta
     setupAutocomplete('consultarCliente', 'consultarClienteSuggestions', 'cliente');
 
     document.getElementById('searchBtn').addEventListener('click', () => {
         const val = document.getElementById('searchInput').value.trim();
         buscarEquipamento(val);
     });
-    
-    document.getElementById('searchInput').addEventListener('keydown', (e) => { 
-        if (e.key === 'Enter') buscarEquipamento(e.target.value.trim()); 
+
+    document.getElementById('searchInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') buscarEquipamento(e.target.value.trim());
     });
 
-    document.addEventListener('click', (e) => { 
+    document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete-container') && !e.target.closest('.search-input-group')) {
             document.querySelectorAll('.suggestions-list').forEach(l => l.classList.add('hidden'));
         }
@@ -208,9 +360,17 @@ function setupAutocomplete(inputId, listId, type) {
     const list = document.getElementById(listId);
     if (!input || !list) return;
 
+    // Delegação de clique segura: sem onclick inline com dados da API
+    list.addEventListener('click', e => {
+        const item = e.target.closest('.suggestion-item');
+        if (!item) return;
+        const valor = item.dataset.value || '';
+        selecionarSugestaoGeral(inputId, listId, valor, item.dataset.type || type);
+    });
+
     let debounceTimer;
     input.addEventListener('input', () => {
-        fecharTodasSugestoes(); // FECHAR TODOS ANTES
+        fecharTodasSugestoes();
         clearTimeout(debounceTimer);
         const val = input.value.trim();
         if (val.length < 2) {
@@ -220,50 +380,45 @@ function setupAutocomplete(inputId, listId, type) {
 
         debounceTimer = setTimeout(async () => {
             try {
-                let data = [];
-                if (type === 'equip') {
-                    // Busca por Série ou Patrimônio
-                    data = await API.fetch(`/equipamentos?or=(serie.ilike.*${encodeURIComponent(val)}*,patrimonio.ilike.*${encodeURIComponent(val)}*)&select=*,cliente:clientes(nome)&limit=10`);
-                    
-                    // Se não achou muito, tenta por nome do cliente
-                    if (data.length < 5) {
-                        try {
-                            const porCliente = await API.fetch(`/equipamentos?select=*,cliente:clientes!inner(nome)&cliente.nome=ilike.*${encodeURIComponent(val)}*&limit=10`);
-                            const ids = new Set(data.map(i => i.id));
-                            porCliente.forEach(item => { if(!ids.has(item.id)) data.push(item); });
-                        } catch(err) { /* ignore join errors */ }
-                    }
-                } else {
-                    // Busca apenas por Cliente
-                    data = await API.fetch(`/clientes?nome=ilike.*${encodeURIComponent(val)}*&select=id,nome&limit=10`);
-                }
+                const cidade = getCidadeFiltro();
+                const valEnc = encodeURIComponent(val);
 
-                if (data.length > 0) {
+                const renderItems = (data) => {
+                    if (!data.length) { list.classList.add('hidden'); return; }
                     list.innerHTML = data.map(item => {
                         if (type === 'equip') {
-                            return `
-                                <div class="suggestion-item" onclick="selecionarSugestaoGeral('${inputId}', '${listId}', '${item.serie}', 'equip')">
-                                    <div class="sugg-main">
-                                        <strong>${item.serie}</strong>
-                                        <span class="tag-sm">${item.secretaria || 'OUTROS'}</span>
-                                    </div>
-                                    <span class="sub">${item.cliente ? item.cliente.nome : (item.patrimonio || '')}</span>
-                                </div>
-                            `;
-                        } else {
-                            return `
-                                <div class="suggestion-item" onclick="selecionarSugestaoGeral('${inputId}', '${listId}', '${item.nome}', 'cliente')">
-                                    <strong>${item.nome}</strong>
-                                </div>
-                            `;
+                            return `<div class="suggestion-item" data-value="${escAttr(item.serie)}" data-type="equip"><div class="sugg-main"><strong>${esc(item.serie)}</strong><span class="tag-sm">${esc(item.secretaria || 'OUTROS')}</span></div><span class="sub">${esc(item.cliente ? item.cliente.nome : (item.patrimonio || ''))}</span></div>`;
                         }
+                        return `<div class="suggestion-item" data-value="${escAttr(item.nome)}" data-type="cliente"><strong>${esc(item.nome)}</strong></div>`;
                     }).join('');
                     list.classList.remove('hidden');
+                };
+
+                if (type === 'equip') {
+                    // 1. Mostra cache local imediatamente (< 1ms)
+                    const local = await buscarEquipamentosLocal(val);
+                    if (local.length > 0) renderItems(local);
+
+                    if (!navigator.onLine) return;
+
+                    // 2. Busca na rede em paralelo (série/patrimônio + cliente)
+                    const cidadeParam = cidade ? `&cliente.cidade=eq.${encodeURIComponent(cidade)}` : '';
+                    const joinType    = cidade ? '!inner' : '';
+                    const [porSerie, porCliente] = await Promise.all([
+                        API.fetch(`/equipamentos?or=(serie.ilike.*${valEnc}*,patrimonio.ilike.*${valEnc}*)&select=*,cliente:clientes${joinType}(nome,cidade)${cidadeParam}&limit=10`).catch(() => []),
+                        cidade ? Promise.resolve([]) : API.fetch(`/equipamentos?select=*,cliente:clientes!inner(nome)&cliente.nome=ilike.*${valEnc}*&limit=10`).catch(() => [])
+                    ]);
+                    const ids  = new Set(porSerie.map(i => i.id));
+                    const merged = [...porSerie, ...porCliente.filter(i => !ids.has(i.id))].slice(0, 10);
+                    if (merged.length > 0) renderItems(merged);
+
                 } else {
-                    list.classList.add('hidden');
+                    const cidadeParam = cidade ? `&cidade=eq.${encodeURIComponent(cidade)}` : '';
+                    const data = await API.fetch(`/clientes?nome=ilike.*${valEnc}*&select=id,nome${cidadeParam}&limit=10`).catch(() => []);
+                    renderItems(data);
                 }
             } catch (e) { console.warn("Autocomplete error:", e); }
-        }, 300);
+        }, 200);
     });
 }
 
@@ -280,33 +435,92 @@ function selecionarSugestaoGeral(inputId, listId, valor, type) {
     }
 }
 
-async function selecionarSugestao(serie) {
-    document.getElementById('searchInput').value = serie;
-    document.getElementById('suggestionsList').classList.add('hidden');
-    buscarEquipamento(serie);
-}
-
 async function buscarEquipamento(serie) {
     if (!serie) return;
     setLoading(true);
     resetUI();
 
+    let equip = null;
+    let osHistory = [];
+    let entregas = [];
+    let analiseEmAberto = null;
+    const cidade = getCidadeFiltro();
+
     try {
-        const data = await API.fetch(`/equipamentos?serie=eq.${encodeURIComponent(serie)}&select=*,cliente:clientes(id,nome,cidade)&limit=1`);
-        if (data.length === 0) {
-            alert("Equipamento não encontrado!");
-            return;
+        let data = [];
+        try {
+            data = await API.fetch(`/equipamentos?serie=eq.${encodeURIComponent(serie)}&select=*,cliente:clientes(id,nome,cidade)&limit=1`);
+        } catch (apiErr) {
+            console.warn("Supabase fetch failed, trying local IndexedDB cache:", apiErr);
         }
 
-        const equip = data[0];
+        if (!data || data.length === 0) {
+            const localEquips = await lerCacheStore('equipamentos');
+            const foundLocal = localEquips.find(e => 
+                (e.serie || '').toLowerCase() === serie.toLowerCase() || 
+                (e.patrimonio || '').toLowerCase() === serie.toLowerCase()
+            );
 
-        // Busca todo o histórico de contadores (ordens_servico) para calibração
-        const osHistory = await API.fetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.asc`);
+            if (foundLocal) {
+                equip = foundLocal;
+                
+                if (cidade) {
+                    const cidadeCliente = (equip.cliente?.cidade || '').toUpperCase();
+                    if (cidadeCliente !== cidade.toUpperCase()) {
+                        alert(`Acesso negado. Você só pode consultar equipamentos de ${cidade}.`);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                state.equipamento = equip;
+                document.getElementById('resCliente').innerText = `Cliente: ${equip.cliente?.nome || 'N/D'}`;
+                document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
+                document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
+                document.getElementById('resSerie').innerText = equip.serie;
+                document.getElementById('resModelo').innerText = equip.modelo || 'N/D';
+                document.getElementById('resContador').innerText = equip.ultimo_contador || 0;
+                document.getElementById('sumContadorAnterior').innerText = equip.ultimo_contador || 0;
+
+                const media = parseFloat(equip.media_referencia) || 0;
+                updateMedia(media);
+                document.getElementById('resultContainer').classList.remove('hidden');
+                document.getElementById('resUltimaEntrega').innerText = 'N/D (Offline)';
+                state.entregas = [];
+
+                abrirAnaliseImediata();
+                setLoading(false);
+                return;
+            } else {
+                alert("Equipamento não encontrado!");
+                setLoading(false);
+                return;
+            }
+        }
+
+        equip = data[0];
+
+        if (cidade) {
+            const cidadeCliente = (equip.cliente?.cidade || '').toUpperCase();
+            if (cidadeCliente !== cidade.toUpperCase()) {
+                alert(`Acesso negado. Você só pode consultar equipamentos de ${cidade}.`);
+                setLoading(false);
+                return;
+            }
+        }
+
+        [osHistory, entregas, analiseEmAberto] = await Promise.all([
+            API.fetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.asc`).catch(() => []),
+            API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=eq.confirmado&order=data_registro.asc`).catch(() => []),
+            verificarAnaliseAberta(equip.id).catch(() => null)
+        ]);
+
         const ultimaOs = osHistory.length > 0 ? osHistory[osHistory.length - 1] : null;
         equip.ultimo_contador = ultimaOs?.contador_atual || 0;
         equip.data_ultimo_contador = ultimaOs?.data_os || null;
 
         state.equipamento = equip;
+        state.entregas = entregas;
 
         document.getElementById('resCliente').innerText = `Cliente: ${equip.cliente?.nome || 'N/D'}`;
         document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
@@ -316,14 +530,9 @@ async function buscarEquipamento(serie) {
         document.getElementById('resContador').innerText = equip.ultimo_contador;
         document.getElementById('sumContadorAnterior').innerText = equip.ultimo_contador;
 
-        // Busca histórico de entregas para fallback da calibração
-        const entregas = await API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=eq.confirmado&order=data_registro.asc`);
-        const media = calcularMediaCalibrada(osHistory, entregas, parseFloat(equip.media_referencia) || 0);
-
-        updateMedia(media);
+        updateMedia(calcularMediaCalibrada(osHistory, entregas, parseFloat(equip.media_referencia) || 0));
         document.getElementById('resultContainer').classList.remove('hidden');
 
-        // Preencher Última Entrega no Cabeçalho
         const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
         const resUltima = document.getElementById('resUltimaEntrega');
         if (ultimaEntrega) {
@@ -333,21 +542,10 @@ async function buscarEquipamento(serie) {
             resUltima.innerText = 'Nenhuma';
         }
 
-        // Últimas entregas (as 3 mais recentes para exibição)
-        state.entregas = entregas;
-        const card = document.getElementById('lastDeliveriesCard');
-        const tbody = document.getElementById('lastDeliveriesTbody');
-        if (entregas.length > 0) {
-            tbody.innerHTML = [...entregas].reverse().slice(0, 3).map(e => `
-                <tr>
-                    <td>${new Date(e.data_registro).toLocaleDateString('pt-BR')}</td>
-                    <td>${e.quantidade_definida}</td>
-                    <td>${e.numero_os || '-'}</td>
-                </tr>
-            `).join('');
-            card.classList.remove('hidden');
+        if (analiseEmAberto) {
+            mostrarFecharAnalise(analiseEmAberto);
         } else {
-            card.classList.add('hidden');
+            abrirAnaliseImediata();
         }
 
     } catch (e) {
@@ -360,30 +558,15 @@ async function buscarEquipamento(serie) {
 
 function verTodoHistorico() {
     if (!state.equipamento) return;
-    
-    // Mudar para a aba histórico
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        if (btn.dataset.tab === 'historico') btn.click();
-    });
-    
-    // Limpar todos os filtros (datas e cliente) para mostrar o histórico completo desta série
+    document.querySelector('.tab-btn[data-tab="historico"]').click();
     document.getElementById('filterDataInicio').value = '';
-    document.getElementById('filterDataFim').value = '';
-    document.getElementById('filterCliente').value = '';
-    
-    // Filtrar pela série atual
-    document.getElementById('filterSerie').value = state.equipamento.serie;
-    
-    // Recarregar
+    document.getElementById('filterDataFim').value    = '';
+    document.getElementById('filterCliente').value    = '';
+    document.getElementById('filterSerie').value      = state.equipamento.serie;
     carregarHistorico();
 }
 
-// Calibra a média usando:
-// 1. Deltas reais de contador (ordens_servico) — mais preciso, peso maior para meses recentes
-// 2. media_consumo_mensal das entregas confirmadas — fallback sem contador
-// 3. media_referencia do cadastro — fallback final
 function calcularMediaCalibrada(osHistory, entregas, mediaReferencia) {
-    // Passo 1: usar histórico de contadores (ordens_servico) para cálculo real
     if (osHistory && osHistory.length >= 2) {
         const ordenadas = [...osHistory].sort((a, b) => new Date(a.data_os) - new Date(b.data_os));
         const consumos = [];
@@ -397,7 +580,6 @@ function calcularMediaCalibrada(osHistory, entregas, mediaReferencia) {
         }
 
         if (consumos.length > 0) {
-            // Média ponderada: mês mais recente tem peso maior
             let totalPeso = 0, somaTotal = 0;
             consumos.forEach((v, i) => {
                 const peso = i + 1;
@@ -408,7 +590,6 @@ function calcularMediaCalibrada(osHistory, entregas, mediaReferencia) {
         }
     }
 
-    // Passo 2: sem histórico de contador — usa media_consumo_mensal das entregas
     if (entregas && entregas.length > 0) {
         const valores = entregas.map(e => parseFloat(e.media_consumo_mensal)).filter(v => v > 0);
         if (valores.length > 0) {
@@ -416,7 +597,6 @@ function calcularMediaCalibrada(osHistory, entregas, mediaReferencia) {
         }
     }
 
-    // Passo 3: fallback para referência inicial do cadastro
     return mediaReferencia;
 }
 
@@ -435,11 +615,74 @@ function updateMedia(val) {
     document.getElementById('opt2Qtd').innerText = s2;
     document.getElementById('opt3Qtd').innerText = s3;
 
-    state.sugestoes = { 1: s1, 2: s2, 3: s3 };
+    state.sugestoes[1] = s1;
+    state.sugestoes[2] = s2;
+    state.sugestoes[3] = s3;
+    atualizarBarraConsumo(0);
 }
 
+function calcularEntregasMes() {
+    if (!state.entregas || state.entregas.length === 0) return 0;
+    const agora = new Date();
+    return state.entregas.filter(e => {
+        if (e.status === 'cancelado') return false;
+        const d = new Date(e.data_registro);
+        return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
+    }).reduce((sum, e) => sum + (parseFloat(e.quantidade_definida) || 0), 0);
+}
+
+function atualizarBarraConsumo(qtdAdicional = 0) {
+    const totalMes = calcularEntregasMes();
+    const media = state.media || 0;
+    const totalAtual = totalMes + qtdAdicional;
+    
+    const resTotalMes = document.getElementById('resTotalMes');
+    if(resTotalMes) resTotalMes.innerText = totalAtual;
+    
+    const bar = document.getElementById('consumoProgressBar');
+    const statusTxt = document.getElementById('resConsumoStatus');
+    const aviso = document.getElementById('consumoAvisoTexto');
+    
+    if (!bar) return;
+    
+    if (media === 0) {
+        bar.style.width = '0%';
+        bar.classList.remove('excedido');
+        if (statusTxt) {
+            statusTxt.className = 'status-normal';
+            statusTxt.innerText = 'NORMAL';
+        }
+        if (aviso) aviso.classList.add('hidden');
+        return;
+    }
+    
+    let pct = (totalAtual / media) * 100;
+    if (pct > 100) pct = 100;
+    bar.style.width = pct + '%';
+    
+    if (totalAtual > media) {
+        bar.classList.add('excedido');
+        if (statusTxt) {
+            statusTxt.className = 'status-excedido';
+            statusTxt.innerText = `${((totalAtual/media)*100).toFixed(0)}%`;
+        }
+        if (aviso) {
+            aviso.classList.remove('hidden');
+            const diff = (totalAtual - media).toFixed(1).replace('.0', '');
+            aviso.innerHTML = `Excedeu ${diff} resmas do consumo médio.`;
+        }
+    } else {
+        bar.classList.remove('excedido');
+        if (statusTxt) {
+            statusTxt.className = 'status-normal';
+            statusTxt.innerText = 'NORMAL';
+        }
+        if (aviso) aviso.classList.add('hidden');
+    }
+}
+
+
 function selecionarOpcao(n) {
-    // Verificar se já houve entrega no mês atual
     if (state.entregas && state.entregas.length > 0) {
         const agora = new Date();
         const entregasMes = state.entregas.filter(e => {
@@ -463,14 +706,20 @@ function selecionarOpcao(n) {
     let qtd = state.sugestoes[n] || 0;
     if (n === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 1;
 
-    document.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.opcao) === n));
-    document.getElementById('sumOpcaoText').innerText = n === 0 ? `Entrega Manual (${qtd} resmas)` : `${n}x por mês (${qtd} resmas por visita)`;
+    document.querySelectorAll('.option-card').forEach(c => c.classList.toggle('selected', c.dataset.opcao === String(n)));
+    
+    if (n === 'rec') {
+        document.getElementById('sumOpcaoText').innerText = `Recomendado (${qtd} resma${qtd !== 1 ? 's' : ''})`;
+    } else {
+        document.getElementById('sumOpcaoText').innerText = n === 0 ? `Entrega Manual (${qtd} resmas)` : `${n}x por mês (${qtd} resmas por visita)`;
+    }
 
     document.getElementById('formLineOs').classList.remove('hidden');
     document.getElementById('formLineObs').classList.remove('hidden');
     document.getElementById('actionRow').classList.remove('hidden');
 
     updateProxima();
+    atualizarBarraConsumo(qtd);
 }
 
 function alterarQtdManual(delta) {
@@ -485,16 +734,30 @@ function atualizarQtdManual(val) {
     if (state.opcao === 0) {
         document.getElementById('sumOpcaoText').innerText = `Entrega Manual (${num} resmas)`;
         updateProxima();
+        atualizarBarraConsumo(num);
     }
 }
 
-// Chamado pelo oninput do campo de contador no HTML
 function atualizarProximaSolicitacao() {
     updateProxima();
 }
 
 function updateProxima() {
     const cont = parseInt(document.getElementById('inputContador').value) || 0;
+    
+    // Calcular recomendação por consumo real para a aba de balanceamento do CTO
+    const entregas = state.entregas || [];
+    const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
+    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+        ? parseInt(ultimaEntrega.contador_atual)
+        : (state.equipamento?.ultimo_contador || 0);
+
+    const consumo = Math.max(0, cont - ultimoContador);
+    const recomendado = cont > 0 ? Math.max(1, Math.ceil(consumo / 500)) : 0;
+    
+    document.getElementById('optRecQtd').innerText = recomendado;
+    state.sugestoes['rec'] = recomendado;
+
     let qtd = 0;
     if (state.opcao === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
     else if (state.opcao !== null) qtd = state.sugestoes[state.opcao] || 0;
@@ -502,9 +765,12 @@ function updateProxima() {
     const el = document.getElementById('resProximaSolicitacao');
     if (cont > 0 && qtd > 0) el.innerText = (cont + (qtd * 500)).toLocaleString('pt-BR');
     else el.innerText = '---';
+
+    if (state.opcao === 'rec') {
+        document.getElementById('sumOpcaoText').innerText = `Recomendado (${recomendado} resma${recomendado !== 1 ? 's' : ''})`;
+    }
 }
 
-// Recalcula a média de consumo com base no contador informado
 function recalcularComContador() {
     const cont = parseInt(document.getElementById('inputContador').value);
     if (!cont || !state.equipamento) return;
@@ -518,8 +784,28 @@ function recalcularComContador() {
 }
 
 async function salvarBalanceamento() {
-    const os = document.getElementById('inputOs').value.trim();
-    const cont = parseInt(document.getElementById('inputContador').value) || null;
+    let os = document.getElementById('inputOs').value.trim().toUpperCase();
+    if (!os) return alert("Por favor, insira o número da O.S.!");
+    
+    document.getElementById('inputOs').value = os;
+
+    const contVal = document.getElementById('inputContador').value.trim();
+    if (contVal === '' || isNaN(parseInt(contVal))) {
+        return alert("Por favor, insira o Contador/Numerador Atual!");
+    }
+    const cont = parseInt(contVal);
+
+    // Validar se o contador atual é menor que o anterior
+    const entregas = state.entregas || [];
+    const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
+    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+        ? parseInt(ultimaEntrega.contador_atual)
+        : (state.equipamento?.ultimo_contador || 0);
+
+    if (cont < ultimoContador) {
+        return alert(`O contador atual (${cont.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${ultimoContador.toLocaleString('pt-BR')})!`);
+    }
+
     const obs = document.getElementById('inputObs').value.trim();
 
     let qtd = 0;
@@ -528,11 +814,23 @@ async function salvarBalanceamento() {
 
     if (!qtd) return alert("Selecione uma opção de entrega!");
 
+    const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
+    if ((ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
+        if (!obs) {
+            alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal ou o limite da última entrega. Por favor, preencha o campo 'Observação' com o motivo.");
+            document.getElementById('formLineObs').classList.remove('hidden');
+            document.getElementById('inputObs').focus();
+            return;
+        }
+        const confirmou = confirm("Exceção detectada: Você preencheu a justificativa. Deseja confirmar a entrega?");
+        if (!confirmou) return;
+    }
+
     setBtnLoading(true);
 
     try {
         let finalMedia = state.media;
-        if (cont && state.equipamento.ultimo_contador && state.equipamento.data_ultimo_contador) {
+        if (state.equipamento.ultimo_contador && state.equipamento.data_ultimo_contador) {
             const dias = Math.ceil(Math.abs(new Date() - new Date(state.equipamento.data_ultimo_contador)) / (1000 * 60 * 60 * 24)) || 1;
             finalMedia = Math.ceil(((cont - state.equipamento.ultimo_contador) / dias * 30 / 500) * 10) / 10;
         }
@@ -543,13 +841,15 @@ async function salvarBalanceamento() {
             cliente_id: state.equipamento.cliente.id,
             numero_os: os || '',
             media_consumo_mensal: finalMedia,
-            opcao_entrega: state.opcao === 0 ? null : state.opcao,
+            opcao_entrega: (state.opcao === 'rec' || state.opcao === 0) ? 0 : state.opcao,
             quantidade_definida: qtd,
-            observacao: obs || '',
-            status: 'confirmado'
+            contador_atual: cont,
+            observacao: state.opcao === 'rec' ? `[RECOMENDADO] ${obs}`.trim() : obs || '',
+            status: 'confirmado',
+            criado_por: 'Portal'
         });
 
-        if (cont) {
+        if (cont !== null && !isNaN(cont)) {
             await API.post('/ordens_servico', {
                 equipamento_id: state.equipamento.id,
                 cliente_id: state.equipamento.cliente.id,
@@ -569,17 +869,315 @@ async function salvarBalanceamento() {
 }
 
 
+// ── ANÁLISE IMEDIATA ──────────────────────────────────────
+
+let _analiseAberta = null;
+
+async function verificarAnaliseAberta(equipId) {
+    try {
+        const res = await API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equipId}&status=eq.analise_aberta&order=data_registro.desc&limit=1`);
+        return res.length > 0 ? res[0] : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function abrirAnaliseImediata() {
+    const equip = state.equipamento;
+    if (!equip) return;
+    document.getElementById('analiseSerie').innerText = equip.serie;
+    document.getElementById('analiseNumeradorAtual').value = '';
+    document.getElementById('analiseResmas').value = 1;
+    _setAnaliseSugStatus('neutral', 0, 'AGUARDANDO LEITURA', 'Insira o numerador atual para o cálculo.');
+    document.getElementById('btnAplicarSugestao').classList.add('hidden');
+    analiseCalcularLimite();
+    document.getElementById('analiseImediataBtn').classList.add('hidden');
+    document.getElementById('analiseFecharCard').classList.add('hidden');
+    document.getElementById('analiseAbertaCard').classList.remove('hidden');
+    lucide.createIcons();
+}
+
+function fecharCardAnalise() {
+    document.getElementById('analiseAbertaCard').classList.add('hidden');
+    document.getElementById('analiseImediataBtn').classList.remove('hidden');
+}
+
+function analiseAlterarResmas(delta) {
+    const input = document.getElementById('analiseResmas');
+    input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+    analiseCalcularLimite();
+}
+
+function _setAnaliseSugStatus(status, valor, titulo, subtitulo) {
+    const card = document.getElementById('analiseSugestaoCard');
+    card.className = `analise-sug-card analise-sug-${status}`;
+    document.getElementById('analiseSugValor').innerText = valor;
+    document.getElementById('analiseSugTitulo').innerText = titulo;
+    document.getElementById('analiseSugSubtitulo').innerText = subtitulo;
+}
+
+function analiseAplicarSugestao() {
+    const valor = parseInt(document.getElementById('btnAplicarSugestao').dataset.sugestao) || 0;
+    if (valor > 0) {
+        document.getElementById('analiseResmas').value = valor;
+        analiseCalcularLimite();
+    }
+}
+
+function analiseNumeradorChanged() {
+    const numerador = parseInt(document.getElementById('analiseNumeradorAtual').value) || 0;
+    const equip = state.equipamento;
+    
+    // Obter última entrega e seu numerador para calcular consumo e sugerir reposição
+    const entregas = state.entregas || [];
+    const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
+    
+    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+        ? parseInt(ultimaEntrega.contador_atual)
+        : (equip?.ultimo_contador || 0);
+        
+    const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
+    const btnAplicar = document.getElementById('btnAplicarSugestao');
+
+    if (!numerador) {
+        _setAnaliseSugStatus('neutral', 0, 'AGUARDANDO LEITURA', 'Insira o numerador atual para o cálculo.');
+        btnAplicar.classList.add('hidden');
+    } else if (numerador < ultimoContador) {
+        _setAnaliseSugStatus('error', 0, 'ERRO DE LEITURA',
+            `Numerador informado (${numerador.toLocaleString('pt-BR')}) é menor que o anterior (${ultimoContador.toLocaleString('pt-BR')}).`);
+        btnAplicar.classList.add('hidden');
+    } else {
+        const consumoPaginas = numerador - ultimoContador;
+        const sugerido = Math.max(1, Math.ceil(consumoPaginas / 500));
+        
+        let subtitulo = '';
+        if (ultimaEntregaResmas > 0) {
+            const limiteAnterior = ultimoContador + (ultimaEntregaResmas * 500);
+            subtitulo = `Última entrega: ${ultimaEntregaResmas} resmas (limite esperado: ${limiteAnterior.toLocaleString('pt-BR')}) · Consumido: ${consumoPaginas.toLocaleString('pt-BR')} págs (${(consumoPaginas / 500).toFixed(1).replace('.', ',')} resmas)`;
+        } else {
+            subtitulo = `Sem entregas anteriores · Consumo de ${consumoPaginas.toLocaleString('pt-BR')} págs desde o numerador base (${ultimoContador.toLocaleString('pt-BR')})`;
+        }
+
+        _setAnaliseSugStatus('success', sugerido, 'SUGESTÃO DE REPOSIÇÃO', subtitulo);
+        btnAplicar.dataset.sugestao = sugerido;
+        btnAplicar.classList.remove('hidden');
+    }
+
+    analiseCalcularLimite();
+    lucide.createIcons();
+}
+
+function analiseCalcularLimite() {
+    const resmas = parseInt(document.getElementById('analiseResmas').value) || 0;
+    const numerador = parseInt(document.getElementById('analiseNumeradorAtual').value) || 0;
+    if (numerador > 0) {
+        document.getElementById('analiseLimite').innerText = (numerador + resmas * 500).toLocaleString('pt-BR');
+    } else {
+        document.getElementById('analiseLimite').innerText = '---';
+    }
+    atualizarBarraConsumo(resmas);
+}
+
+async function salvarAnaliseAberta() {
+    const equip = state.equipamento;
+    if (!equip) return;
+    const resmas = parseInt(document.getElementById('analiseResmas').value) || 0;
+    if (!resmas) return alert("Informe a quantidade de resmas!");
+    
+    let os = document.getElementById('analiseOs').value.trim().toUpperCase();
+    if (!os) return alert("Por favor, insira o número da O.S.!");
+    
+    document.getElementById('analiseOs').value = os;
+
+    const numeradorVal = document.getElementById('analiseNumeradorAtual').value.trim();
+    if (numeradorVal === '' || isNaN(parseInt(numeradorVal))) {
+        return alert("Por favor, insira o Numerador Atual!");
+    }
+    const numeradorBase = parseInt(numeradorVal);
+
+    // Validar se o numerador atual é menor que o anterior
+    const entregas = state.entregas || [];
+    const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
+    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+        ? parseInt(ultimaEntrega.contador_atual)
+        : (equip?.ultimo_contador || 0);
+
+    if (numeradorBase < ultimoContador) {
+        return alert(`O numerador atual (${numeradorBase.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${ultimoContador.toLocaleString('pt-BR')})!`);
+    }
+
+    const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
+    if ((ultimaEntregaResmas > 0 && resmas > ultimaEntregaResmas) || (calcularEntregasMes() + resmas > (state.media || 0))) {
+        const confirmou = confirm("Certeza que deseja entregar? Se sim, clique em OK para confirmar a entrega e lembre-se de sinalizar no chamado o motivo da exceção.");
+        if (!confirmou) return;
+    }
+
+    try {
+        await API.post('/balanceamento_entregas', {
+            equipamento_id: equip.id,
+            cliente_id: equip.cliente.id,
+            numero_os: os || '',
+            media_consumo_mensal: state.media || 0,
+            opcao_entrega: null,
+            quantidade_definida: resmas,
+            contador_atual: numeradorBase,
+            observacao: `ANALISE_BASE:${numeradorBase}`,
+            status: 'analise_aberta',
+            criado_por: 'Portal'
+        });
+        alert(`Análise iniciada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
+        window.location.reload();
+    } catch (e) {
+        alert("Erro ao iniciar análise: " + e.message);
+    }
+}
+
+function mostrarFecharAnalise(analise) {
+    _analiseAberta = analise;
+    const equip = state.equipamento;
+    const numeradorBase = (analise.contador_atual !== null && analise.contador_atual !== undefined)
+        ? parseInt(analise.contador_atual)
+        : (parseInt(analise.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0);
+    const resmas = analise.quantidade_definida || 0;
+    const limite = numeradorBase + resmas * 500;
+
+    const dataEntrega = analise.data_registro ? new Date(analise.data_registro).toLocaleDateString('pt-BR') : 'N/D';
+    const osEntrega = analise.numero_os || 'N/D';
+
+    document.getElementById('fecharSerie').innerText = equip.serie;
+    document.getElementById('fecharNumeradorBase').innerText = numeradorBase.toLocaleString('pt-BR');
+    document.getElementById('fecharResmasAdicionadas').innerText = `${resmas} resmas (${(resmas * 500).toLocaleString('pt-BR')} pgs) · ${dataEntrega} · O.S.: ${osEntrega}`;
+    document.getElementById('fecharLimiteCalculado').innerText = limite.toLocaleString('pt-BR');
+    document.getElementById('analiseAbertaCard').classList.add('hidden');
+    document.getElementById('analiseFecharCard').classList.remove('hidden');
+    document.getElementById('analiseImediataBtn').classList.add('hidden');
+}
+
+function fecharCalcularSaldo(evitarSobrescreverInputResmas = false) {
+    if (!_analiseAberta) return;
+    const numeradorBase = (_analiseAberta.contador_atual !== null && _analiseAberta.contador_atual !== undefined)
+        ? parseInt(_analiseAberta.contador_atual)
+        : (parseInt(_analiseAberta.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0);
+    const resmas = _analiseAberta.quantidade_definida || 0;
+    const dataAbertura = _analiseAberta.data_registro;
+    const novoNumerador = parseInt(document.getElementById('fecharNumeradorNovo').value) || 0;
+
+    const box = document.getElementById('saldoBox');
+    if (!novoNumerador) { box.classList.add('hidden'); return; }
+
+    const diasSemVisita = dataAbertura
+        ? Math.max(1, Math.round((Date.now() - new Date(dataAbertura).getTime()) / 86400000))
+        : 1;
+    const consumoPaginas = Math.max(0, novoNumerador - numeradorBase);
+    const cpd = consumoPaginas / diasSemVisita;
+
+    const saldoEl = document.getElementById('fecharSaldo');
+    const descEl = document.getElementById('fecharSaldoDesc');
+    const resmasEl = document.getElementById('fecharSaldoResmas');
+
+    const recomendacao = Math.max(1, Math.ceil(consumoPaginas / 500));
+    if (!evitarSobrescreverInputResmas) {
+        document.getElementById('fecharResmasInput').value = recomendacao;
+    }
+
+    saldoEl.innerText = `${recomendacao} resma${recomendacao !== 1 ? 's' : ''}`;
+    saldoEl.className = 'saldo-value saldo-positivo';
+    descEl.innerText = `sugerida${recomendacao !== 1 ? 's' : ''} para reposição`;
+
+    resmasEl.innerText = `CPD: ${cpd.toFixed(0)} pgs/dia · Consumo: ${consumoPaginas.toLocaleString('pt-BR')} págs. (${(consumoPaginas / 500).toFixed(1).replace('.', ',')} resmas) desde a abertura`;
+    box.classList.remove('hidden');
+}
+
+function fecharAlterarResmas(delta) {
+    const input = document.getElementById('fecharResmasInput');
+    input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+    fecharCalcularSaldo(true);
+    const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 1;
+    atualizarBarraConsumo(novasResmas);
+}
+
+async function confirmarFechamentoAnalise() {
+    const novoContadorVal = document.getElementById('fecharNumeradorNovo').value.trim();
+    if (novoContadorVal === '' || isNaN(parseInt(novoContadorVal))) {
+        return alert("Informe o novo numerador atual!");
+    }
+    const novoContador = parseInt(novoContadorVal);
+    
+    const equip = state.equipamento;
+    const analise = _analiseAberta;
+    const numeradorBase = (analise.contador_atual !== null && analise.contador_atual !== undefined)
+        ? parseInt(analise.contador_atual)
+        : (parseInt(analise.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0);
+
+    if (novoContador < numeradorBase) {
+        return alert(`O novo numerador atual (${novoContador.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${numeradorBase.toLocaleString('pt-BR')})!`);
+    }
+    const resmas = analise.quantidade_definida || 0;
+    const dataAbertura = analise.data_registro;
+
+    const diasSemVisita = dataAbertura
+        ? Math.max(1, Math.round((Date.now() - new Date(dataAbertura).getTime()) / 86400000))
+        : 1;
+    const consumoPaginas = Math.max(0, novoContador - numeradorBase);
+    const cpd = consumoPaginas / diasSemVisita;
+    const pagsRestantes = resmas * 500 - consumoPaginas;
+    const saldoDias = cpd > 0 ? Math.round(pagsRestantes / cpd) : null;
+
+    const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 1;
+
+    if ((resmas > 0 && novasResmas > resmas) || (calcularEntregasMes() + novasResmas > (state.media || 0))) {
+        const confirmou = confirm("Certeza que deseja entregar? Se sim, clique em OK para confirmar a entrega e lembre-se de sinalizar no chamado o motivo da exceção.");
+        if (!confirmou) return;
+    }
+
+    try {
+        await API.patch(`/balanceamento_entregas?id=eq.${analise.id}`, {
+            status: 'confirmado',
+            contador_atual: novoContador,
+            observacao: `${analise.observacao} | Fechada. Cnt final: ${novoContador}. CPD: ${cpd.toFixed(0)} pgs/dia. Saldo: ${pagsRestantes >= 0 ? '+' : ''}${pagsRestantes} pgs${saldoDias !== null ? ` (≈ ${saldoDias}d)` : ''}.`
+        });
+        await API.post('/ordens_servico', {
+            equipamento_id: equip.id,
+            cliente_id: equip.cliente.id,
+            numero_os: analise.numero_os || '',
+            contador_atual: novoContador
+        });
+        
+        // Criar a nova entrega de resmas no balanceamento (como análise aberta)
+        await API.post('/balanceamento_entregas', {
+            equipamento_id: equip.id,
+            cliente_id: equip.cliente.id,
+            numero_os: analise.numero_os || '',
+            media_consumo_mensal: analise.media_consumo_mensal || 0,
+            opcao_entrega: null,
+            quantidade_definida: novasResmas,
+            contador_atual: novoContador,
+            observacao: `ANALISE_BASE:${novoContador}`,
+            status: 'analise_aberta',
+            criado_por: 'Portal'
+        });
+
+        const saldoAbs = Math.abs(pagsRestantes).toLocaleString('pt-BR');
+        const diasInfo = saldoDias !== null ? ` · ≈ ${saldoDias} dias` : '';
+        alert(`Análise concluída!\nCPD: ${cpd.toFixed(0)} pgs/dia\nSaldo: ${saldoAbs} pgs (≈ ${Math.abs(pagsRestantes / 500).toFixed(1)} resmas)${diasInfo} ${pagsRestantes >= 0 ? 'restantes' : 'acima do entregue'}`);
+        window.location.reload();
+    } catch (e) {
+        alert("Erro ao confirmar análise: " + e.message);
+    }
+}
+
 // CADASTRO
 async function carregarClientesParaCadastro() {
     const select = document.getElementById('cadCliente');
     select.innerHTML = '<option value="">Carregando clientes...</option>';
     try {
-        const data = await API.fetch('/clientes?select=id,nome&order=nome.asc');
+        const cidade = getCidadeFiltro();
+        const cidadeParam = cidade ? `?cidade=eq.${encodeURIComponent(cidade)}&select=id,nome&order=nome.asc` : '?select=id,nome&order=nome.asc';
+        const data = await API.fetch(`/clientes${cidadeParam}`);
         select.innerHTML = '<option value="">Selecione um cliente</option>' +
-            data.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            data.map(c => `<option value="${escAttr(c.id)}">${esc(c.nome)}</option>`).join('');
 
         if (!document.getElementById('formCadastro').dataset.init) {
-            // Toggle para adicionar novo cliente
             document.getElementById('toggleNovoCliente').addEventListener('click', () => {
                 const isSelect = !select.classList.contains('hidden');
                 select.classList.toggle('hidden', isSelect);
@@ -633,7 +1231,6 @@ async function salvarEquipamento(e) {
 
         alert("Equipamento cadastrado com sucesso!");
         e.target.reset();
-        // Recarregar lista de clientes para incluir o novo
         if (isNovo) {
             document.getElementById('cadNovoCliente').classList.add('hidden');
             select.classList.remove('hidden');
@@ -650,54 +1247,31 @@ async function salvarEquipamento(e) {
     }
 }
 
-// CONSULTA
-async function carregarClientesParaConsulta() {
-    const select = document.getElementById('filterConsultaCliente');
-    if (!select) return; // substituído por autocomplete em consultarCliente
-    if (select.dataset.init) return;
-
-    try {
-        const data = await API.fetch('/clientes?select=id,nome&order=nome.asc');
-        select.innerHTML = '<option value="">Filtrar por Cliente...</option>' +
-            data.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-
-        select.addEventListener('change', realizarConsulta);
-
-        let searchTimeout;
-        document.getElementById('globalSearchInput').addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(realizarConsulta, 400);
-        });
-
-        select.dataset.init = "true";
-    } catch (e) { console.error(e); }
-}
-
 async function realizarConsulta() {
     const q = document.getElementById('globalSearchInput').value.trim();
     const clienteNome = document.getElementById('consultarCliente').value.trim();
     const dataInicio = document.getElementById('consultarDataInicio').value;
     const dataFim = document.getElementById('consultarDataFim').value;
-    
+
     if (!clienteNome && !q && !dataInicio) return document.getElementById('consultarDashboard').classList.add('hidden');
-    
+
     setLoading(true);
     const tbody = document.getElementById('consultarTbody');
     tbody.innerHTML = '<tr><td colspan="8">Buscando...</td></tr>';
-    
+
     try {
-        // Construir query de equipamentos
-        let endpoint = `/equipamentos?select=*,cliente:clientes(nome),balanceamento_entregas(media_consumo_mensal,status,data_registro)&order=serie.asc`;
-        
+        const cidade = getCidadeFiltro();
+        const joinType = cidade ? '!inner' : '';
+        const cidadeParam = cidade ? `&cliente.cidade=eq.${encodeURIComponent(cidade)}` : '';
+        let endpoint = `/equipamentos?select=*,cliente:clientes${joinType}(nome,cidade),balanceamento_entregas(media_consumo_mensal,status,data_registro)${cidadeParam}&order=serie.asc`;
+
         if (q) endpoint += `&or=(serie.ilike.*${encodeURIComponent(q)}*,patrimonio.ilike.*${encodeURIComponent(q)}*,modelo.ilike.*${encodeURIComponent(q)}*,secretaria.ilike.*${encodeURIComponent(q)}*)`;
 
-        // Se houver datas, aplicamos o filtro na sub-query via parâmetro de URL
         if (dataInicio) endpoint += `&balanceamento_entregas.data_registro=gte.${dataInicio}`;
         if (dataFim) endpoint += `&balanceamento_entregas.data_registro=lte.${dataFim}T23:59:59`;
 
         const data = await API.fetch(endpoint);
-        
-        // Filtro manual para o nome do cliente
+
         const filteredData = data.filter(item => {
             const matchQ = !q || (
                 (item.serie||'').toLowerCase().includes(q.toLowerCase()) ||
@@ -707,19 +1281,19 @@ async function realizarConsulta() {
                 (item.cliente?.nome || '').toLowerCase().includes(q.toLowerCase())
             );
             const matchClient = !clienteNome || (item.cliente?.nome || '').toLowerCase().includes(clienteNome.toLowerCase());
-            return matchQ && matchClient;
+            const matchCity = !cidade || (item.cliente?.cidade || '').toUpperCase() === cidade.toUpperCase();
+            return matchQ && matchClient && matchCity;
         });
 
         document.getElementById('consultarDashboard').classList.remove('hidden');
         document.getElementById('dashTotalEquip').innerText = filteredData.length;
-        
+
         let totalMediaGeral = 0;
-        
+
         tbody.innerHTML = filteredData.map(eq => {
             const entregas = eq.balanceamento_entregas || [];
-            // Filtrar apenas confirmados
             const confirmadas = entregas.filter(e => e.status === 'confirmado');
-            
+
             let mediaEquip = 0;
             if (confirmadas.length > 0) {
                 const soma = confirmadas.reduce((a, b) => a + parseFloat(b.media_consumo_mensal), 0);
@@ -735,16 +1309,16 @@ async function realizarConsulta() {
 
             return `
                 <tr>
-                    <td><strong>${eq.serie}</strong></td>
-                    <td>${eq.patrimonio || '-'}</td>
-                    <td>${eq.modelo || '-'}</td>
-                    <td>${eq.secretaria || '-'} <br><small class="text-dim">${eq.cliente?.nome || 'N/D'}</small></td>
-                    <td class="text-center"><strong>${eq.ultimo_contador || 0}</strong></td>
-                    <td class="text-center">
-                        <span class="gold-text"><strong>${mediaEquip.toFixed(1).replace('.', ',')}</strong></span> 
+                    <td data-label="Série"><strong>${esc(eq.serie)}</strong></td>
+                    <td data-label="Patrimônio">${esc(eq.patrimonio || '-')}</td>
+                    <td data-label="Modelo">${esc(eq.modelo || '-')}</td>
+                    <td data-label="Setor / Cliente">${esc(eq.secretaria || '-')} <br><small class="text-dim">${esc(eq.cliente?.nome || 'N/D')}</small></td>
+                    <td data-label="Numerador" class="text-center"><strong>${esc(String(eq.ultimo_contador || 0))}</strong></td>
+                    <td data-label="Média Real" class="text-center">
+                        <span class="gold-text"><strong>${esc(mediaEquip.toFixed(1).replace('.', ','))}</strong></span>
                         <br><small class="text-dim">${confirmadas.length} reg.</small>
                     </td>
-                    <td class="text-center">
+                    <td data-label="Sugestões" class="text-center">
                         <div class="suggestion-circles-mini">
                             <div class="circle-mini" title="Sugestão 15 dias"><span>${s15}</span><label>15d</label></div>
                             <div class="circle-mini" title="Sugestão 30 dias"><span>${s30}</span><label>30d</label></div>
@@ -752,22 +1326,23 @@ async function realizarConsulta() {
                             <div class="circle-mini" title="Sugestão 60 dias"><span>${s60}</span><label>60d</label></div>
                         </div>
                     </td>
-                    <td class="text-center">
+                    <td data-label="Ações" class="text-center">
                         <div class="action-btns">
-                            <button class="btn-primary btn-sm" onclick="selecionarParaBalancear('${eq.serie}')" title="Balancear este Equipamento">
+                            <button class="btn-primary btn-sm" data-serie="${escAttr(eq.serie)}" onclick="selecionarParaBalancear(this.dataset.serie)" title="Balancear este Equipamento">
                                 <i data-lucide="scale"></i>
                             </button>
-                            <button class="btn-edit-icon" onclick="prepararEdicao('${eq.id}')" title="Editar Equipamento">
+                            ${canEdit() ? `
+                            <button class="btn-edit-icon" data-id="${escAttr(eq.id)}" onclick="prepararEdicao(this.dataset.id)" title="Editar Equipamento">
                                 <i data-lucide="edit-2"></i>
-                            </button>
+                            </button>` : ''}
                         </div>
                     </td>
                 </tr>
             `;
         }).join('');
-        
+
         document.getElementById('dashTotalConsumo').innerText = totalMediaGeral.toFixed(1).replace('.', ',');
-        lucide.createIcons();
+        lucide.createIcons({ root: tbody });
 
     } catch (e) {
         console.error(e);
@@ -784,61 +1359,60 @@ function selecionarParaBalancear(serie) {
 }
 
 function aplicarFiltroRapido(termo) {
-    // Definir o cliente
     document.getElementById('filterCliente').value = termo;
-    
-    // Opcional: Limpar outros filtros para garantir a busca ampla
     document.getElementById('filterSerie').value = '';
-    
-    // Resetar para a primeira página
     state.historico.pagina = 1;
-    
-    // Destacar o chip ativo (opcional, visual)
+
     document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.classList.toggle('active', chip.innerText.includes(termo));
     });
-    
-    // Carregar
+
     carregarHistorico();
 }
 
-// HISTÓRICO com filtros e paginação
+// HISTÓRICO com filtros, paginação e restrição de cidade
 async function carregarHistorico() {
     const tbody = document.getElementById('historicoTbody');
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center">Carregando...</td></tr>';
+    tbody.style.opacity = '0.5';
 
     const dataInicio = document.getElementById('filterDataInicio').value;
     const dataFim = document.getElementById('filterDataFim').value;
-    const cliente = document.getElementById('filterCliente').value.trim();
+    const clienteInput = document.getElementById('filterCliente').value.trim();
     const serie = document.getElementById('filterSerie').value.trim();
+
+    // Para perfis com cidade restrita, forçar filtro pela cidade
+    const cidade = getCidadeFiltro();
 
     const limit = state.historico.tamanho;
     const offset = (state.historico.pagina - 1) * limit;
 
-    // Construção do endpoint com filtros e paginação
-    let selectClause = `*,cliente:clientes${cliente ? '!inner' : ''}(nome),equipamento:equipamentos!inner(serie,patrimonio,secretaria)`;
-    let endpoint = `/balanceamento_entregas?select=${selectClause}&order=data_registro.desc&limit=${limit}&offset=${offset}`;
-    
-    if (dataInicio) endpoint += `&data_registro=gte.${dataInicio}`;
-    if (dataFim) endpoint += `&data_registro=lte.${dataFim}T23:59:59`;
-    
-    if (serie) {
-        endpoint += `&equipamento.or=(serie.ilike.*${encodeURIComponent(serie)}*,patrimonio.ilike.*${encodeURIComponent(serie)}*)`;
-    }
+    const joinCliente = (cidade || clienteInput) ? '!inner' : '';
+    const addFilters  = (base) => {
+        if (dataInicio)   base += `&data_registro=gte.${dataInicio}`;
+        if (dataFim)      base += `&data_registro=lte.${dataFim}T23:59:59`;
+        if (serie)        base += `&equipamento.or=(serie.ilike.*${encodeURIComponent(serie)}*,patrimonio.ilike.*${encodeURIComponent(serie)}*)`;
+        if (cidade)       base += `&cliente.cidade=eq.${encodeURIComponent(cidade)}`;
+        if (clienteInput) base += `&cliente.nome=ilike.*${encodeURIComponent(clienteInput)}*`;
+        return base;
+    };
 
-    if (cliente) {
-        endpoint += `&cliente.nome=ilike.*${encodeURIComponent(cliente)}*`;
-    }
+    const endpoint    = addFilters(`/balanceamento_entregas?select=*,cliente:clientes${joinCliente}(nome,cidade),equipamento:equipamentos!inner(serie,patrimonio,secretaria)&order=data_registro.desc&limit=${limit}&offset=${offset}`);
+    const sumEndpoint = addFilters(`/balanceamento_entregas?select=quantidade_definida,cliente:clientes${joinCliente}(cidade),equipamento:equipamentos!inner(id)`);
 
     try {
-        const res = await API.fetch(endpoint, true);
+        const [res, sumData] = await Promise.all([
+            API.fetch(endpoint, true),
+            API.fetch(sumEndpoint)
+        ]);
         const data = await res.json();
+        tbody.style.opacity = '1';
 
-        // Extrair total do header Content-Range (ex: "0-14/123")
         const contentRange = res.headers.get('Content-Range');
         if (contentRange) {
             state.historico.total = parseInt(contentRange.split('/')[1]) || 0;
         }
+
+        const totalP = sumData.reduce((acc, curr) => acc + parseFloat(curr.quantidade_definida || 0), 0);
 
         if (data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" class="text-center">Nenhum registro encontrado para os filtros aplicados.</td></tr>';
@@ -849,41 +1423,55 @@ async function carregarHistorico() {
             return;
         }
 
-        tbody.innerHTML = data.map(i => `
+        const editDeleteBtns = canEdit() ? `
+            <div class="action-btns">
+                <button class="btn-edit-icon" data-id="{ID}" onclick="prepararEdicaoHistorico(this.dataset.id)" title="Editar Registro">
+                    <i data-lucide="edit-2"></i>
+                </button>
+                <button class="btn-delete-icon" data-id="{ID}" onclick="excluirRegistroHistorico(this.dataset.id)" title="Excluir Registro">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>` : '-';
+
+        tbody.innerHTML = data.map(i => {
+            const statusSafe = /^[a-z_]+$/.test(i.status || '') ? i.status : '';
+            
+            // Conversão segura de data
+            const dateObj = i.data_registro ? new Date(i.data_registro) : null;
+            const dateStr = (dateObj && !isNaN(dateObj.getTime())) ? dateObj.toLocaleDateString('pt-BR') : '-';
+            
+            // Conversão segura de média de consumo
+            const mediaVal = parseFloat(i.media_consumo_mensal);
+            const mediaStr = (i.media_consumo_mensal && !isNaN(mediaVal)) ? mediaVal.toFixed(1).replace('.', ',') : '-';
+            
+            return `
             <tr>
-                <td>${new Date(i.data_registro).toLocaleDateString('pt-BR')}</td>
-                <td>${i.cliente?.nome || 'N/D'}</td>
-                <td>${i.equipamento?.secretaria || 'N/D'}</td>
-                <td>${i.equipamento?.serie || 'N/D'}</td>
-                <td>${parseFloat(i.media_consumo_mensal).toFixed(1).replace('.', ',')}</td>
-                <td>${i.opcao_entrega === 0 ? 'Manual' : i.opcao_entrega + 'x'}</td>
-                <td>${i.quantidade_definida}</td>
-                <td>${i.numero_os || '-'}</td>
-                <td><span class="status-badge status-${i.status}">${i.status}</span></td>
-                <td class="text-center">
-                    <div class="action-btns">
-                        <button class="btn-edit-icon" onclick="prepararEdicaoHistorico('${i.id}')" title="Editar Registro">
-                            <i data-lucide="edit-2"></i>
-                        </button>
-                        <button class="btn-delete-icon" onclick="excluirRegistroHistorico('${i.id}')" title="Excluir Registro">
-                            <i data-lucide="trash-2"></i>
-                        </button>
-                    </div>
+                <td data-label="Data">${esc(dateStr)}</td>
+                <td data-label="Cliente">${esc(i.cliente?.nome || 'N/D')}</td>
+                <td data-label="Local/Setor">${esc(i.equipamento?.secretaria || 'N/D')}</td>
+                <td data-label="Série">${esc(i.equipamento?.serie || 'N/D')}</td>
+                <td data-label="Média/mês">${esc(mediaStr)}</td>
+                <td data-label="Frequência">${esc(i.opcao_entrega === 0 ? 'Manual' : (i.opcao_entrega ? i.opcao_entrega + 'x' : '-'))}</td>
+                <td data-label="Resmas">${esc(i.quantidade_definida !== null && i.quantidade_definida !== undefined ? String(i.quantidade_definida) : '-')}</td>
+                <td data-label="O.S.">${esc(i.numero_os || '-')}</td>
+                <td data-label="Status"><span class="status-badge status-${statusSafe}">${esc(i.status)}</span></td>
+                <td data-label="Ações" class="text-center">
+                    ${editDeleteBtns.replace(/{ID}/g, escAttr(i.id))}
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
 
-        // Totais e Sumários
-        const totalP = data.reduce((acc, curr) => acc + parseFloat(curr.quantidade_definida), 0);
         document.getElementById('totalResmas').innerText = totalP;
         document.getElementById('histSummaryResmas').innerText = totalP;
         document.getElementById('histSummaryRegs').innerText = state.historico.total;
-        
+
         updatePaginationUI();
-        lucide.createIcons();
+        lucide.createIcons({ root: tbody });
     } catch (e) {
+        tbody.style.opacity = '1';
         console.error(e);
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center">Erro ao carregar histórico.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center" style="color:var(--danger)">Erro ao carregar histórico: ' + e.message + '</td></tr>';
     }
 }
 
@@ -891,7 +1479,7 @@ function updatePaginationUI() {
     const totalPaginas = Math.ceil(state.historico.total / state.historico.tamanho) || 1;
     document.getElementById('currentPageDisplay').innerText = state.historico.pagina;
     document.getElementById('totalPagesDisplay').innerText = totalPaginas;
-    
+
     document.getElementById('btnPrevPage').disabled = state.historico.pagina <= 1;
     document.getElementById('btnNextPage').disabled = state.historico.pagina >= totalPaginas;
 }
@@ -899,7 +1487,7 @@ function updatePaginationUI() {
 function mudarPagina(delta) {
     const novaPagina = state.historico.pagina + delta;
     const totalPaginas = Math.ceil(state.historico.total / state.historico.tamanho) || 1;
-    
+
     if (novaPagina >= 1 && novaPagina <= totalPaginas) {
         state.historico.pagina = novaPagina;
         carregarHistorico();
@@ -908,7 +1496,7 @@ function mudarPagina(delta) {
 
 function mudarTamanhoPagina(novoTamanho) {
     state.historico.tamanho = parseInt(novoTamanho);
-    state.historico.pagina = 1; // Volta para a primeira página ao mudar o tamanho
+    state.historico.pagina = 1;
     carregarHistorico();
 }
 
@@ -917,15 +1505,21 @@ async function carregarRelatorios() {
     tbody.innerHTML = '<tr><td colspan="7">Carregando...</td></tr>';
     try {
         const data = await API.fetch('/view_top_equipamentos?limit=20');
-        tbody.innerHTML = data.map((i, idx) => `
+
+        const cidade = getCidadeFiltro();
+        const filtrado = cidade
+            ? data.filter(i => (i.cliente_nome || '').toUpperCase().includes(cidade))
+            : data;
+
+        tbody.innerHTML = filtrado.map((i, idx) => `
             <tr class="rank-${idx + 1}">
                 <td><span class="rank-badge">${idx + 1}º</span></td>
-                <td>${i.serie}</td>
-                <td>${i.secretaria}</td>
-                <td>${i.cliente_nome}</td>
-                <td class="text-center">${i.total_chamados}</td>
-                <td class="text-center">${i.total_resmas}</td>
-                <td class="text-center">${parseFloat(i.media_media).toFixed(1)}</td>
+                <td>${esc(i.serie)}</td>
+                <td>${esc(i.secretaria)}</td>
+                <td>${esc(i.cliente_nome)}</td>
+                <td class="text-center">${esc(String(i.total_chamados))}</td>
+                <td class="text-center">${esc(String(i.total_resmas))}</td>
+                <td class="text-center">${esc(parseFloat(i.media_media).toFixed(1))}</td>
             </tr>
         `).join('');
     } catch (e) { tbody.innerHTML = '<tr><td colspan="7">Erro ao carregar relatório.</td></tr>'; }
@@ -949,17 +1543,23 @@ function setBtnLoading(s) {
 }
 
 function resetUI() {
-    document.getElementById('resultContainer').classList.add('hidden');
-    document.getElementById('lastDeliveriesCard').classList.add('hidden');
-    document.getElementById('formLineOs').classList.add('hidden');
-    document.getElementById('formLineObs').classList.add('hidden');
-    document.getElementById('actionRow').classList.add('hidden');
+    ['resultContainer', 'formLineOs', 'formLineObs', 'actionRow', 'saldoBox'].forEach(id =>
+        document.getElementById(id)?.classList.add('hidden')
+    );
+    [['inputContador',''],['inputOs',''],['inputObs',''],
+     ['analiseNumeradorAtual',''],['analiseOs',''],['analiseResmas','1'],
+     ['fecharNumeradorNovo',''],['fecharResmasInput','1']].forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    });
 }
 
 // EDIÇÃO DE EQUIPAMENTO
 let currentEditingId = null;
 
 async function prepararEdicao(id) {
+    if (!canEdit()) return alert("Você não tem permissão para editar equipamentos.");
+
     const senha = prompt("Digite a senha para editar:");
     if (senha !== 'Doc2026') return alert("Senha incorreta!");
 
@@ -968,11 +1568,10 @@ async function prepararEdicao(id) {
         const [eq] = await API.fetch(`/equipamentos?id=eq.${id}&select=*,cliente:clientes(nome)`);
         if (!eq) return alert("Equipamento não encontrado!");
 
-        // Buscar último contador em ordens_servico
         const os = await API.fetch(`/ordens_servico?equipamento_id=eq.${id}&order=data_os.desc&limit=1&select=contador_atual`);
         const ultimoContador = os[0]?.contador_atual || 0;
 
-        state._editEquip = eq; // guardar para usar no save
+        state._editEquip = eq;
 
         document.getElementById('editSerie').value = eq.serie;
         document.getElementById('editPatrimonio').value = eq.patrimonio || '';
@@ -988,24 +1587,359 @@ async function prepararEdicao(id) {
     }
 }
 
+
+// ════════════════════════════════════════════════════════
+// ÁREA ADMIN (CTO)
+// ════════════════════════════════════════════════════════
+let adminState = { cidade: null, clienteIds: null };
+
+function showAdmin() {
+    try {
+        if (!document.getElementById('adminApp')) {
+            // Se estiver dentro de um iframe (Sistema Original), não redireciona
+            if (window !== window.top) {
+                showTech();
+                return;
+            }
+            sessionStorage.setItem('adm_user', JSON.stringify(currentUser));
+            sessionStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
+            if (typeof window !== 'undefined' && window.location) {
+                window.location.href = 'admin.html?v=20260616';
+            }
+            return;
+        }
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminApp').style.display = 'block';
+        document.getElementById('adminBadge').innerText = currentUser.label;
+        document.getElementById('adminCity').innerText = currentUser.cidade || 'TODAS AS CIDADES';
+        adminState.cidade = currentUser.cidade;
+        lucide.createIcons();
+        initTheme();
+        const btn = document.getElementById('adminThemeToggle');
+        if (btn) {
+            const icon = btn.querySelector('i');
+            updateThemeIcon(localStorage.getItem('theme') || 'light', icon);
+            btn.addEventListener('click', () => {
+                const cur = document.documentElement.getAttribute('data-theme');
+                const next = cur === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+                updateThemeIcon(next, icon);
+                lucide.createIcons();
+            });
+        }
+        initAdminTabs();
+        admInitData();
+    } catch (err) {
+        alert("Erro no showAdmin: " + err.message + "\nStack: " + err.stack);
+        console.error("Erro no showAdmin:", err);
+    }
+}
+
+function initAdminTabs() {
+    document.querySelectorAll('[data-admtab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.admtab;
+            document.querySelectorAll('[data-admtab]').forEach(b => b.classList.toggle('active', b === btn));
+            document.querySelectorAll('#adminApp .tab-content').forEach(c =>
+                c.classList.toggle('active', c.id === 'adm-tab-' + tabId)
+            );
+            if (tabId === 'entregas') admCarregarEntregas();
+            if (tabId === 'analises') admCarregarAnalises();
+        });
+    });
+}
+
+async function admInitData() {
+    if (adminState.cidade) {
+        try {
+            const clientes = await API.fetch('/clientes?nome=ilike.*' + encodeURIComponent(adminState.cidade) + '*&select=id');
+            adminState.clienteIds = clientes.map(c => c.id);
+        } catch(e) { adminState.clienteIds = []; }
+    } else {
+        adminState.clienteIds = null;
+    }
+    admCarregarDashboard();
+}
+
+function admCidadeFilter(sep) {
+    sep = sep || '&';
+    if (adminState.clienteIds === null) return '';
+    if (adminState.clienteIds.length === 0)
+        return sep + 'cliente_id=eq.00000000-0000-0000-0000-000000000000';
+    return sep + 'cliente_id=in.(' + adminState.clienteIds.join(',') + ')';
+}
+
+function admFmtData(iso) {
+    return iso ? new Date(iso).toLocaleDateString('pt-BR') : '-';
+}
+
+function admStatusBadge(s) {
+    const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-pendente' };
+    const label = { confirmado:'Confirmado', pendente:'Pendente', entregue:'Entregue', analise_aberta:'Analise Aberta' };
+    return '<span class="status-badge ' + (cls[s]||'') + '">' + esc(label[s]||s) + '</span>';
+}
+
+async function admCarregarDashboard() {
+    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    try {
+        const [equips, entregasMes, analises, recentes] = await Promise.all([
+            API.fetch('/equipamentos?select=id' + admCidadeFilter() + '&limit=2000'),
+            API.fetch('/balanceamento_entregas?status=eq.confirmado&data_registro=gte.' + inicioMes + admCidadeFilter() + '&select=quantidade_definida&limit=2000'),
+            API.fetch('/balanceamento_entregas?status=eq.analise_aberta' + admCidadeFilter() + '&select=id&limit=1000'),
+            API.fetch('/balanceamento_entregas?status=eq.confirmado' + admCidadeFilter() + '&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))'),
+        ]);
+        document.getElementById('kpiEquip').innerText    = equips.length;
+        document.getElementById('kpiEntregas').innerText  = entregasMes.length;
+        document.getElementById('kpiResmas').innerText    = entregasMes.reduce(function(s,e){ return s + (parseFloat(e.quantidade_definida)||0); }, 0).toFixed(0);
+        document.getElementById('kpiAnalises').innerText  = analises.length;
+        const tbody = document.getElementById('admDashTbody');
+        tbody.innerHTML = recentes.length === 0
+            ? '<tr><td colspan="7" class="text-center">Nenhuma entrega encontrada.</td></tr>'
+            : recentes.map(function(e){ return '<tr><td>' + admFmtData(e.data_registro) + '</td><td><strong>' + esc(e.equipamento&&e.equipamento.serie||'-') + '</strong></td><td>' + esc(e.equipamento&&e.equipamento.cliente&&e.equipamento.cliente.nome||'-') + '</td><td>' + esc(e.equipamento&&e.equipamento.secretaria||'-') + '</td><td class="text-center"><strong>' + esc(String(e.quantidade_definida||0)) + '</strong></td><td>' + esc(e.numero_os||'-') + '</td><td>' + admStatusBadge(e.status) + '</td></tr>'; }).join('');
+    } catch(err) { console.error(err); }
+}
+
+async function admCarregarEntregas() {
+    const di = document.getElementById('admDataInicio').value;
+    const df = document.getElementById('admDataFim').value;
+    let params = 'status=eq.confirmado' + admCidadeFilter() + '&order=data_registro.desc&limit=300&select=data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))';
+    if (di) params += '&data_registro=gte.' + di;
+    if (df) params += '&data_registro=lte.' + df + 'T23:59:59';
+    document.getElementById('admEntregasTbody').innerHTML = '<tr><td colspan="9" class="text-center">Carregando...</td></tr>';
+    try {
+        const data = await API.fetch('/balanceamento_entregas?' + params);
+        const tbody = document.getElementById('admEntregasTbody');
+        if (!data.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center">Nenhum registro no periodo.</td></tr>'; return; }
+        tbody.innerHTML = data.map(function(e){ return '<tr><td>' + admFmtData(e.data_registro) + '</td><td><strong>' + esc(e.equipamento&&e.equipamento.serie||'-') + '</strong></td><td>' + esc(e.equipamento&&e.equipamento.cliente&&e.equipamento.cliente.nome||'-') + '</td><td>' + esc(e.equipamento&&e.equipamento.secretaria||'-') + '</td><td class="text-center"><strong>' + esc(String(e.quantidade_definida||0)) + '</strong></td><td class="text-center">' + esc(e.media_consumo_mensal ? parseFloat(e.media_consumo_mensal).toFixed(1) : '-') + '</td><td>' + esc(e.numero_os||'-') + '</td><td style="max-width:160px;font-size:0.75rem;color:var(--text-dim)">' + esc(e.observacao||'-') + '</td><td>' + admStatusBadge(e.status) + '</td></tr>'; }).join('');
+    } catch(err) {
+        document.getElementById('admEntregasTbody').innerHTML = '<tr><td colspan="9" class="text-center" style="color:var(--danger)">Erro: ' + err.message + '</td></tr>';
+    }
+}
+
+async function admCarregarAnalises() {
+    const params = 'status=eq.analise_aberta' + admCidadeFilter() + '&order=data_registro.asc&select=*,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))';
+    document.getElementById('admAnalisesTabody').innerHTML = '<tr><td colspan="9" class="text-center">Carregando...</td></tr>';
+    try {
+        const data = await API.fetch('/balanceamento_entregas?' + params);
+        const tbody = document.getElementById('admAnalisesTabody');
+        if (!data.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center">Nenhuma analise em aberto.</td></tr>'; return; }
+        const agora = Date.now();
+        tbody.innerHTML = data.map(function(e) {
+            const base   = parseInt((e.observacao && e.observacao.match(/ANALISE_BASE:(\d+)/) || [])[1]) || 0;
+            const limite = base + (e.quantidade_definida||0) * 500;
+            const dias   = Math.round((agora - new Date(e.data_registro).getTime()) / 86400000);
+            const cls    = dias > 7 ? 'dias-crit' : dias > 3 ? 'dias-warn' : 'dias-ok';
+            return '<tr><td>' + admFmtData(e.data_registro) + '</td><td><strong>' + esc(e.equipamento&&e.equipamento.serie||'-') + '</strong></td><td>' + esc(e.equipamento&&e.equipamento.cliente&&e.equipamento.cliente.nome||'-') + '</td><td>' + esc(e.equipamento&&e.equipamento.secretaria||'-') + '</td><td class="text-center">' + base.toLocaleString('pt-BR') + '</td><td class="text-center"><strong>' + esc(String(e.quantidade_definida||0)) + '</strong></td><td class="text-center gold-text"><strong>' + limite.toLocaleString('pt-BR') + '</strong></td><td>' + esc(e.numero_os||'-') + '</td><td class="text-center ' + cls + '">' + dias + 'd</td></tr>';
+        }).join('');
+    } catch(err) {
+        document.getElementById('admAnalisesTabody').innerHTML = '<tr><td colspan="9" class="text-center" style="color:var(--danger)">Erro: ' + err.message + '</td></tr>';
+    }
+}
+
+
+
+function syncContador(origem) {
+    const val     = document.getElementById(origem).value;
+    const destino = origem === 'analiseNumeradorAtual' ? 'inputContador' : 'analiseNumeradorAtual';
+    document.getElementById(destino).value = val;
+}
+
+// ════════════════════════════════════════════════════════
+// CACHE LOCAL — IndexedDB
+// Equipamentos e clientes salvos no celular para uso offline
+// ════════════════════════════════════════════════════════
+const IDB_NAME = 'rdy-cache';
+const IDB_VER  = 2;
+let _db = null;
+
+function abrirDB() {
+    if (_db) return Promise.resolve(_db);
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, IDB_VER);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('equipamentos'))
+                db.createObjectStore('equipamentos', { keyPath: 'id' });
+            if (!db.objectStoreNames.contains('clientes'))
+                db.createObjectStore('clientes', { keyPath: 'id' });
+            if (!db.objectStoreNames.contains('meta'))
+                db.createObjectStore('meta');
+        };
+        req.onsuccess = e => { _db = e.target.result; resolve(_db); };
+        req.onerror   = () => reject(req.error);
+    });
+}
+
+const _memCache = {};
+
+async function salvarCacheStore(store, lista) {
+    _memCache[store] = lista;
+    const db = await abrirDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        const s  = tx.objectStore(store);
+        lista.forEach(item => s.put(item));
+        tx.oncomplete = resolve;
+        tx.onerror    = () => reject(tx.error);
+    });
+}
+
+async function lerCacheStore(store) {
+    if (_memCache[store]) return _memCache[store];
+    const db = await abrirDB();
+    return new Promise((resolve, reject) => {
+        const tx  = db.transaction(store, 'readonly');
+        const req = tx.objectStore(store).getAll();
+        req.onsuccess = () => { _memCache[store] = req.result || []; resolve(_memCache[store]); };
+        req.onerror   = () => reject(tx.error);
+    });
+}
+
+async function salvarMeta(chave, valor) {
+    const db = await abrirDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('meta', 'readwrite');
+        tx.objectStore('meta').put(valor, chave);
+        tx.oncomplete = resolve;
+        tx.onerror    = () => reject(tx.error);
+    });
+}
+
+async function lerMeta(chave) {
+    const db = await abrirDB();
+    return new Promise(resolve => {
+        const tx  = db.transaction('meta', 'readonly');
+        const req = tx.objectStore('meta').get(chave);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror   = () => resolve(null);
+    });
+}
+
+// Busca no cache local (offline-first)
+async function buscarEquipamentosLocal(termo) {
+    try {
+        const lista = await lerCacheStore('equipamentos');
+        const t = termo.toLowerCase().trim();
+        return lista.filter(e =>
+            (e.serie      || '').toLowerCase().includes(t) ||
+            (e.patrimonio || '').toLowerCase().includes(t)
+        ).slice(0, 10);
+    } catch(e) { return []; }
+}
+
+let _syncEmProgresso = false;
+
+async function sincronizarDados(silencioso) {
+    if (_syncEmProgresso || !navigator.onLine) return false;
+    _syncEmProgresso = true;
+
+    const btn   = document.getElementById('btnSync');
+    const label = document.getElementById('syncLabel');
+    if (btn) {
+        btn.disabled = true;
+        const icon = btn.querySelector('i') || btn.querySelector('svg');
+        if (icon) icon.classList.add('spin');
+    }
+    if (label && !silencioso) label.textContent = 'Baixando...';
+
+    try {
+        const cidade = getCidadeFiltro();
+        const cidadeParam = cidade
+            ? ('&cliente=not.is.null&select=*,cliente:clientes!inner(id,nome)&cliente.nome=ilike.*' + encodeURIComponent(cidade) + '*')
+            : '&select=*,cliente:clientes(id,nome)';
+
+        const [equipamentos, clientes] = await Promise.all([
+            API.fetch('/equipamentos?' + cidadeParam + '&order=serie.asc&limit=5000'),
+            API.fetch('/clientes?select=id,nome&order=nome.asc&limit=2000')
+        ]);
+
+        await salvarCacheStore('equipamentos', equipamentos);
+        await salvarCacheStore('clientes', clientes);
+        const agora = Date.now();
+        await salvarMeta('lastSync', agora);
+        localStorage.setItem('lastSync', String(agora));
+
+        atualizarSyncLabel();
+        return true;
+    } catch(e) {
+        console.error('Sync falhou:', e);
+        if (label) label.textContent = 'Falha no download';
+        return false;
+    } finally {
+        _syncEmProgresso = false;
+        if (btn) {
+            btn.disabled = false;
+            const icon = btn.querySelector('i') || btn.querySelector('svg');
+            if (icon) icon.classList.remove('spin');
+        }
+    }
+}
+
+async function atualizarSyncLabel() {
+    const label = document.getElementById('syncLabel');
+    if (!label) return;
+    const last = await lerMeta('lastSync');
+    if (!last) { label.textContent = 'Sem dados locais'; return; }
+    const diff = Date.now() - last;
+    const min  = Math.floor(diff / 60000);
+    const h    = Math.floor(diff / 3600000);
+    if (min < 1)   label.textContent = 'Sincronizado agora';
+    else if (h < 1) label.textContent = 'Sync: ' + min + 'min atras';
+    else            label.textContent = 'Sync: ' + h + 'h atras';
+}
+
+let _syncTimer = null;
+
+async function verificarAutoSync() {
+    atualizarSyncLabel();
+    const last = (await lerMeta('lastSync')) || 0;
+    if (navigator.onLine && (Date.now() - last > 15 * 60000)) {
+        await sincronizarDados(true);
+    }
+    iniciarSyncAutomatico();
+}
+
+function iniciarSyncAutomatico() {
+    if (_syncTimer) return;
+    // Sincroniza a cada 10 minutos enquanto a aba estiver aberta
+    _syncTimer = setInterval(async () => {
+        if (navigator.onLine && !_syncEmProgresso) {
+            await sincronizarDados(true);
+        }
+    }, 10 * 60000);
+
+    // Sincroniza ao recuperar conexão
+    window.addEventListener('online', () => {
+        sincronizarDados(true);
+    });
+
+    // Sincroniza ao voltar para a aba após >5min inativo
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+            const last = (await lerMeta('lastSync')) || 0;
+            if (navigator.onLine && Date.now() - last > 5 * 60000) {
+                sincronizarDados(true);
+            }
+        }
+    });
+}
 function initTheme() {
     const btn = document.getElementById('themeToggle');
     if (!btn) return;
     const icon = btn.querySelector('i');
-    
-    // Default to 'light'
+
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme, icon);
 
-    // Color Theme
     const savedColor = localStorage.getItem('themeColor') || '#d4af37';
     changeColor(savedColor, false);
 
     btn.addEventListener('click', () => {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
-        
+
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
         updateThemeIcon(next, icon);
@@ -1015,8 +1949,16 @@ function initTheme() {
 function changeColor(color, save = true) {
     document.documentElement.style.setProperty('--gold', color);
     if (save) localStorage.setItem('themeColor', color);
-    
-    // Update active dot
+
+    // Atualiza dinamicamente a meta tag de cor do tema para navegadores moveis
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        document.head.appendChild(meta);
+    }
+    meta.content = color;
+
     document.querySelectorAll('.color-dot').forEach(dot => {
         const title = dot.getAttribute('title').toLowerCase();
         dot.classList.toggle('active', getColorHex(title) === color.toLowerCase());
@@ -1061,6 +2003,7 @@ async function authAction(callback) {
 }
 
 async function excluirRegistroHistorico(id) {
+    if (!canEdit()) return alert("Você não tem permissão para excluir registros.");
     authAction(async () => {
         if (confirm("Tem certeza que deseja excluir este registro permanentemente?")) {
             try {
@@ -1079,20 +2022,20 @@ async function excluirRegistroHistorico(id) {
 }
 
 async function prepararEdicaoHistorico(id) {
+    if (!canEdit()) return alert("Você não tem permissão para editar registros.");
     authAction(async () => {
         try {
             setLoading(true);
             const data = await API.fetch(`/balanceamento_entregas?id=eq.${id}&select=*,equipamento:equipamentos(serie),cliente:clientes(nome)`);
             if (data.length === 0) return;
             const item = data[0];
-            
-            // Preencher modal de edição de histórico
+
             document.getElementById('editHistId').value = item.id;
             document.getElementById('editHistEquip').innerText = `${item.equipamento.serie} - ${item.cliente.nome}`;
             document.getElementById('editHistQtd').value = item.quantidade_definida;
             document.getElementById('editHistOs').value = item.numero_os || '';
             document.getElementById('editHistStatus').value = item.status;
-            
+
             document.getElementById('modalEdicaoHistorico').classList.remove('hidden');
         } catch (e) {
             console.error(e);

@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const msg = message + '\nAt: ' + source + ':' + lineno + ':' + colno + '\nStack: ' + (error ? error.stack : '');
+      alert('ERRO DE EXECUÇÃO JS EM ADMIN:\n' + msg);
+      console.error(msg);
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+      const msg = 'Unhandled Rejection EM ADMIN: ' + (event.reason ? (event.reason.message || event.reason) : 'Unknown reason') + '\nStack: ' + (event.reason ? event.reason.stack : '');
+      alert('REJEIÇÃO DE PROMISE JS EM ADMIN:\n' + msg);
+      console.error(event.reason);
+    });
+    // Exige adm_user E adm_tk — impede acesso apenas colocando a URL ou manipulando sessionStorage
+    if (!sessionStorage.getItem('adm_user') || !sessionStorage.getItem('adm_tk')) {
+      sessionStorage.removeItem('adm_user');
+      sessionStorage.removeItem('adm_tk');
+      window.location.href = 'index.html?v=20260616';
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RDY · Admin</title>
+  <link rel="stylesheet" href="css/style.css?v=20260616">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    #adminApp { display: none; }
+    /* Garante que loginScreen seja visível por padrão no admin.html,
+       sobrescrevendo o #loginScreen { display:none } do style.css */
+    #loginScreen { display: flex; }
+    /* ── LOGIN ── */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-0);
+    }
+    .login-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      box-shadow: var(--shadow);
+    }
+    .login-logo { text-align: center; margin-bottom: 32px; }
+    .login-logo i { color: var(--gold); width: 36px; height: 36px; }
+    .login-logo h1 { font-size: 1.3rem; font-weight: 700; margin-top: 12px; }
+    .login-logo p { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .login-form .lg-group { margin-bottom: 16px; }
+    .login-form label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-bottom: 6px; }
+    .login-form input {
+      width: 100%; padding: 12px 14px;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-size: 0.9375rem; font-family: var(--font-outfit);
+      transition: var(--transition);
+    }
+    .login-form input:focus { outline: none; border-color: var(--gold); }
+    .btn-login {
+      width: 100%; padding: 13px;
+      background: var(--gold); color: #000;
+      font-weight: 800; font-size: 0.875rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      border: none; border-radius: var(--radius-sm);
+      cursor: pointer; margin-top: 8px; transition: var(--transition);
+    }
+    .btn-login:hover { opacity: 0.85; transform: translateY(-1px); }
+    .login-erro { color: var(--danger); font-size: 0.8125rem; text-align: center; margin-top: 12px; }
+
+    /* ── HEADER ── */
+    .admin-badge {
+      padding: 4px 12px;
+      background: var(--gold); color: #000;
+      font-size: 0.6875rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      border-radius: 30px;
+    }
+    .admin-city {
+      font-size: 0.75rem; font-weight: 600;
+      color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .btn-logout {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; background: none;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text-dim); font-size: 0.8125rem; font-weight: 600;
+      cursor: pointer; transition: var(--transition);
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── KPI GRID ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--bg-1); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .kpi-card.kpi-alerta { border-color: rgba(239,68,68,0.35); }
+    .kpi-card.kpi-warn   { border-color: rgba(245,158,11,0.35); }
+    .kpi-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+    .kpi-value { font-size: 2.25rem; font-weight: 800; line-height: 1; }
+    .kpi-alerta .kpi-value { color: var(--danger); }
+    .kpi-warn   .kpi-value { color: #f59e0b; }
+
+    /* ── SECTION HDR ── */
+    .section-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-hdr h3 { font-size: 0.9375rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .section-hdr h3 i { color: var(--gold); }
+
+    /* ── DIAS ALERTA ── */
+    .dias-ok   { color: var(--success); font-weight: 700; }
+    .dias-warn { color: #f59e0b; font-weight: 700; }
+    .dias-crit { color: var(--danger); font-weight: 700; }
+
+    /* ── NOVOS FILTROS ── */
+    .admin-filters-grid {
+      display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
+      background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px;
+    }
+    .filter-row-top {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    }
+    .filter-input-group { flex: 1; min-width: 150px; }
+    .filter-input-group input, .filter-input-group select {
+      width: 100%; padding: 10px 14px; background: var(--bg-0); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); font-size: 0.875rem;
+    }
+    .filter-row-bottom {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding-top: 8px; border-top: 1px dashed var(--border);
+    }
+    .toggle-switch-label {
+      display: flex; align-items: center; gap: 8px; cursor: pointer; -webkit-user-select: none; user-select: none;
+    }
+    .btn-original { margin-right: 12px; border-color: var(--gold); color: var(--gold); }
+    .kpi-grid-entregas { grid-template-columns: repeat(3, 1fr); margin-bottom: 20px; }
+    .toggle-switch-checkbox { display: none; }
+    .toggle-switch-slider {
+      position: relative; width: 36px; height: 20px; background: var(--bg-0); border: 1px solid var(--border);
+      border-radius: 20px; transition: 0.3s;
+    }
+    .toggle-switch-slider::before {
+      content: ""; position: absolute; height: 14px; width: 14px; left: 2px; bottom: 2px;
+      background: var(--text-dim); border-radius: 50%; transition: 0.3s;
+    }
+    .toggle-switch-checkbox:checked + .toggle-switch-slider { background: rgba(212, 175, 55, 0.2); border-color: var(--gold); }
+    .toggle-switch-checkbox:checked + .toggle-switch-slider::before { transform: translateX(14px); background: var(--gold); }
+    .toggle-switch-text { font-size: 0.8125rem; font-weight: 600; color: var(--text-dim); }
+    .toggle-switch-checkbox:checked ~ .toggle-switch-text { color: var(--text); }
+
+    /* ── TAGS DE SINALIZAÇÃO ── */
+    .tags-container { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .badge-tag {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 6px;
+      background: var(--bg-2); color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .badge-tag i { width: 14px; height: 14px; }
+    .tag-entregue { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
+    .tag-acima-media { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
+    .tag-portal { background: rgba(59, 130, 246, 0.1); color: var(--cyan); border-color: rgba(59, 130, 246, 0.2); }
+    .tag-antigo { background: rgba(156, 163, 175, 0.1); color: var(--text-dim); border-color: rgba(156, 163, 175, 0.2); }
+    .legend-row {
+      display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
+      background: var(--bg-1); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    }
+    .legend-title { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text); }
+  </style>
+
+
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <i data-lucide="shield-check"></i>
+      <h1>RDY - DOC CONTROL</h1>
+      <p>Portal Administrativo</p>
+    </div>
+    <div class="login-form">
+      <div class="lg-group">
+        <label>Usuário</label>
+        <input type="text" id="loginUser" placeholder="Ex: CTO" autocomplete="username"
+          onkeydown="if(event.key==='Enter') document.getElementById('loginPass').focus()">
+      </div>
+      <div class="lg-group">
+        <label>Senha</label>
+        <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') fazerLogin()">
+      </div>
+      <button class="btn-login" onclick="fazerLogin()">ENTRAR</button>
+      <p id="loginErro" class="login-erro hidden">Usuário ou senha incorretos.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ADMIN APP ═══════════════ -->
+<div id="adminApp" class="app-container">
+
+  <header class="topbar">
+    <div class="logo">
+      <i data-lucide="shield-check"></i>
+      <h1>RDY · Admin</h1>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-logout btn-original" onclick="abrirSistemaOriginal()" title="Abrir Sistema Original">
+        <i data-lucide="package"></i> Sistema Original
+      </button>
+      <span class="admin-city" id="adminCity">—</span>
+      <span class="admin-badge" id="adminBadge">—</span>
+      <button class="btn-logout" onclick="fazerLogout()">
+        <i data-lucide="log-out"></i> Sair
+      </button>
+      <div class="color-selector">
+        <button class="color-dot theme-gold active" onclick="changeColor('#d4af37')" title="Ouro"></button>
+        <button class="color-dot theme-cyan"  onclick="changeColor('#0078d4')" title="Ciano"></button>
+        <button class="color-dot theme-magenta" onclick="changeColor('#ff00cc')" title="Magenta"></button>
+        <button class="color-dot theme-yellow"  onclick="changeColor('#ffcc00')" title="Amarelo"></button>
+      </div>
+      <button id="themeToggle" class="btn-theme-circle" title="Alternar Tema">
+        <i data-lucide="moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Visão Geral</button>
+      <button class="tab-btn" data-tab="entregas"><i data-lucide="history"></i> Histórico de Entregas</button>
+      <button class="tab-btn" data-tab="analises"><i data-lucide="activity"></i> Análises e Auditorias</button>
+      <button class="tab-btn hidden" data-tab="governanca" id="btnTabGovernanca"><i data-lucide="users"></i> Governança</button>
+      <button class="tab-btn hidden" data-tab="bancodados" id="btnTabBancoDados"><i data-lucide="database"></i> Banco de Dados</button>
+    </nav>
+
+    <!-- ══ TAB: VISÃO GERAL ══ -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Equipamentos</span>
+          <span class="kpi-value" id="kpiEquip">—</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label" id="lblKpiEntregas">Entregas este mês</span>
+          <span class="kpi-value gold-text" id="kpiEntregas">—</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label" id="lblKpiResmas">Resmas este mês</span>
+          <span class="kpi-value gold-text" id="kpiResmas">—</span>
+        </div>
+        <div class="kpi-card kpi-alerta">
+          <span class="kpi-label">Análises abertas</span>
+          <span class="kpi-value" id="kpiAnalises">—</span>
+        </div>
+      </div>
+
+      <div class="admin-filters-grid">
+        <div class="filter-row-top">
+          <div class="date-range-group">
+            <input type="date" id="dashDataInicio" title="Data Inicial">
+            <span>ATÉ</span>
+            <input type="date" id="dashDataFim" title="Data Final">
+          </div>
+          <div class="filter-input-group">
+            <input type="text" id="dashFiltroCidade" placeholder="Filtrar por Cidade..." title="Cidade">
+          </div>
+          <button class="btn-filter-premium" onclick="carregarDashboard()" title="Aplicar Filtros">
+            <i data-lucide="filter"></i> Buscar
+          </button>
+        </div>
+      </div>
+
+      <div class="search-card">
+        <div class="section-hdr">
+          <h3><i data-lucide="clock"></i> Últimas Entregas</h3>
+          <button class="btn-outline" onclick="carregarDashboard()">
+            <i data-lucide="refresh-cw"></i> Atualizar
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Data</th><th>Série</th><th>Cliente</th><th>Setor</th>
+                <th class="text-center">Resmas</th><th>O.S.</th><th>Técnico</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dashTbody">
+              <tr><td colspan="7" class="text-center">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TAB: ENTREGAS ══ -->
+    <section id="tab-entregas" class="tab-content">
+      <div class="search-card">
+        <div class="section-hdr">
+          <h3><i data-lucide="package"></i> Histórico de Entregas</h3>
+          <div class="section-hdr-actions">
+            <button class="btn-outline btn-excel" onclick="exportarExcel('entregasTable','Admin_Entregas')">
+              <i data-lucide="file-spreadsheet"></i> Excel
+            </button>
+            <button class="btn-outline" onclick="carregarEntregas()">
+              <i data-lucide="refresh-cw"></i> Atualizar
+            </button>
+          </div>
+        </div>
+        <div class="kpi-grid kpi-grid-entregas">
+          <div class="kpi-card">
+            <span class="kpi-label">Equipamentos</span>
+            <span class="kpi-value" id="filtroKpiEquip">—</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Entregas Filtradas</span>
+            <span class="kpi-value" id="filtroKpiEntregas">—</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Total de Resmas</span>
+            <span class="kpi-value gold-text" id="filtroKpiResmas">—</span>
+          </div>
+        </div>
+        <div class="admin-filters-grid">
+          <!-- Linha 1: Filtros de Texto e Data -->
+          <div class="filter-row-top">
+            <div class="date-range-group">
+              <input type="date" id="admDataInicio" title="Data Inicial">
+              <span>ATÉ</span>
+              <input type="date" id="admDataFim" title="Data Final">
+            </div>
+            <div class="filter-input-group">
+              <input type="text" id="admFiltroCidade" placeholder="Filtrar por Cidade..." title="Cidade">
+            </div>
+            <div class="filter-input-group">
+              <input type="text" id="admFiltroSerie" placeholder="Filtrar por Série..." title="Série">
+            </div>
+            <div class="filter-input-group">
+              <input type="text" id="admFiltroOs" placeholder="Filtrar por O.S..." title="Ordem de Serviço">
+            </div>
+            <div class="filter-input-group">
+              <select id="admFiltroOrdem" title="Ordenação">
+                <option value="recentes">Mais Recentes</option>
+                <option value="maiores">Maiores Consumidores</option>
+              </select>
+            </div>
+            <button class="btn-filter-premium" onclick="carregarEntregas()" title="Aplicar Filtros">
+              <i data-lucide="filter"></i> Buscar
+            </button>
+          </div>
+          
+          <!-- Linha 2: Switches/Checkboxes -->
+          <div class="filter-row-bottom">
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="admFiltroAcimaMedia" class="toggle-switch-checkbox" onchange="carregarEntregas()">
+              <span class="toggle-switch-slider"></span>
+              <span class="toggle-switch-text">Apenas Entregas Além da Média Mensal</span>
+            </label>
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="admFiltroJustificados" class="toggle-switch-checkbox" onchange="carregarEntregas()">
+              <span class="toggle-switch-slider"></span>
+              <span class="toggle-switch-text">Apenas Justificados</span>
+            </label>
+          </div>
+        </div>
+        <div class="legend-row">
+          <span class="legend-title">Legenda de Sinais:</span>
+          <div class="legend-item"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Entregue</div>
+          <div class="legend-item"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
+          <div class="legend-item"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Via Novo Portal</div>
+          <div class="legend-item"><span class="badge-tag tag-antigo"><i data-lucide="archive"></i></span> Via Sistema Antigo</div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" id="entregasTable">
+            <thead>
+              <tr>
+                <th width="80" class="text-center">ID / Ato</th>
+                <th>Data</th><th>Série</th><th>Cliente</th><th>Setor</th>
+                <th class="text-center">Resmas</th><th class="text-center">Média/mês</th>
+                <th>Sinais</th>
+                <th>O.S.</th><th>Observação</th><th>Técnico</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="entregasTbody">
+              <tr><td colspan="11" class="text-center">Use os filtros para carregar.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TAB: ANÁLISES ABERTAS ══ -->
+    <section id="tab-analises" class="tab-content">
+      <div class="search-card">
+        <div class="section-hdr">
+          <h3><i data-lucide="activity"></i> Análises Imediatas em Aberto</h3>
+          <button class="btn-outline" onclick="carregarAnalises()">
+            <i data-lucide="refresh-cw"></i> Atualizar
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="analisesTable">
+            <thead>
+              <tr>
+                <th>Abertura</th><th>Série</th><th>Cliente</th><th>Setor</th>
+                <th class="text-center">Num. Base</th>
+                <th class="text-center">Resmas</th>
+                <th class="text-center">Limite</th>
+                <th>O.S.</th>
+                <th class="text-center">Dias Aberta</th>
+              </tr>
+            </thead>
+            <tbody id="analisesTabody">
+              <tr><td colspan="11" class="text-center">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TAB: GOVERNANÇA ══ -->
+    <section id="tab-governanca" class="tab-content">
+      <div class="search-card">
+        <div class="section-hdr">
+          <h3><i data-lucide="users"></i> Gestão de Usuários</h3>
+          <div class="header-actions">
+          <button class="btn-primary" onclick="abrirModalUsuario()">
+            <i data-lucide="user-plus"></i> Novo Usuário
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Nome/Label</th>
+                <th>Perfil</th>
+                <th>Cidade</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="govTbody">
+              <tr><td colspan="5" class="text-center">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TAB: BANCO DE DADOS ══ -->
+    <section id="tab-bancodados" class="tab-content">
+      <div class="search-card">
+        <div class="section-hdr">
+          <h3><i data-lucide="upload-cloud"></i> Importação de Dados</h3>
+        </div>
+        <div class="form-group db-import-group">
+          <label>Selecione o tipo de importação:</label>
+          <select id="dbImportType" class="input-text db-import-select" onchange="updateImportInstrucoes()">
+            <option value="clientes">Clientes</option>
+            <option value="equipamentos">Equipamentos</option>
+          </select>
+        </div>
+        
+        <div id="dbImportInstrucoes" class="analise-info-row highlight-row db-import-instrucoes">
+          <p class="db-import-instrucoes-title">Colunas obrigatórias na planilha (.csv ou .xlsx):</p>
+          <p id="dbImportCols" class="db-import-cols-preview">NOME, CIDADE</p>
+          <p class="db-import-instrucoes-desc">Atenção: A primeira linha (cabeçalho) deve conter exatamente estes nomes.</p>
+        </div>
+
+        <div class="db-import-actions">
+          <input type="file" id="dbImportFile" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="input-text db-import-file">
+          <button class="btn-primary" onclick="processarImportacao()" id="btnProcessarImportacao">
+            <i data-lucide="play"></i> Iniciar Importação
+          </button>
+        </div>
+        <div id="dbImportLog" class="db-import-log"></div>
+      </div>
+
+      <div class="search-card danger-zone-card">
+        <div class="section-hdr">
+          <h3 class="danger-zone-title"><i data-lucide="alert-triangle"></i> Zona de Risco (Apagar Banco)</h3>
+        </div>
+        <p class="danger-zone-desc">As ações abaixo são irreversíveis. Exigem dupla validação (senha e confirmação escrita).</p>
+        
+        <div class="danger-zone-actions">
+          <button class="btn-outline btn-danger-outline" onclick="solicitarLimpeza('entregas')">
+            <i data-lucide="trash"></i> Apagar Histórico de Entregas
+          </button>
+          <button class="btn-outline btn-danger-outline" onclick="solicitarLimpeza('entregas_3m')">
+            <i data-lucide="calendar-off"></i> Limpar Antigos (Manter Últimos 3 Meses)
+          </button>
+          <button class="btn-outline btn-danger-outline" onclick="solicitarLimpeza('completo')">
+            <i data-lucide="bomb"></i> Resetar Banco Completo
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL USUÁRIO -->
+  <div id="modalUsuario" class="modal-overlay hidden">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h3><i data-lucide="user"></i> <span id="modalUserTitle">Novo Usuário</span></h3>
+        <button class="btn-close" onclick="fecharModalUsuario()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="formUsuario" onsubmit="event.preventDefault(); salvarUsuario();">
+          <div class="form-group">
+            <label>Usuário (Login)</label>
+            <input type="text" id="govUsername" required class="input-text" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="govPassword" required class="input-text" autocomplete="new-password">
+            <small class="text-dim">Preencha para definir ou alterar.</small>
+          </div>
+          <div class="form-group">
+            <label>Nome de Exibição (Label)</label>
+            <input type="text" id="govLabel" required class="input-text">
+          </div>
+          <div class="form-group">
+            <label>Perfil (Role)</label>
+            <select id="govRole" required class="input-text">
+              <option value="cto">Admin (CTO)</option>
+              <option value="gestor">Gestor</option>
+              <option value="tecnico" selected>Técnico</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cidade Restrita</label>
+            <select id="govCidade" class="input-text">
+              <option value="">Todas (Vazio)</option>
+            </select>
+          </div>
+          <div class="modal-actions mt-20">
+            <button type="button" class="btn-outline" onclick="fecharModalUsuario()">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar Usuário</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VALIDAÇÃO DUPLA -->
+  <div id="modalDbAuth" class="modal-overlay hidden">
+    <div class="modal-content modal-content-danger">
+      <div class="modal-header">
+        <h3 class="modal-title-danger"><i data-lucide="alert-octagon"></i> <span id="dbAuthTitle">Confirmação de Segurança</span></h3>
+        <button class="btn-close" onclick="fecharModalDbAuth()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p id="dbAuthDesc" class="modal-desc-danger">Esta ação não pode ser desfeita.</p>
+        <form onsubmit="event.preventDefault(); confirmarDbAuth();">
+          <div class="form-group">
+            <label>Sua Senha (Administrador)</label>
+            <input type="password" id="dbAuthPass" required class="input-text">
+          </div>
+          <div class="form-group">
+            <label>Digite exatamente: <strong id="dbAuthPalavra" class="gold-text"></strong></label>
+            <input type="text" id="dbAuthConfirm" required class="input-text input-uppercase" autocomplete="off">
+          </div>
+          <div class="modal-actions mt-20">
+            <button type="button" class="btn-outline" onclick="fecharModalDbAuth()">Cancelar</button>
+            <button type="submit" class="btn-primary btn-danger-solid">Confirmar Exclusão</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
+
+// ════════════════════════════════════════════════════════
+// SEGURANÇA — Previne XSS
+// ════════════════════════════════════════════════════════
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeCreateIcons() {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try {
+      lucide.createIcons();
+    } catch (e) {
+      console.error("Lucide failed to create icons:", e);
+    }
+  }
+}
+
+// ADMIN_USERS removido - agora utilizando Supabase (tabela balanceamento_usuarios)
+
+let adminState = { user: null, cidade: null, role: null, clienteIds: null };
+
+// ════════════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════════════
+const API = {
+  async fetch(endpoint, options = {}) {
+    const method = (options.method || 'GET').toUpperCase();
+    // Para mutações, inclui apikey na URL como fallback (headers podem ser bloqueados)
+    const sep = endpoint.includes('?') ? '&' : '?';
+    const url = (method !== 'GET')
+      ? `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`
+      : `${SUPABASE_URL}/rest/v1${endpoint}`;
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        ...options.headers
+      }
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`HTTP ${res.status}: ${body}`);
+    }
+    if (res.status === 204) return null;
+    return res.json();
+  }
+};
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const hojeStr = new Date().toISOString().slice(0,10);
+  document.getElementById('admDataInicio').value = hojeStr;
+  document.getElementById('admDataFim').value = hojeStr;
+  safeCreateIcons();
+  initTheme();
+  const saved = sessionStorage.getItem('adm_user');
+  if (saved) {
+    try {
+      const cfg = JSON.parse(saved);
+      if (!cfg || !cfg.username) throw new Error('Sessão inválida');
+      entrarAdmin(cfg.username, cfg);
+    } catch(e) {
+      console.error('Erro ao restaurar sessão admin:', e);
+      sessionStorage.removeItem('adm_user');
+      sessionStorage.removeItem('adm_tk');
+      // loginScreen já está display:flex por default no admin.html
+      const userIn = document.getElementById('loginUser');
+      if (userIn) userIn.focus();
+    }
+  } else {
+    const userIn = document.getElementById('loginUser');
+    if (userIn) userIn.focus();
+  }
+});
+
+// ════════════════════════════════════════════════════════
+// LOGIN / LOGOUT
+// ════════════════════════════════════════════════════════
+async function fazerLogin() {
+  const errEl = document.getElementById('loginErro');
+
+  const lockUntil = parseInt(sessionStorage.getItem('admLockUntil') || 0);
+  if (Date.now() < lockUntil) {
+    const minutos = Math.ceil((lockUntil - Date.now()) / 60000);
+    errEl.textContent = `Acesso bloqueado. Tente novamente em ${minutos} minuto(s).`;
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  
+  try {
+    const result = await API.fetch(`/balanceamento_usuarios?username=eq.${user}&select=*`);
+    const cfg = result[0];
+
+    if (!cfg || cfg.password !== pass) {
+      const tentativas = parseInt(sessionStorage.getItem('admTentativas') || 0) + 1;
+      sessionStorage.setItem('admTentativas', tentativas);
+      if (tentativas >= 5) {
+        sessionStorage.setItem('admLockUntil', Date.now() + 15 * 60 * 1000);
+        sessionStorage.removeItem('admTentativas');
+        errEl.textContent = 'Acesso bloqueado por 15 minutos após múltiplas tentativas.';
+      } else {
+        errEl.textContent = `Usuário ou senha incorretos. (${tentativas}/5 tentativas)`;
+      }
+      errEl.classList.remove('hidden');
+      document.getElementById('loginPass').value = '';
+      document.getElementById('loginPass').focus();
+      return;
+    }
+
+    sessionStorage.removeItem('admTentativas');
+    sessionStorage.removeItem('admLockUntil');
+    sessionStorage.setItem('adm_user', JSON.stringify(cfg));
+    sessionStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
+    entrarAdmin(cfg.username, cfg);
+  } catch(err) {
+    console.error("Login error:", err);
+    errEl.textContent = 'Erro ao se conectar ao servidor.';
+    errEl.classList.remove('hidden');
+  }
+}
+
+function fazerLogout() {
+  sessionStorage.removeItem('adm_user');
+  sessionStorage.removeItem('adm_tk');
+  sessionStorage.removeItem('rdyUser');
+  location.reload();
+}
+
+async function entrarAdmin(user, cfg) {
+  adminState.user   = user;
+  adminState.cidade = cfg.cidade;
+  adminState.role   = cfg.role;
+
+  // Show "Governança" and "Banco de Dados" tabs only if user is CTO
+  const btnGov = document.getElementById('btnTabGovernanca');
+  const btnDb  = document.getElementById('btnTabBancoDados');
+  if (cfg.role === 'cto') {
+    btnGov.classList.remove('hidden');
+    btnDb.classList.remove('hidden');
+  } else {
+    btnGov.classList.add('hidden');
+    btnDb.classList.add('hidden');
+  }
+
+  document.getElementById('adminBadge').innerText = user;
+  document.getElementById('adminCity').innerText  = cfg.label;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminApp').style.display = 'block';
+
+  if (cfg.cidade) {
+    try {
+      const clientes = await API.fetch(`/clientes?cidade=ilike.*${encodeURIComponent(cfg.cidade)}*&select=id`);
+      adminState.clienteIds = clientes.map(c => c.id);
+    } catch(e) {
+      adminState.clienteIds = [];
+    }
+  } else {
+    adminState.clienteIds = null; // CTO: sem filtro
+  }
+
+  safeCreateIcons();
+  initAdminTabs();
+  carregarDashboard();
+}
+
+// ════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════
+function initAdminTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabId}`));
+      if (tabId === 'entregas') carregarEntregas();
+      if (tabId === 'analises') carregarAnalises();
+      if (tabId === 'governanca') carregarGovernanca();
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+function cidadeFilter(sep = '&') {
+  if (adminState.clienteIds === null) return '';
+  if (adminState.clienteIds.length === 0)
+    return `${sep}cliente_id=eq.00000000-0000-0000-0000-000000000000`;
+  return `${sep}cliente_id=in.(${adminState.clienteIds.join(',')})`;
+}
+
+function equipFilter(sep = '&') {
+  if (adminState.clienteIds === null) return '';
+  if (adminState.clienteIds.length === 0)
+    return `${sep}cliente_id=eq.00000000-0000-0000-0000-000000000000`;
+  return `${sep}cliente_id=in.(${adminState.clienteIds.join(',')})`;
+}
+
+function fmtData(iso) {
+  return iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
+}
+
+function statusBadge(s) {
+  const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-pendente' };
+  const label = { confirmado:'Confirmado', pendente:'Pendente', entregue:'Entregue', analise_aberta:'Análise Aberta' };
+  return `<span class="status-badge ${cls[s]||''}">${esc(label[s]||s)}</span>`;
+}
+
+// ════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════
+async function carregarDashboard() {
+  const di = document.getElementById('dashDataInicio')?.value;
+  const df = document.getElementById('dashDataFim')?.value;
+  const fCidade = document.getElementById('dashFiltroCidade')?.value.trim().toLowerCase();
+
+  const defaultInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  const queryDi = di || defaultInicio;
+  
+  let qDataEntregas = `&data_registro=gte.${queryDi}`;
+  if (df) qDataEntregas += `&data_registro=lte.${df}T23:59:59`;
+
+  let qCidade = '';
+  if (fCidade) qCidade = `&equipamento.cliente.cidade=ilike.*${encodeURIComponent(fCidade)}*`;
+
+  try {
+    const [equips, entregasMes, analises, recentes] = await Promise.all([
+      API.fetch(`/equipamentos?select=id${equipFilter()}&limit=5000`),
+      API.fetch(`/balanceamento_entregas?status=eq.confirmado${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=5000`),
+      API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
+      API.fetch(`/balanceamento_entregas?status=eq.confirmado${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
+    ]);
+
+    const label = (di || df || fCidade) ? "Filtradas" : "Este mês";
+    document.getElementById('lblKpiEntregas').innerText = `Entregas ${label}`;
+    document.getElementById('lblKpiResmas').innerText   = `Resmas ${label}`;
+
+    document.getElementById('kpiEquip').innerText    = equips.length;
+    document.getElementById('kpiEntregas').innerText  = entregasMes.length;
+    document.getElementById('kpiResmas').innerText    = entregasMes
+      .reduce((s, e) => s + (parseFloat(e.quantidade_definida) || 0), 0).toFixed(0);
+    document.getElementById('kpiAnalises').innerText  = analises.length;
+
+    const tbody = document.getElementById('dashTbody');
+    tbody.innerHTML = recentes.length === 0
+      ? '<tr><td colspan="7" class="text-center">Nenhuma entrega encontrada.</td></tr>'
+      : recentes.map(e => `
+          <tr>
+            <td>${fmtData(e.data_registro)}</td>
+            <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
+            <td>${esc(e.equipamento?.cliente?.nome || '—')}</td>
+            <td>${esc(e.equipamento?.secretaria || '—')}</td>
+            <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
+            <td>${esc(e.numero_os || '—')}</td>
+            <td>${esc(e.criado_por || '—')}</td>
+            <td>${statusBadge(e.status)}</td>
+          </tr>`).join('');
+          
+    safeCreateIcons();
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// ENTREGAS
+// ════════════════════════════════════════════════════════
+async function carregarEntregas() {
+  const di = document.getElementById('admDataInicio').value;
+  const df = document.getElementById('admDataFim').value;
+  const fCidade = document.getElementById('admFiltroCidade').value.trim().toLowerCase();
+  const fSerie = document.getElementById('admFiltroSerie').value.trim().toLowerCase();
+  const fOs = document.getElementById('admFiltroOs').value.trim().toLowerCase();
+  const fOrdem = document.getElementById('admFiltroOrdem').value;
+  const fAcimaMedia = document.getElementById('admFiltroAcimaMedia').checked;
+  const fJustificados = document.getElementById('admFiltroJustificados').checked;
+
+  let params = `status=eq.confirmado${cidadeFilter()}&limit=1000`;
+  params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`;
+  
+  if (di) params += `&data_registro=gte.${di}`;
+  if (df) params += `&data_registro=lte.${df}T23:59:59`;
+  if (fSerie) params += `&equipamento.serie=ilike.*${encodeURIComponent(fSerie)}*`;
+  if (fCidade) params += `&equipamento.cliente.cidade=ilike.*${encodeURIComponent(fCidade)}*`;
+  if (fOs) params += `&numero_os=ilike.*${encodeURIComponent(fOs)}*`;
+
+  if (fOrdem === 'recentes') {
+    params += `&order=data_registro.desc`;
+  }
+
+  const tbody = document.getElementById('entregasTbody');
+  tbody.style.opacity = '0.5';
+  
+  try {
+    let data = await API.fetch(`/balanceamento_entregas?${params}`);
+    
+    // Filtros em Memória
+    if (fAcimaMedia) {
+        data = data.filter(e => (parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0));
+    }
+    
+    if (fJustificados) {
+        data = data.filter(e => e.observacao && e.observacao.trim() !== '' && !e.observacao.startsWith('ANALISE_BASE'));
+    }
+    
+    // Ordenação em Memória
+    if (fOrdem === 'maiores') {
+        data.sort((a, b) => (parseFloat(b.quantidade_definida) || 0) - (parseFloat(a.quantidade_definida) || 0));
+    }
+
+        const setEquips = new Set();
+    data.forEach(e => {
+        if (e.equipamento && e.equipamento.serie) setEquips.add(e.equipamento.serie);
+    });
+    document.getElementById('filtroKpiEquip').innerText = setEquips.size;
+    document.getElementById('filtroKpiEntregas').innerText = data.length;
+    const totalResmasFiltro = data.reduce((s, e) => s + (parseFloat(e.quantidade_definida) || 0), 0);
+    document.getElementById('filtroKpiResmas').innerText = totalResmasFiltro.toLocaleString('pt-BR');
+
+    tbody.style.opacity = '1';
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center">Nenhum registro encontrado com estes filtros.</td></tr>';
+      if (typeof lucide !== 'undefined') lucide.createIcons({ root: tbody });
+      return;
+    }
+    
+    tbody.innerHTML = data.map((e) => {
+      let tags = '';
+      if (e.status === 'confirmado') {
+        tags += `<span class="badge-tag tag-entregue" title="Entregue"><i data-lucide="package-check"></i></span>`;
+      }
+      if ((parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0)) {
+        tags += `<span class="badge-tag tag-acima-media" title="Acima da Média"><i data-lucide="trending-up"></i></span>`;
+      }
+      if (e.criado_por === 'Portal') {
+        tags += `<span class="badge-tag tag-portal" title="Via Portal"><i data-lucide="globe"></i></span>`;
+      } else {
+        tags += `<span class="badge-tag tag-antigo" title="Sistema Antigo"><i data-lucide="archive"></i></span>`;
+      }
+      
+      // Formata o ID: Se for UUID, pega só início, senão mostra o número
+      let displayId = String(e.id || '—');
+      if (displayId.length > 15 && displayId.includes('-')) {
+        displayId = displayId.substring(0, 6).toUpperCase();
+      }
+      
+      return `
+      <tr>
+        <td class="text-center" style="color:var(--text-dim);font-size:0.75rem;font-family:monospace;">#${displayId}</td>
+        <td>${fmtData(e.data_registro)}</td>
+        <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
+        <td>${esc(e.equipamento?.cliente?.nome || '—')}</td>
+        <td>${esc(e.equipamento?.secretaria || '—')}</td>
+        <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
+        <td class="text-center">${esc(e.media_consumo_mensal ? parseFloat(e.media_consumo_mensal).toFixed(1) : '—')}</td>
+        <td><div class="tags-container">${tags}</div></td>
+        <td>${esc(e.numero_os || '—')}</td>
+        <td style="max-width:160px;font-size:0.75rem;color:var(--text-dim)">${esc(e.observacao || '—')}</td>
+        <td>${esc(e.criado_por || '—')}</td>
+        <td>${statusBadge(e.status)}</td>
+      </tr>`;
+    }).join('');
+      
+    if (typeof lucide !== 'undefined') lucide.createIcons({ root: tbody });
+  } catch(err) {
+    const tbody = document.getElementById('entregasTbody');
+    tbody.style.opacity = '1';
+    tbody.innerHTML = `<tr><td colspan="11" class="text-center" style="color:var(--danger)">Erro: ${err.message}</td></tr>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// ANÁLISES ABERTAS
+// ════════════════════════════════════════════════════════
+async function carregarAnalises() {
+  const params = `status=eq.analise_aberta${cidadeFilter()}&order=data_registro.asc`
+    + `&select=*,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))`;
+
+  const tbody = document.getElementById('analisesTabody');
+  tbody.style.opacity = '0.5';
+  try {
+    const data  = await API.fetch(`/balanceamento_entregas?${params}`);
+    tbody.style.opacity = '1';
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center">Nenhuma análise em aberto.</td></tr>';
+      return;
+    }
+    const agora = Date.now();
+    tbody.innerHTML = data.map(e => {
+      const base   = parseInt(e.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0;
+      const limite = base + (e.quantidade_definida || 0) * 500;
+      const dias   = Math.round((agora - new Date(e.data_registro).getTime()) / 86400000);
+      const diasCls = dias > 7 ? 'dias-crit' : dias > 3 ? 'dias-warn' : 'dias-ok';
+      return `
+        <tr>
+          <td>${fmtData(e.data_registro)}</td>
+          <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
+          <td>${esc(e.equipamento?.cliente?.nome || '—')}</td>
+          <td>${esc(e.equipamento?.secretaria || '—')}</td>
+          <td class="text-center">${base.toLocaleString('pt-BR')}</td>
+          <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
+          <td class="text-center gold-text"><strong>${limite.toLocaleString('pt-BR')}</strong></td>
+          <td>${esc(e.numero_os || '—')}</td>
+          <td class="text-center ${diasCls}">${dias}d</td>
+        </tr>`;
+    }).join('');
+    if (typeof lucide !== 'undefined') lucide.createIcons({ root: tbody });
+  } catch(err) {
+    const tbody = document.getElementById('analisesTabody');
+    tbody.style.opacity = '1';
+    tbody.innerHTML = `<tr><td colspan="11" class="text-center" style="color:var(--danger)">Erro: ${err.message}</td></tr>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// TEMA
+// ════════════════════════════════════════════════════════
+function initTheme() {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.innerHTML = saved === 'dark'
+    ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+  const savedColor = localStorage.getItem('accentColor');
+  if (savedColor) document.documentElement.style.setProperty('--gold', savedColor);
+
+  document.getElementById('themeToggle')?.addEventListener('click', () => {
+    const cur  = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    document.getElementById('themeToggle').innerHTML = next === 'dark'
+      ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+    safeCreateIcons();
+  });
+}
+
+function changeColor(hex) {
+  document.documentElement.style.setProperty('--gold', hex);
+  localStorage.setItem('accentColor', hex);
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════
+// EXPORT
+// ════════════════════════════════════════════════════════
+function exportarExcel(tableId, nome) {
+  const ws = XLSX.utils.table_to_sheet(document.getElementById(tableId));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+  XLSX.writeFile(wb, `${nome}_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+</script>
+
+<!-- ═══════════ OVERLAY SISTEMA ORIGINAL ═══════════ -->
+<style>
+  #sistemaOriginalOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--bg-0);
+    flex-direction: column;
+  }
+  #sistemaOriginalOverlay.ativo { display: flex; }
+  #sistemaOriginalBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #sistemaOriginalBar .orig-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #sistemaOriginalBar button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  #sistemaOriginalBar button:hover { border-color: var(--gold); color: var(--gold); }
+  #sistemaOriginalFrame { flex: 1; border: none; width: 100%; }
+</style>
+
+<div id="sistemaOriginalOverlay">
+  <div id="sistemaOriginalBar">
+    <span class="orig-title"><i data-lucide="package"></i> Sistema Original — RDY DOC CONTROL</span>
+    <button onclick="fecharSistemaOriginal()">
+      <i data-lucide="arrow-left"></i> Voltar ao Admin
+    </button>
+  </div>
+  <iframe id="sistemaOriginalFrame" src="" title="Sistema Original"></iframe>
+</div>
+
+<script>
+function abrirSistemaOriginal() {
+  const overlay = document.getElementById('sistemaOriginalOverlay');
+  const frame   = document.getElementById('sistemaOriginalFrame');
+  if (!frame.src || frame.src === window.location.href) {
+    frame.src = 'index.html';
+  }
+  overlay.classList.add('ativo');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+function fecharSistemaOriginal() {
+  document.getElementById('sistemaOriginalOverlay').classList.remove('ativo');
+}
+// ════════════════════════════════════════════════════════
+// GOVERNANÇA (USUÁRIOS)
+// ════════════════════════════════════════════════════════
+async function carregarGovernanca() {
+  if (adminState.role !== 'cto') return; // Bloqueio de segurança front-end
+  
+  const tbody = document.getElementById('govTbody');
+  try {
+    const users = await API.fetch('/balanceamento_usuarios?order=username.asc');
+    tbody.innerHTML = users.length === 0
+      ? '<tr><td colspan="5" class="text-center">Nenhum usuário encontrado.</td></tr>'
+      : users.map(u => `
+          <tr>
+            <td><strong>${esc(u.username)}</strong></td>
+            <td>${esc(u.label)}</td>
+            <td><span class="status-badge ${u.role === 'cto' ? 'status-confirmado' : 'status-pendente'}">${esc(u.role)}</span></td>
+            <td>${esc(u.cidade || 'Todas')}</td>
+            <td class="text-center">
+              <button class="btn-outline" onclick="abrirModalUsuario('${esc(u.username)}')" title="Editar" style="padding:4px 8px"><i data-lucide="edit"></i></button>
+              <button class="btn-outline" onclick="excluirUsuario('${esc(u.username)}')" title="Excluir" style="padding:4px 8px; color:var(--danger); border-color:var(--danger)"><i data-lucide="trash-2"></i></button>
+            </td>
+          </tr>
+        `).join('');
+    safeCreateIcons();
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dim">Erro ao carregar usuários.</td></tr>';
+  }
+  // Carrega cidades para o select do modal
+  try {
+    const clientes = await API.fetch('/clientes?select=cidade');
+    const cidadesSet = new Set();
+    clientes.forEach(c => {
+      if (c.cidade) cidadesSet.add(c.cidade.trim().toUpperCase());
+    });
+    const selectEl = document.getElementById('govCidade');
+    if (selectEl) {
+      const selectedValue = selectEl.value; // Preserva a seleção se houver
+      selectEl.innerHTML = '<option value="">Todas (Vazio)</option>' + 
+        Array.from(cidadesSet).sort().map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+      if (selectedValue) selectEl.value = selectedValue;
+    }
+  } catch(e) {
+    console.error('Erro ao carregar cidades pro select', e);
+  }
+}
+
+let userEmEdicao = null;
+
+async function abrirModalUsuario(username = null) {
+  document.getElementById('formUsuario').reset();
+  const modal = document.getElementById('modalUsuario');
+  
+  if (username) {
+    userEmEdicao = username;
+    document.getElementById('modalUserTitle').innerText = 'Editar Usuário';
+    document.getElementById('govUsername').readOnly = true;
+    try {
+      const u = await API.fetch(`/balanceamento_usuarios?username=eq.${username}`);
+      if (u && u.length > 0) {
+        document.getElementById('govUsername').value = u[0].username;
+        document.getElementById('govLabel').value = u[0].label;
+        document.getElementById('govRole').value = u[0].role;
+        document.getElementById('govCidade').value = u[0].cidade || '';
+        document.getElementById('govPassword').required = false; // Não obrigatório na edição
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  } else {
+    userEmEdicao = null;
+    document.getElementById('modalUserTitle').innerText = 'Novo Usuário';
+    document.getElementById('govUsername').readOnly = false;
+    document.getElementById('govPassword').required = true;
+  }
+  modal.classList.remove('hidden');
+}
+
+function fecharModalUsuario() {
+  document.getElementById('modalUsuario').classList.add('hidden');
+}
+
+async function salvarUsuario() {
+  const username = document.getElementById('govUsername').value.trim().toLowerCase();
+  const password = document.getElementById('govPassword').value;
+  const label = document.getElementById('govLabel').value.trim();
+  const role = document.getElementById('govRole').value;
+  const cidade = document.getElementById('govCidade').value.trim().toUpperCase();
+
+  if (!username || !label || !role) {
+    alert('Preencha todos os campos obrigatórios.');
+    return;
+  }
+
+  try {
+    if (userEmEdicao) {
+      // PATCH — não inclui username para não tentar atualizar a PK
+      const patchPayload = { label, role, cidade: cidade === '' ? null : cidade };
+      if (password) patchPayload.password = password;
+      await API.fetch(`/balanceamento_usuarios?username=eq.${userEmEdicao}`, {
+        method: 'PATCH',
+        body: JSON.stringify(patchPayload)
+      });
+    } else {
+      // INSERT — username obrigatório e único
+      if (!password) { alert('Senha obrigatória para novo usuário.'); return; }
+      const insertPayload = { username, label, role, cidade: cidade === '' ? null : cidade, password };
+      await API.fetch(`/balanceamento_usuarios`, {
+        method: 'POST',
+        body: JSON.stringify(insertPayload)
+      });
+    }
+    fecharModalUsuario();
+    carregarGovernanca();
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao salvar usuário. Verifique se o login já existe.');
+  }
+}
+
+async function excluirUsuario(username) {
+  if (!confirm(`Tem certeza que deseja excluir o usuário "${username}"?`)) return;
+  if (username === adminState.user) {
+    alert("Você não pode excluir a si mesmo!");
+    return;
+  }
+  
+  try {
+    await API.fetch(`/balanceamento_usuarios?username=eq.${username}`, { method: 'DELETE' });
+    carregarGovernanca();
+  } catch(err) {
+    console.error(err);
+    alert('Erro ao excluir usuário.');
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// BANCO DE DADOS (IMPORTAÇÃO E LIMPEZA)
+// ════════════════════════════════════════════════════════
+function updateImportInstrucoes() {
+  const type = document.getElementById('dbImportType').value;
+  const colsEl = document.getElementById('dbImportCols');
+  if (type === 'clientes') {
+    colsEl.innerText = "NOME, CIDADE";
+  } else {
+    colsEl.innerText = "SERIE, PATRIMONIO, MODELO, SECRETARIA, MEDIA_REFERENCIA, CLIENTE_NOME, CIDADE";
+  }
+}
+
+async function processarImportacao() {
+  const fileIn = document.getElementById('dbImportFile');
+  if (!fileIn.files || fileIn.files.length === 0) return alert('Selecione um arquivo primeiro.');
+  
+  const type = document.getElementById('dbImportType').value;
+  const logEl = document.getElementById('dbImportLog');
+  const btn = document.getElementById('btnProcessarImportacao');
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Processando...';
+  logEl.innerHTML = '<span style="color:var(--gold)">Lendo arquivo...</span>';
+  safeCreateIcons();
+  
+  const file = fileIn.files[0];
+  const reader = new FileReader();
+  
+  reader.onload = async function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type: 'array'});
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rawJson = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      
+      if (rawJson.length < 2) throw new Error("A planilha está vazia ou não tem cabeçalho.");
+      
+      const headers = rawJson[0].map(h => String(h).toUpperCase().trim());
+      const expectedHeaders = type === 'clientes' 
+        ? ['NOME', 'CIDADE'] 
+        : ['SERIE', 'PATRIMONIO', 'MODELO', 'SECRETARIA', 'MEDIA_REFERENCIA', 'CLIENTE_NOME', 'CIDADE'];
+        
+      for (const req of expectedHeaders) {
+        if (!headers.includes(req)) {
+          throw new Error(`Coluna obrigatória ausente: ${req}`);
+        }
+      }
+      
+      const rows = [];
+      for (let i = 1; i < rawJson.length; i++) {
+        const rowArr = rawJson[i];
+        if (rowArr.join('').trim() === '') continue;
+        let obj = {};
+        headers.forEach((h, idx) => { obj[h] = rowArr[idx]; });
+        rows.push(obj);
+      }
+      
+      logEl.innerHTML = `<span style="color:var(--gold)">Validado! Iniciando importação de ${rows.length} registros...</span>`;
+      
+      if (type === 'clientes') {
+        await importarClientes(rows, logEl);
+      } else {
+        await importarEquipamentos(rows, logEl);
+      }
+      
+    } catch(err) {
+      logEl.innerHTML = `<span style="color:var(--danger)"><i data-lucide="alert-circle"></i> Erro: ${err.message}</span>`;
+      safeCreateIcons();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="play"></i> Iniciar Importação';
+      safeCreateIcons();
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function importarClientes(rows, logEl) {
+  let sucesso = 0; let erro = 0;
+  for (const r of rows) {
+    if (!r.NOME || !r.CIDADE) continue;
+    try {
+      await API.fetch('/clientes', {
+        method: 'POST',
+        body: JSON.stringify({
+          nome: String(r.NOME).trim().toUpperCase(),
+          cidade: String(r.CIDADE).trim().toUpperCase()
+        })
+      });
+      sucesso++;
+    } catch(e) { erro++; }
+  }
+  logEl.innerHTML = `<span style="color:var(--success)">Concluído: ${sucesso} clientes inseridos. ${erro > 0 ? `(${erro} falharam)` : ''}</span>`;
+}
+
+async function importarEquipamentos(rows, logEl) {
+  let sucesso = 0; let erro = 0;
+  
+  let clientesMap = {};
+  try {
+    const todosClientes = await API.fetch('/clientes?select=id,nome,cidade');
+    for (const c of todosClientes) {
+      const key = `${c.nome}_${c.cidade}`.toUpperCase();
+      clientesMap[key] = c.id;
+    }
+  } catch(e) { throw new Error("Falha ao carregar lista de clientes do banco."); }
+  
+  for (let i=0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r.SERIE) continue;
+    
+    try {
+      const cNome = String(r.CLIENTE_NOME || 'NÃO INFORMADO').trim().toUpperCase();
+      const cCidade = String(r.CIDADE || 'DESCONHECIDA').trim().toUpperCase();
+      const cKey = `${cNome}_${cCidade}`;
+      let clienteId = clientesMap[cKey];
+      
+      if (!clienteId) {
+        logEl.innerHTML = `<span style="color:var(--gold)">Criando novo cliente: ${cNome}...</span>`;
+        const newC = await API.fetch('/clientes', {
+          method: 'POST',
+          body: JSON.stringify({ nome: cNome, cidade: cCidade })
+        });
+        clienteId = newC[0].id;
+        clientesMap[cKey] = clienteId;
+      }
+      
+      const payload = {
+        serie: String(r.SERIE).trim().toUpperCase(),
+        patrimonio: r.PATRIMONIO ? String(r.PATRIMONIO).trim() : null,
+        modelo: r.MODELO ? String(r.MODELO).trim().toUpperCase() : null,
+        secretaria: r.SECRETARIA ? String(r.SECRETARIA).trim().toUpperCase() : null,
+        media_referencia: r.MEDIA_REFERENCIA ? parseFloat(r.MEDIA_REFERENCIA) || 0 : 0,
+        cliente_id: clienteId
+      };
+      
+      await API.fetch('/equipamentos', { method: 'POST', body: JSON.stringify(payload) });
+      sucesso++;
+      if (i % 10 === 0) logEl.innerHTML = `<span style="color:var(--gold)">Importando... ${sucesso} / ${rows.length}</span>`;
+      
+    } catch(e) { erro++; }
+  }
+  
+  logEl.innerHTML = `<span style="color:var(--success)">Concluído: ${sucesso} equipamentos inseridos. ${erro > 0 ? `(${erro} falharam)` : ''}</span>`;
+}
+
+let tipoLimpezaPendente = null;
+
+function solicitarLimpeza(tipo) {
+  tipoLimpezaPendente = tipo;
+  const modal = document.getElementById('modalDbAuth');
+  let palavra = '';
+  
+  if (tipo === 'completo') {
+    palavra = 'RESETAR TUDO';
+    document.getElementById('dbAuthDesc').innerHTML = "Isto vai deletar <strong>TODOS</strong> os Equipamentos, Clientes e Histórico de Entregas do sistema.<br>Os logins de usuários serão mantidos.";
+  } else if (tipo === 'entregas_3m') {
+    palavra = 'APAGAR ANTIGOS';
+    document.getElementById('dbAuthDesc').innerHTML = "Isto vai deletar o Histórico de Entregas <strong>mais antigo que 3 meses</strong>.";
+  } else {
+    palavra = 'APAGAR HISTORICO';
+    document.getElementById('dbAuthDesc').innerHTML = "Isto vai deletar <strong>TODO</strong> o Histórico de Entregas e Análises.";
+  }
+  
+  document.getElementById('dbAuthPalavra').innerText = palavra;
+  document.getElementById('dbAuthConfirm').value = '';
+  document.getElementById('dbAuthPass').value = '';
+  modal.classList.remove('hidden');
+}
+
+function fecharModalDbAuth() {
+  document.getElementById('modalDbAuth').classList.add('hidden');
+  tipoLimpezaPendente = null;
+}
+
+async function confirmarDbAuth() {
+  const senhaFornecida = document.getElementById('dbAuthPass').value;
+  const palavraFornecida = document.getElementById('dbAuthConfirm').value.trim().toUpperCase();
+  const palavraEsperada = document.getElementById('dbAuthPalavra').innerText;
+  
+  if (palavraFornecida !== palavraEsperada) {
+    return alert('A frase de segurança não confere. Digite exatamente como solicitado.');
+  }
+  
+  try {
+    const usr = await API.fetch(`/balanceamento_usuarios?username=eq.${adminState.user}&select=password`);
+    if (!usr || !usr[0] || usr[0].password !== senhaFornecida) {
+      return alert('Senha de Administrador incorreta.');
+    }
+  } catch(e) {
+    return alert('Erro ao validar senha no servidor.');
+  }
+  
+  fecharModalDbAuth();
+  
+  const btnAtivo = document.querySelector('.tab-btn.active');
+  const isBancoView = btnAtivo && btnAtivo.dataset.tab === 'bancodados';
+  const logEl = document.getElementById('dbImportLog');
+  
+  if(isBancoView) {
+      logEl.innerHTML = `<span style="color:var(--danger)"><i data-lucide="loader" class="spin"></i> Apagando dados...</span>`;
+      safeCreateIcons();
+  } else {
+      document.body.style.cursor = 'wait';
+  }
+  
+  try {
+    if (tipoLimpezaPendente === 'entregas_3m') {
+      const dataCorte = new Date();
+      dataCorte.setMonth(dataCorte.getMonth() - 3);
+      const isoData = dataCorte.toISOString();
+      await API.fetch(`/balanceamento_entregas?data_registro=lt.${isoData}`, { method: 'DELETE' });
+    } else {
+      await API.fetch('/balanceamento_entregas?id=not.is.null', { method: 'DELETE' });
+      
+      if (tipoLimpezaPendente === 'completo') {
+        await API.fetch('/equipamentos?id=not.is.null', { method: 'DELETE' });
+        await API.fetch('/clientes?id=not.is.null', { method: 'DELETE' });
+      }
+    }
+    
+    if(isBancoView) {
+        logEl.innerHTML = `<span style="color:var(--success)"><i data-lucide="check-circle"></i> Dados apagados com sucesso!</span>`;
+        safeCreateIcons();
+    }
+    setTimeout(() => {
+        alert("Operação concluída com sucesso.");
+        location.reload();
+    }, 1000);
+    
+  } catch(e) {
+    console.error(e);
+    if(isBancoView) {
+        logEl.innerHTML = `<span style="color:var(--danger)"><i data-lucide="alert-circle"></i> Erro ao apagar banco.</span>`;
+        safeCreateIcons();
+    } else {
+        alert('Erro ao apagar o banco de dados!');
+        document.body.style.cursor = 'default';
+    }
+  }
+}
+
+</script>
+</body>
+</html>

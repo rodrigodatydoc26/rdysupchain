@@ -2,16 +2,74 @@
 <html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const msg = message + '\nAt: ' + source + ':' + lineno + ':' + colno + '\nStack: ' + (error ? error.stack : '');
+      alert('ERRO DE EXECUÇÃO JS:\n' + msg);
+      console.error(msg);
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+      const msg = 'Unhandled Rejection: ' + (event.reason ? (event.reason.message || event.reason) : 'Unknown reason') + '\nStack: ' + (event.reason ? event.reason.stack : '');
+      alert('REJEIÇÃO DE PROMISE JS:\n' + msg);
+      console.error(event.reason);
+    });
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY - DOC CONTROL · Balanceamento</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260616">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RDY Control">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    #appContainer { display: none; }
+  </style>
 </head>
 <body>
-  
-  <div class="app-container">
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <i data-lucide="package"></i>
+          <span>RDY <strong>DOC CONTROL</strong></span>
+        </div>
+        <h2>Acesso Restrito</h2>
+        <p>Entrega de Insumos</p>
+      </div>
+      <form id="loginForm" onsubmit="event.preventDefault(); doLogin()">
+        <div class="lform-group">
+          <label>Usuário</label>
+          <div class="linput-icon">
+            <i data-lucide="user"></i>
+            <input type="text" id="loginUser" placeholder="Digite seu usuário" autocomplete="username" required>
+          </div>
+        </div>
+        <div class="lform-group">
+          <label>Senha</label>
+          <div class="linput-icon">
+            <i data-lucide="lock"></i>
+            <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="btn-eye" onclick="toggleLoginPass()" title="Mostrar senha">
+              <i data-lucide="eye" id="loginEyeIcon"></i>
+            </button>
+          </div>
+        </div>
+        <div id="loginError" class="login-error hidden">Usuário ou senha incorretos.</div>
+        <button type="submit" class="btn-login-submit">
+          ENTRAR <i data-lucide="log-in"></i>
+        </button>
+      </form>
+      <p class="login-footer">DOCCTO@2026</p>
+    </div>
+  </div>
+
+  <div class="app-container" id="appContainer">
     <header class="topbar">
       <div class="logo">
         <i data-lucide="package"></i>
@@ -27,12 +85,21 @@
         <button id="themeToggle" class="btn-theme-circle" title="Alternar Tema">
           <i data-lucide="moon"></i>
         </button>
+        <button id="btnSync" class="sync-indicator" onclick="sincronizarDados()" title="Baixar dados para uso offline">
+          <span id="syncLabel" class="sync-label">-</span>
+          <i data-lucide="download-cloud"></i>
+        </button>
+        <button id="userBadge" class="user-badge hidden" onclick="doLogout()" title="Sair do sistema">
+          <i data-lucide="user-circle-2"></i>
+          <span id="userLabel"></span>
+          <i data-lucide="log-out" class="btn-logout-icon"></i>
+        </button>
       </div>
     </header>
 
     <main class="main-content">
       <nav class="nav-tabs">
-      <button class="tab-btn active" data-tab="balancear"><i data-lucide="scale"></i> Balancear</button>
+      <button class="tab-btn active" data-tab="balancear"><i data-lucide="scale"></i> Realizar Entrega</button>
       <button class="tab-btn" data-tab="historico"><i data-lucide="history"></i> Histórico</button>
       <button class="tab-btn" data-tab="cadastrar"><i data-lucide="plus-circle"></i> Cadastrar</button>
       <button class="tab-btn" data-tab="consultar"><i data-lucide="search-code"></i> Consultar</button>
@@ -42,7 +109,9 @@
       <!-- TAB BALANCEAR -->
       <section id="tab-balancear" class="tab-content active">
         
-        <div class="search-card">
+
+
+              <div class="search-card">
           <h2><i data-lucide="search"></i> Buscar equipamento</h2>
           <div class="search-input-wrapper">
             <div class="autocomplete-container">
@@ -80,6 +149,9 @@
                   <p class="sub-txt">Baseado no delta de contadores e histórico</p>
                 </div>
               </div>
+              <button class="btn-text btn-ver-historico" onclick="verTodoHistorico()" title="Ver histórico completo deste equipamento">
+                <i data-lucide="history"></i> VER HISTÓRICO
+              </button>
               <div class="capacity-tag">
                 <i data-lucide="info"></i> 1 resma = 500 páginas
               </div>
@@ -103,36 +175,150 @@
                 </div>
               </div>
             </div>
+            
+            <!-- Barra de Consumo do Mês -->
+            <div class="consumo-mes-container">
+              <div class="consumo-mes-header">
+                <span>Total Entregue no Mês: <strong id="resTotalMes">0</strong></span>
+                <span id="resConsumoStatus" class="status-normal">Normal</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div id="consumoProgressBar" class="progress-bar-fill"></div>
+              </div>
+              <p id="consumoAvisoTexto" class="consumo-aviso hidden"></p>
+            </div>
           </div>
 
-          <div class="last-deliveries-card hidden" id="lastDeliveriesCard">
-            <div class="last-deliveries-header">
-              <h4><i data-lucide="history"></i> Últimas 3 Entregas</h4>
-              <button class="btn-text" onclick="verTodoHistorico()" title="Ver histórico completo deste equipamento">
-                <i data-lucide="list"></i> VER TODO O HISTÓRICO
+          <!-- ANÁLISE REAL - Botão -->
+          <div id="analiseImediataBtn" class="hidden">
+            <button class="btn-analise-imediata" onclick="abrirAnaliseImediata()">
+              <i data-lucide="zap"></i> Seguir com Análise Real
+            </button>
+          </div>
+
+          <!-- ANÁLISE REAL - Passo 1: Abertura -->
+          <div id="analiseAbertaCard" class="analise-card hidden">
+            <div class="analise-header">
+              <i data-lucide="zap"></i>
+              <div>
+                <h4>Análise Real</h4>
+                <p class="sub-txt">Registre o numerador e as resmas adicionadas</p>
+              </div>
+              <button class="btn-close-analise" onclick="fecharCardAnalise()" title="Fechar">
+                <i data-lucide="x"></i>
               </button>
             </div>
-            <div class="mini-table-wrapper">
-              <table class="mini-table">
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Qtd</th>
-                    <th>O.S.</th>
-                  </tr>
-                </thead>
-                <tbody id="lastDeliveriesTbody">
-                  <!-- Populado via JS -->
-                </tbody>
-              </table>
+            <div class="analise-body">
+              <div class="analise-info-row">
+                <span class="analise-label">Série:</span>
+                <strong id="analiseSerie">---</strong>
+              </div>
+              <div class="analise-info-row">
+                <span class="analise-label">Numerador Atual:</span>
+                <input type="number" id="analiseNumeradorAtual" class="analise-counter-input" placeholder="0" required oninput="analiseNumeradorChanged(); syncContador('analiseNumeradorAtual')" title="Numerador atual">
+              </div>
+
+              <!-- CARD DE SUGESTÃO DINÂMICO -->
+              <div id="analiseSugestaoCard" class="analise-sug-card analise-sug-neutral">
+                <div class="analise-sug-valor">
+                  <span id="analiseSugValor">0</span>
+                  <span class="analise-sug-unit">Resmas</span>
+                </div>
+                <div class="analise-sug-info">
+                  <h5 id="analiseSugTitulo">AGUARDANDO LEITURA</h5>
+                  <p id="analiseSugSubtitulo">Insira o numerador atual para o cálculo.</p>
+                </div>
+                <button id="btnAplicarSugestao" class="btn-aplicar-sug hidden" onclick="analiseAplicarSugestao()" title="Aplicar sugestão">
+                  <i data-lucide="arrow-up"></i>
+                </button>
+              </div>
+
+              <div class="analise-divider"></div>
+              <div class="analise-input-row">
+                <span class="analise-label">Resmas a Entregar:</span>
+                <div class="analise-qty-control">
+                  <button class="qty-btn" onclick="analiseAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button>
+                  <input type="number" id="analiseResmas" class="qty-input" value="1" min="1" oninput="analiseCalcularLimite()" title="Resmas">
+                  <button class="qty-btn" onclick="analiseAlterarResmas(1)" title="Aumentar"><i data-lucide="plus"></i></button>
+                </div>
+              </div>
+              <div class="analise-resultado">
+                <span>Próximo limite esperado:</span>
+                <strong id="analiseLimite" class="gold-text">---</strong>
+                <span class="analise-unit">páginas</span>
+              </div>
+              <input type="text" id="analiseOs" class="analise-os-input" placeholder="Nº O.S. (Obrigatório)" required>
+              <button class="btn-iniciar-analise" onclick="salvarAnaliseAberta()">
+                <i data-lucide="check-circle"></i> CONFIRMAR A ENTREGA
+              </button>
             </div>
           </div>
 
+          <!-- ANÁLISE REAL - Passo 2: Fechamento -->
+          <div id="analiseFecharCard" class="analise-card analise-fechar-card hidden">
+            <div class="analise-header analise-fechar-header">
+              <i data-lucide="activity"></i>
+              <div>
+                <h4>Fechar Análise Real</h4>
+                <p class="sub-txt">Informe o numerador atual para calcular o saldo</p>
+              </div>
+            </div>
+            <div class="analise-body">
+              <div class="analise-info-row">
+                <span class="analise-label">Série:</span>
+                <strong id="fecharSerie">---</strong>
+              </div>
+              <div class="analise-info-row">
+                <span class="analise-label">Numerador Anterior:</span>
+                <strong id="fecharNumeradorBase" class="gold-text">---</strong>
+              </div>
+              <div class="analise-info-row">
+                <span class="analise-label">Última Entrega:</span>
+                <strong id="fecharResmasAdicionadas">---</strong>
+              </div>
+              <div class="analise-info-row highlight-row">
+                <span class="analise-label">Limite Calculado:</span>
+                <strong id="fecharLimiteCalculado" class="gold-text">---</strong>
+              </div>
+              <div class="analise-divider"></div>
+              <div class="analise-input-row">
+                <span class="analise-label">Novo Numerador Atual:</span>
+                <input type="number" id="fecharNumeradorNovo" class="analise-counter-input" placeholder="0" oninput="fecharCalcularSaldo()" title="Contador atual">
+              </div>
+              <div class="analise-input-row">
+                <span class="analise-label">Resmas Entrega Atual:</span>
+                <div class="analise-qty-control">
+                  <button type="button" class="qty-btn" onclick="fecharAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button>
+                  <input type="number" id="fecharResmasInput" class="qty-input" value="1" min="1" title="Resmas">
+                  <button type="button" class="qty-btn" onclick="fecharAlterarResmas(1)" title="Aumentar"><i data-lucide="plus"></i></button>
+                </div>
+              </div>
+              <div id="saldoBox" class="saldo-box hidden">
+                <span class="saldo-label" id="fecharSaldoLabel">Resmas para entregar:</span>
+                <div class="saldo-valores">
+                  <strong id="fecharSaldo" class="saldo-value">---</strong>
+                  <span id="fecharSaldoDesc" class="saldo-desc"></span>
+                </div>
+                <span id="fecharSaldoResmas" class="saldo-resmas"></span>
+              </div>
+              <button class="btn-confirmar-analise" onclick="confirmarFechamentoAnalise()">
+                <i data-lucide="check-circle"></i> CONFIRMAR ENTREGA
+              </button>
+            </div>
+          </div>
 
           <div class="options-section">
             <h4><i data-lucide="box"></i> OPÇÕES DE ENTREGA</h4>
             <div class="options-grid">
               
+              <div class="option-card" data-opcao="rec" onclick="selecionarOpcao('rec')">
+                <div class="opt-header opt-header-recomendado">Recomendado</div>
+                <div class="opt-body">
+                  <span class="qtd" id="optRecQtd">0</span> resmas
+                </div>
+                <div class="opt-footer">consumo real</div>
+              </div>
+
               <div class="option-card" data-opcao="1" onclick="selecionarOpcao(1)">
                 <div class="opt-header">1x por mês</div>
                 <div class="opt-body">
@@ -186,7 +372,7 @@
                 <div class="summary-line">
                   <span>Contador Atual:</span>
                   <div class="edit-qtd">
-                    <input type="number" id="inputContador" placeholder="0" title="Inserir contador atual" oninput="atualizarProximaSolicitacao()">
+                    <input type="number" id="inputContador" placeholder="0" title="Inserir contador atual" required oninput="atualizarProximaSolicitacao(); syncContador('inputContador')">
                     <button class="btn-calc" onclick="recalcularComContador()" title="Recalcular média com este contador">
                       <i data-lucide="refresh-cw"></i>
                     </button>
@@ -211,7 +397,7 @@
 
               <div class="summary-line form-line hidden" id="formLineOs">
                 <span>Nº O.S.:</span>
-                <input type="text" id="inputOs" placeholder="(Opcional)" title="Número da O.S.">
+                <input type="text" id="inputOs" placeholder="(Obrigatório)" title="Número da O.S." required>
               </div>
               <div class="summary-line form-line hidden" id="formLineObs">
                 <span>Observação:</span>
@@ -361,10 +547,10 @@
 
         <div class="quick-filters">
           <span class="quick-filters-label"><i data-lucide="zap"></i> Filtros Rápidos:</span>
-          <button class="filter-chip" onclick="aplicarFiltroRapido('LIMEIRA')">
+          <button class="filter-chip" id="chip-limeira" onclick="aplicarFiltroRapido('LIMEIRA')">
             <i data-lucide="map-pin"></i> LIMEIRA
           </button>
-          <button class="filter-chip" onclick="aplicarFiltroRapido('INDAIATUBA')">
+          <button class="filter-chip" id="chip-indaiatuba" onclick="aplicarFiltroRapido('INDAIATUBA')">
             <i data-lucide="map-pin"></i> INDAIATUBA
           </button>
           <button class="filter-chip" onclick="aplicarFiltroRapido('')" title="Limpar Filtros">
@@ -476,6 +662,9 @@
 
     </main>
 
+  </div><!-- /appContainer -->
+
+
     <!-- MODAL EDIÇÃO -->
     <div id="modalEdicao" class="modal-overlay hidden">
       <div class="modal-content">
@@ -561,7 +750,75 @@
       </div>
     </div>
 
-    <script src="js/app.js"></script>
-  <script>lucide.createIcons();</script>
+  <!-- Banner Offline -->
+  <div id="offlineBanner" class="offline-banner hidden">
+    <i data-lucide="wifi-off"></i>
+    <span id="offlineMsg">Modo offline - exibindo dados em cache</span>
+    <button onclick="document.getElementById('offlineBanner').classList.add('hidden')" class="btn-banner-close" title="Fechar"><i data-lucide="x"></i></button>
+  </div>
+
+  <!-- Sync banner -->
+  <div id="syncBanner" class="sync-banner hidden">
+    <i data-lucide="refresh-cw" class="spin"></i>
+    <span>Sincronizando dados...</span>
+  </div>
+
+  <script>
+  // Registro do Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      console.log('SW registrado', reg.scope);
+    }).catch(err => console.log('SW erro', err));
+
+    // Receber mensagem do SW (sync bem-sucedido)
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data && e.data.type === 'SYNC_OK') {
+        localStorage.setItem('lastSync', e.data.time);
+        document.getElementById('syncBanner').classList.add('hidden');
+      }
+    });
+  }
+
+  // Detectar online/offline
+  function updateOnlineStatus() {
+    const banner = document.getElementById('offlineBanner');
+    if (!navigator.onLine) {
+      banner.classList.remove('hidden');
+      const last = localStorage.getItem('lastSync');
+      if (last) {
+        const h = Math.round((Date.now() - Number(last)) / 3600000);
+        document.getElementById('offlineMsg').textContent = 
+          'Modo offline - dados de ' + (h < 1 ? 'menos de 1h' : h + 'h') + ' atras';
+      }
+    } else {
+      banner.classList.add('hidden');
+      if (window.currentUser && typeof verificarAutoSync === 'function') {
+        verificarAutoSync();
+      }
+    }
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+
+  // Verificar se dados sao recentes (8h)
+  function verificarSync() {
+    const last = Number(localStorage.getItem('lastSync') || 0);
+    const oitoHoras = 8 * 60 * 60 * 1000;
+    if (Date.now() - last > oitoHoras && navigator.onLine) {
+      document.getElementById('syncBanner').classList.remove('hidden');
+      setTimeout(() => document.getElementById('syncBanner').classList.add('hidden'), 5000);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', verificarSync);
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="js/app.js?v=20260616"></script>
+  <script>
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch (e) {}
+    }
+  </script>
 </body>
 </html>

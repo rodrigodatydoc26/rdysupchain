@@ -1,23 +1,21 @@
 -- =============================================================
--- RDY DOC CONTROL — Esquema Completo do Banco de Dados
--- Execute no SQL Editor do Supabase Dashboard
+-- RDY DOC CONTROL — 001_schema.sql
+-- Cria todas as tabelas e a view de relatório
 -- =============================================================
 
--- ── EXTENSÕES ────────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- ── TABELA: clientes ─────────────────────────────────────────
+-- ── clientes ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS clientes (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nome       TEXT NOT NULL,
   cidade     TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
 CREATE INDEX IF NOT EXISTS idx_clientes_nome   ON clientes (nome);
 CREATE INDEX IF NOT EXISTS idx_clientes_cidade ON clientes (cidade);
 
--- ── TABELA: equipamentos ─────────────────────────────────────
+-- ── equipamentos ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS equipamentos (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cliente_id           UUID REFERENCES clientes(id) ON DELETE SET NULL,
@@ -30,11 +28,10 @@ CREATE TABLE IF NOT EXISTS equipamentos (
   data_ultimo_contador TIMESTAMPTZ,
   created_at           TIMESTAMPTZ DEFAULT NOW()
 );
-
 CREATE INDEX IF NOT EXISTS idx_equipamentos_cliente ON equipamentos (cliente_id);
 CREATE INDEX IF NOT EXISTS idx_equipamentos_serie   ON equipamentos (serie);
 
--- ── TABELA: balanceamento_entregas ───────────────────────────
+-- ── balanceamento_entregas ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS balanceamento_entregas (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   equipamento_id       UUID REFERENCES equipamentos(id) ON DELETE CASCADE,
@@ -49,13 +46,12 @@ CREATE TABLE IF NOT EXISTS balanceamento_entregas (
   criado_por           TEXT DEFAULT 'Portal',
   data_registro        TIMESTAMPTZ DEFAULT NOW()
 );
-
 CREATE INDEX IF NOT EXISTS idx_entregas_equipamento ON balanceamento_entregas (equipamento_id);
 CREATE INDEX IF NOT EXISTS idx_entregas_status      ON balanceamento_entregas (status);
 CREATE INDEX IF NOT EXISTS idx_entregas_data        ON balanceamento_entregas (data_registro DESC);
 CREATE INDEX IF NOT EXISTS idx_entregas_cliente     ON balanceamento_entregas (cliente_id);
 
--- ── TABELA: ordens_servico ───────────────────────────────────
+-- ── ordens_servico ───────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ordens_servico (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   equipamento_id UUID REFERENCES equipamentos(id) ON DELETE CASCADE,
@@ -64,64 +60,32 @@ CREATE TABLE IF NOT EXISTS ordens_servico (
   contador_atual BIGINT,
   data_os        TIMESTAMPTZ DEFAULT NOW()
 );
-
 CREATE INDEX IF NOT EXISTS idx_os_equipamento ON ordens_servico (equipamento_id);
 CREATE INDEX IF NOT EXISTS idx_os_data        ON ordens_servico (data_os DESC);
 
--- ── TABELA: balanceamento_usuarios ───────────────────────────
+-- ── balanceamento_usuarios ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS balanceamento_usuarios (
   username TEXT PRIMARY KEY,
   password TEXT NOT NULL,
   label    TEXT NOT NULL,
   role     TEXT NOT NULL CHECK (role IN ('cto', 'gestor', 'tecnico')),
-  cidade   TEXT  -- NULL = acesso a todas as cidades
+  cidade   TEXT
 );
 
--- ── VIEW: view_top_equipamentos ──────────────────────────────
--- Usada no relatório de ranking de equipamentos (tab Relatórios)
+-- ── VIEW: ranking de equipamentos ────────────────────────────
 CREATE OR REPLACE VIEW view_top_equipamentos AS
 SELECT
   e.id,
   e.serie,
   e.secretaria,
-  c.nome                                      AS cliente_nome,
+  c.nome                                     AS cliente_nome,
   c.cidade,
-  COUNT(be.id)                                AS total_chamados,
-  COALESCE(SUM(be.quantidade_definida), 0)    AS total_resmas,
-  COALESCE(AVG(be.media_consumo_mensal), 0)   AS media_media
+  COUNT(be.id)                               AS total_chamados,
+  COALESCE(SUM(be.quantidade_definida), 0)   AS total_resmas,
+  COALESCE(AVG(be.media_consumo_mensal), 0)  AS media_media
 FROM equipamentos e
-LEFT JOIN clientes              c  ON c.id  = e.cliente_id
+LEFT JOIN clientes               c  ON c.id  = e.cliente_id
 LEFT JOIN balanceamento_entregas be ON be.equipamento_id = e.id
                                    AND be.status = 'confirmado'
 GROUP BY e.id, e.serie, e.secretaria, c.nome, c.cidade
 ORDER BY total_chamados DESC;
-
--- =============================================================
--- RLS (Row Level Security)
--- =============================================================
--- O app usa a chave ANON para todas as operações.
--- As tabelas abaixo precisam de acesso total para a role anon.
--- Execute apenas se RLS estiver habilitado no projeto.
-
-ALTER TABLE clientes               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE equipamentos           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE balanceamento_entregas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ordens_servico         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE balanceamento_usuarios ENABLE ROW LEVEL SECURITY;
-
--- Acesso total para anon nas tabelas operacionais
-CREATE POLICY "anon_all" ON clientes               FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all" ON equipamentos           FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all" ON balanceamento_entregas FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all" ON ordens_servico         FOR ALL TO anon USING (true) WITH CHECK (true);
-
--- Usuários: anon pode tudo (portal admin controla acesso por sessão)
-CREATE POLICY "anon_all" ON balanceamento_usuarios FOR ALL TO anon USING (true) WITH CHECK (true);
-
--- =============================================================
--- SEED — Usuário CTO inicial
--- Troque a senha antes de usar em produção!
--- =============================================================
-INSERT INTO balanceamento_usuarios (username, password, label, role, cidade)
-VALUES ('cto', 'SENHA_AQUI', 'Administrador', 'cto', NULL)
-ON CONFLICT (username) DO NOTHING;

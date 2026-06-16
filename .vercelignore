@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+
+# Desenvolvimento / ferramentas
+.claude/
+scratch/
+scripts/
+api/
+supabase/
+
+# Banco de dados
+banco de dados/
+SCHEMA.sql
+
+# Npm
+package.json
+package-lock.json
+
+# Misc
+*.log
+.env
+.env.local
+.DS_Store
