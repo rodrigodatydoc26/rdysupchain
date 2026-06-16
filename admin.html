@@ -1212,6 +1212,7 @@ async function carregarGovernanca() {
         selectCidade.value = currCity;
     }
 
+    carregarCidadesModal();
     renderizarGovernanca();
   } catch (err) {
     console.error(err);
@@ -1256,6 +1257,7 @@ function filtrarGovernanca() {
   renderizarGovernanca();
 }
 
+async function carregarCidadesModal() {
   // Carrega cidades para o select do modal
   try {
     const clientes = await API.fetch('/clientes?select=cidade');
