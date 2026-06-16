@@ -1026,7 +1026,7 @@ async function salvarAnaliseAberta() {
             status: 'analise_aberta',
             criado_por: 'Portal'
         });
-        alert(`Análise iniciada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
+        alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
         window.location.reload();
     } catch (e) {
         alert("Erro ao iniciar análise: " + e.message);
@@ -1435,18 +1435,22 @@ async function carregarHistorico() {
             </div>` : '-';
 
         tbody.innerHTML = data.map(i => {
-            const statusSafe = /^[a-z_]+$/.test(i.status || '') ? i.status : '';
-            
-            // Conversão segura de data
             const dateObj = i.data_registro ? new Date(i.data_registro) : null;
             const dateStr = (dateObj && !isNaN(dateObj.getTime())) ? dateObj.toLocaleDateString('pt-BR') : '-';
-            
-            // Conversão segura de média de consumo
             const mediaVal = parseFloat(i.media_consumo_mensal);
             const mediaStr = (i.media_consumo_mensal && !isNaN(mediaVal)) ? mediaVal.toFixed(1).replace('.', ',') : '-';
             
             return `
-            <tr>
+            <tr class="clickable-row" onclick="abrirModalVisualizar(this, event)"
+                data-data="${escAttr(dateStr)}"
+                data-cliente="${escAttr(i.cliente?.nome || 'N/D')}"
+                data-local="${escAttr(i.equipamento?.secretaria || 'N/D')}"
+                data-serie="${escAttr(i.equipamento?.serie || 'N/D')}"
+                data-media="${escAttr(mediaStr)}"
+                data-freq="${escAttr(i.opcao_entrega === 0 ? 'Manual' : (i.opcao_entrega ? i.opcao_entrega + 'x' : '-'))}"
+                data-resmas="${escAttr(i.quantidade_definida !== null && i.quantidade_definida !== undefined ? String(i.quantidade_definida) : '-')}"
+                data-os="${escAttr(i.numero_os || '-')}"
+                data-status="${escAttr(i.status)}">
                 <td data-label="Data">${esc(dateStr)}</td>
                 <td data-label="Cliente">${esc(i.cliente?.nome || 'N/D')}</td>
                 <td data-label="Local/Setor">${esc(i.equipamento?.secretaria || 'N/D')}</td>
@@ -1455,12 +1459,11 @@ async function carregarHistorico() {
                 <td data-label="Frequência">${esc(i.opcao_entrega === 0 ? 'Manual' : (i.opcao_entrega ? i.opcao_entrega + 'x' : '-'))}</td>
                 <td data-label="Resmas">${esc(i.quantidade_definida !== null && i.quantidade_definida !== undefined ? String(i.quantidade_definida) : '-')}</td>
                 <td data-label="O.S.">${esc(i.numero_os || '-')}</td>
-                <td data-label="Status"><span class="status-badge status-${statusSafe}">${esc(i.status)}</span></td>
+                <td data-label="Status">${formatarStatus(i.status)}</td>
                 <td data-label="Ações" class="text-center">
                     ${editDeleteBtns.replace(/{ID}/g, escAttr(i.id))}
                 </td>
-            </tr>
-            `;
+            </tr>`;
         }).join('');
 
         document.getElementById('totalResmas').innerText = totalP;
@@ -1650,6 +1653,58 @@ function initAdminTabs() {
         });
     });
 }
+
+function formatarStatus(s) {
+    if(!s) return '-';
+    s = s.toLowerCase();
+    const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-confirmado' };
+    const label = { confirmado:'Confirmado', pendente:'Pendente', entregue:'Entregue', analise_aberta:'Confirmada' };
+    return '<span class="status-badge ' + (cls[s]||'') + '">' + esc(label[s]||s).toUpperCase() + '</span>';
+}
+
+function abrirModalVisualizar(el, ev) {
+    if (ev && ev.target.closest('button')) return; // ignore clicks on action buttons
+    
+    const d = el.dataset;
+    let html = `
+        <div style="display:flex; flex-direction:column; gap:12px; font-size:1rem; color:var(--text);">
+            <p><strong>Data:</strong> <span style="float:right;">${d.data}</span></p>
+            <p><strong>Cliente:</strong> <span style="float:right;">${d.cliente}</span></p>
+            <p><strong>Local/Setor:</strong> <span style="float:right;">${d.local}</span></p>
+            <p><strong>Série/Patrimônio:</strong> <span style="float:right;">${d.serie}</span></p>
+            <p><strong>Média/Mês:</strong> <span style="float:right;">${d.media}</span></p>
+            <p><strong>Frequência:</strong> <span style="float:right;">${d.freq}</span></p>
+            <p><strong>Resmas:</strong> <span style="float:right;">${d.resmas}</span></p>
+            <p><strong>O.S.:</strong> <span style="float:right;">${d.os}</span></p>
+            <hr style="border:0; border-top:1px solid var(--border); margin:4px 0;">
+            <p><strong>Status:</strong> <span style="float:right;">${formatarStatus(d.status)}</span></p>
+        </div>
+    `;
+    
+    let m = document.getElementById('modalVisualizarInfo');
+    if (!m) {
+        m = document.createElement('div');
+        m.id = 'modalVisualizarInfo';
+        m.className = 'modal-overlay';
+        m.innerHTML = `
+            <div class="modal-content modal-content-sm">
+                <div class="modal-header">
+                    <h3><i data-lucide="info"></i> Detalhes da Entrega</h3>
+                    <button class="btn-close" onclick="document.getElementById('modalVisualizarInfo').classList.add('hidden')" title="Fechar">&times;</button>
+                </div>
+                <div class="modal-body" id="modalVisualizarBody"></div>
+                <div class="modal-footer" style="margin-top:20px; text-align:right;">
+                    <button type="button" class="btn-primary" onclick="document.getElementById('modalVisualizarInfo').classList.add('hidden')">FECHAR</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(m);
+        lucide.createIcons();
+    }
+    
+    document.getElementById('modalVisualizarBody').innerHTML = html;
+    m.classList.remove('hidden');
+};
 
 async function admInitData() {
     if (adminState.cidade) {

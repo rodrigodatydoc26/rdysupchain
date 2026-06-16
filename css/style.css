@@ -2076,8 +2076,8 @@ color: var(--gold);
 
   /* Filtros — remove min-width fixo que estoura a tela */
   .filter-row-premium { flex-direction: column; gap: 10px; }
-  .filter-input-group, .filter-select-group { width: 100%; min-width: 0; }
-  .search-input-group, .date-range-group, .select-inline-premium { min-width: 0; width: 100%; }
+  .filter-input-group, .filter-select-group { width: 100%; min-width: 0; height: 56px; }
+  .search-input-group, .date-range-group, .select-inline-premium { min-width: 0; width: 100%; height: 56px; }
   .btn-filter-premium { width: 100%; justify-content: center; margin-top: 4px; }
 
   /* Actions */
@@ -2168,6 +2168,11 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.1);
 }
+
+.clickable-row { cursor: pointer; transition: background 0.2s; }
+.clickable-row:hover { background: var(--bg-1); }
+.clickable-row:active { background: var(--bg-2); }
+
 .input-text:-webkit-autofill,
 .input-text:-webkit-autofill:hover, 
 .input-text:-webkit-autofill:focus {
