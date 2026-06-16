@@ -501,8 +501,11 @@
           <p class="db-import-instrucoes-desc">Atenção: A primeira linha (cabeçalho) deve conter exatamente estes nomes.</p>
         </div>
 
-        <div class="db-import-actions">
+        <div class="db-import-actions" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
           <input type="file" id="dbImportFile" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="input-text db-import-file">
+          <button class="btn-outline" onclick="baixarModeloImportacao()" title="Baixar planilha de exemplo">
+            <i data-lucide="download"></i> Baixar Modelo
+          </button>
           <button class="btn-primary" onclick="processarImportacao()" id="btnProcessarImportacao">
             <i data-lucide="play"></i> Iniciar Importação
           </button>
@@ -1304,6 +1307,29 @@ function updateImportInstrucoes() {
     colsEl.innerText = "SERIE, PATRIMONIO, MODELO, SECRETARIA, MEDIA_REFERENCIA, CLIENTE_NOME, CIDADE";
   }
 }
+
+function baixarModeloImportacao() {
+  const type = document.getElementById('dbImportType').value;
+  let headers = [];
+  let filename = '';
+  if (type === 'clientes') {
+    headers = [["NOME", "CIDADE"]];
+    filename = 'modelo_importacao_clientes.xlsx';
+  } else {
+    headers = [["SERIE", "PATRIMONIO", "MODELO", "SECRETARIA", "MEDIA_REFERENCIA", "CLIENTE_NOME", "CIDADE"]];
+    filename = 'modelo_importacao_equipamentos.xlsx';
+  }
+  
+  if (typeof XLSX !== 'undefined') {
+    const ws = XLSX.utils.aoa_to_sheet(headers);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Modelo");
+    XLSX.writeFile(wb, filename);
+  } else {
+    alert("Erro: Biblioteca XLSX não carregada.");
+  }
+}
+
 
 async function processarImportacao() {
   const fileIn = document.getElementById('dbImportFile');
