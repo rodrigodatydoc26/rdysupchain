@@ -2431,3 +2431,28 @@ select.input-text option { background: var(--bg-0); color: var(--text); }
   content: "⚠";
   font-size: 0.875rem;
 }
+
+/* Botão de ver histórico completo */
+.btn-ver-historico {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  transition: var(--transition);
+}
+
+.btn-ver-historico:hover {
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.btn-ver-historico i, .btn-ver-historico svg {
+  width: 14px;
+  height: 14px;
+}
