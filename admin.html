@@ -460,6 +460,7 @@
           <button class="btn-primary" onclick="abrirModalUsuario()">
             <i data-lucide="user-plus"></i> Novo Usuário
           </button>
+          </div>
         </div>
         <div class="table-responsive">
           <table class="data-table">
@@ -1171,8 +1172,10 @@ async function carregarGovernanca() {
             <td><span class="status-badge ${u.role === 'cto' ? 'status-confirmado' : 'status-pendente'}">${esc(u.role)}</span></td>
             <td>${esc(u.cidade || 'Todas')}</td>
             <td class="text-center">
-              <button class="btn-outline" onclick="abrirModalUsuario('${esc(u.username)}')" title="Editar" style="padding:4px 8px"><i data-lucide="edit"></i></button>
-              <button class="btn-outline" onclick="excluirUsuario('${esc(u.username)}')" title="Excluir" style="padding:4px 8px; color:var(--danger); border-color:var(--danger)"><i data-lucide="trash-2"></i></button>
+              <div style="display:flex; justify-content:center; gap:8px;">
+                <button class="btn-outline" onclick="abrirModalUsuario('${esc(u.username)}')" title="Editar" style="padding:4px 8px"><i data-lucide="edit"></i></button>
+                <button class="btn-outline" onclick="excluirUsuario('${esc(u.username)}')" title="Excluir" style="padding:4px 8px; color:var(--danger); border-color:var(--danger)"><i data-lucide="trash-2"></i></button>
+              </div>
             </td>
           </tr>
         `).join('');
