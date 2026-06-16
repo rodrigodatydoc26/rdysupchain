@@ -656,7 +656,8 @@ function atualizarBarraConsumo(qtdAdicional = 0) {
         return;
     }
     
-    let pct = (totalAtual / media) * 100;
+    let rawPct = (totalAtual / media) * 100;
+    let pct = rawPct;
     if (pct > 100) pct = 100;
     bar.style.width = pct + '%';
     
@@ -664,7 +665,7 @@ function atualizarBarraConsumo(qtdAdicional = 0) {
         bar.classList.add('excedido');
         if (statusTxt) {
             statusTxt.className = 'status-excedido';
-            statusTxt.innerText = `${((totalAtual/media)*100).toFixed(0)}%`;
+            statusTxt.innerText = `${rawPct.toFixed(0)}% (EXCEDIDO)`;
         }
         if (aviso) {
             aviso.classList.remove('hidden');
@@ -675,7 +676,7 @@ function atualizarBarraConsumo(qtdAdicional = 0) {
         bar.classList.remove('excedido');
         if (statusTxt) {
             statusTxt.className = 'status-normal';
-            statusTxt.innerText = 'NORMAL';
+            statusTxt.innerText = `${rawPct.toFixed(0)}% (NORMAL)`;
         }
         if (aviso) aviso.classList.add('hidden');
     }
