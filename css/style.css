@@ -43,6 +43,11 @@
   font-family: 'Outfit', sans-serif !important;
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   background-color: var(--bg-0);
   color: var(--text);
@@ -2107,6 +2112,9 @@ color: var(--gold);
   .filter-controls-wide { flex-direction: column; }
   .filter-controls-wide .search-input-group,
   .filter-controls-wide .date-range-group { width: 100%; }
+  .date-range-group { flex-wrap: wrap; justify-content: center; }
+  .media-header { flex-direction: column; gap: 12px; }
+  .media-stats { flex-direction: column; gap: 12px; align-items: flex-start; }
 
   /* Filtros — remove min-width fixo que estoura a tela */
   .filter-row-premium { flex-direction: column; gap: 10px; }
