@@ -424,8 +424,8 @@
           <div class="legend-item" onclick="toggleLegendFilter('entregue')"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Entregue</div>
           <div class="legend-item" onclick="toggleLegendFilter('acima-media')"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
           <div class="legend-item" onclick="toggleLegendFilter('superior-ultima')"><span class="badge-tag tag-superior-ultima"><i data-lucide="chevrons-up"></i></span> Superior à Última Entrega</div>
-          <div class="legend-item" onclick="toggleLegendFilter('portal')"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Via Novo Portal</div>
-          <div class="legend-item" onclick="toggleLegendFilter('antigo')"><span class="badge-tag tag-antigo"><i data-lucide="archive"></i></span> Via Sistema Antigo</div>
+          <div class="legend-item" onclick="toggleLegendFilter('portal')"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Técnicos</div>
+          <div class="legend-item" onclick="toggleLegendFilter('antigo')"><span class="badge-tag tag-antigo"><i data-lucide="archive"></i></span> Sistema Original</div>
         </div>
 
         <div class="table-responsive">
@@ -1128,9 +1128,9 @@ async function carregarEntregas() {
         tags += `<span class="badge-tag tag-superior-ultima" title="Superior à Última Entrega"><i data-lucide="chevrons-up"></i></span>`;
       }
       if (e.criado_por === 'Portal') {
-        tags += `<span class="badge-tag tag-portal" title="Via Portal"><i data-lucide="globe"></i></span>`;
+        tags += `<span class="badge-tag tag-portal" title="Técnicos"><i data-lucide="globe"></i></span>`;
       } else {
-        tags += `<span class="badge-tag tag-antigo" title="Sistema Antigo"><i data-lucide="archive"></i></span>`;
+        tags += `<span class="badge-tag tag-antigo" title="Sistema Original"><i data-lucide="archive"></i></span>`;
       }
       
       // Formata o ID: Se for UUID, pega só início, senão mostra o número
