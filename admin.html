@@ -952,7 +952,10 @@ async function carregarEntregas() {
     
     // Filtros em Memória
     if (fAcimaMedia) {
-        data = data.filter(e => (parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0));
+        data = data.filter(e => {
+            const isExc = e.observacao && e.observacao.includes('[ACIMA DO LIMITE]');
+            return isExc || (parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0);
+        });
     }
     
     if (fJustificados) {
@@ -964,7 +967,7 @@ async function carregarEntregas() {
         data.sort((a, b) => (parseFloat(b.quantidade_definida) || 0) - (parseFloat(a.quantidade_definida) || 0));
     }
 
-        const setEquips = new Set();
+    const setEquips = new Set();
     data.forEach(e => {
         if (e.equipamento && e.equipamento.serie) setEquips.add(e.equipamento.serie);
     });
@@ -981,12 +984,19 @@ async function carregarEntregas() {
     }
     
     tbody.innerHTML = data.map((e) => {
+      let obsText = e.observacao || '';
+      let isExcecao = false;
+      if (obsText.includes('[ACIMA DO LIMITE]')) {
+          isExcecao = true;
+          obsText = obsText.replace('[ACIMA DO LIMITE]', '').trim();
+      }
+
       let tags = '';
       if (e.status === 'confirmado') {
         tags += `<span class="badge-tag tag-entregue" title="Entregue"><i data-lucide="package-check"></i></span>`;
       }
-      if ((parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0)) {
-        tags += `<span class="badge-tag tag-acima-media" title="Acima da Média"><i data-lucide="trending-up"></i></span>`;
+      if (isExcecao || (parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0)) {
+        tags += `<span class="badge-tag tag-acima-media" title="Acima da Média / Exceção"><i data-lucide="trending-up"></i></span>`;
       }
       if (e.criado_por === 'Portal') {
         tags += `<span class="badge-tag tag-portal" title="Via Portal"><i data-lucide="globe"></i></span>`;
@@ -1011,7 +1021,7 @@ async function carregarEntregas() {
         <td class="text-center">${esc(e.media_consumo_mensal ? parseFloat(e.media_consumo_mensal).toFixed(1) : '—')}</td>
         <td><div class="tags-container">${tags}</div></td>
         <td>${esc(e.numero_os || '—')}</td>
-        <td style="max-width:160px;font-size:0.75rem;color:var(--text-dim)">${esc(e.observacao || '—')}</td>
+        <td style="max-width:160px;font-size:0.75rem;color:var(--text-dim)">${esc(obsText || '—')}</td>
         <td>${esc(e.criado_por || '—')}</td>
         <td>${statusBadge(e.status)}</td>
       </tr>`;

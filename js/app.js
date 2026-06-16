@@ -817,6 +817,7 @@ async function salvarBalanceamento() {
 
     if (!qtd) return alert("Selecione uma opção de entrega!");
 
+    let isExcecao = false;
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
     if ((ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
         if (!obs) {
@@ -827,6 +828,7 @@ async function salvarBalanceamento() {
         }
         const confirmou = confirm("Exceção detectada: Você preencheu a justificativa. Deseja confirmar a entrega?");
         if (!confirmou) return;
+        isExcecao = true;
     }
 
     setBtnLoading(true);
@@ -839,6 +841,10 @@ async function salvarBalanceamento() {
         }
         if (!isFinite(finalMedia) || isNaN(finalMedia) || finalMedia < 0) finalMedia = state.media || 0;
 
+        let finalObs = obs || '';
+        if (state.opcao === 'rec') finalObs = `[RECOMENDADO] ${finalObs}`.trim();
+        if (isExcecao) finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
+
         await API.post('/balanceamento_entregas', {
             equipamento_id: state.equipamento.id,
             cliente_id: state.equipamento.cliente.id,
@@ -847,7 +853,7 @@ async function salvarBalanceamento() {
             opcao_entrega: (state.opcao === 'rec' || state.opcao === 0) ? 0 : state.opcao,
             quantidade_definida: qtd,
             contador_atual: cont,
-            observacao: state.opcao === 'rec' ? `[RECOMENDADO] ${obs}`.trim() : obs || '',
+            observacao: finalObs,
             status: 'confirmado',
             criado_por: 'Portal'
         });
