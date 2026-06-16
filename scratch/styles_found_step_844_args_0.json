@@ -1,0 +1,9 @@
+{
+  "CaseInsensitive": "true",
+  "IsRegex": "false",
+  "MatchPerLine": "true",
+  "Query": "\"qty-input\"",
+  "SearchPath": "\"c:/Users/Rodrigo Daty/Desktop/Projetos Antigravit/balanceamento\"",
+  "toolAction": "\"Searching for qty-input in project\"",
+  "toolSummary": "\"Search project for qty-input\""
+}

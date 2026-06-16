@@ -1,0 +1,70 @@
+/* ============================================================ */
+/* ANÁLISE REAL / IMEDIATA / SUGESTÃO CARD                      */
+/* ============================================================ */
+
+.btn-analise-imediata {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  padding: 14px 24px; margin-bottom: 16px; background: transparent;
+  border: 2px dashed var(--gold); border-radius: var(--radius);
+  color: var(--gold); font-family: var(--font-outfit); font-size: 0.875rem;
+  font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer; transition: var(--transition);
+}
+.btn-analise-imediata:hover { background: rgba(212, 175, 55, 0.08); border-style: solid; transform: translateY(-1px); }
+
+.analise-rapida-direct { border-color: rgba(212,175,55,0.4); background: var(--bg-1); }
+.analise-rapida-direct h2 i { color: var(--gold); }
+.analise-rapida-direct .search-input-wrapper { flex-direction: column; }
+
+.analise-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+.analise-fechar-card { border-color: rgba(16, 185, 129, 0.4); }
+.analise-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.analise-fechar-header { background: rgba(16, 185, 129, 0.05); }
+.analise-header i { color: var(--gold); flex-shrink: 0; }
+.analise-fechar-header i { color: var(--success); }
+.analise-header h4 { font-size: 0.9375rem; font-weight: 600; line-height: 1.2; }
+.analise-header .sub-txt { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+.btn-close-analise { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text-dim); display: flex; align-items: center; padding: 4px; border-radius: 6px; transition: var(--transition); }
+.btn-close-analise:hover { color: var(--danger); }
+
+.analise-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.analise-info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+.analise-info-row:last-of-type { border-bottom: none; }
+.analise-info-row.highlight-row { background: rgba(212, 175, 55, 0.06); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(212, 175, 55, 0.2); }
+.analise-label { color: var(--text-dim); white-space: nowrap; }
+.analise-divider { height: 1px; background: var(--border); margin: 4px 0; }
+.analise-input-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 0.875rem; }
+
+/* Qty Controls */
+.analise-qty-control { display: flex; align-items: center; gap: 8px; }
+.manual-qty-selector { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.05); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
+.qty-btn { background: var(--bg-3); color: var(--gold); border: none; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
+.qty-btn:hover { background: var(--gold); color: #000; }
+.qty-input { background: transparent !important; border: none !important; width: 50px !important; text-align: center !important; font-family: var(--font-outfit) !important; font-weight: 700 !important; font-size: 1.2rem !important; color: var(--text) !important; padding: 0 !important; }
+
+/* Inputs */
+.analise-counter-input { width: 160px; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 1rem; font-weight: 600; text-align: right; }
+.analise-counter-input:focus { outline: none; border-color: var(--success); }
+.analise-resultado { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; background: var(--surface); border-radius: var(--radius-sm); font-size: 0.875rem; }
+.analise-resultado span:first-child { color: var(--text-dim); }
+.analise-unit { color: var(--text-dim); font-size: 0.75rem; }
+.analise-os-input { width: 100%; padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 0.875rem; }
+
+/* Suggestion Card */
+.analise-sug-card { display: flex; align-items: center; gap: 16px; padding: 14px 16px; border: 2px solid; border-radius: var(--radius-sm); transition: var(--transition); }
+.analise-sug-neutral { background: var(--surface); border-color: var(--border); border-style: dashed; }
+.analise-sug-success { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.35); }
+.analise-sug-error { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.35); }
+.analise-sug-valor { text-align: center; min-width: 52px; flex-shrink: 0; }
+.analise-sug-valor span:first-child { display: block; font-size: 2rem; font-weight: 800; line-height: 1; }
+.analise-sug-neutral .analise-sug-valor span:first-child { color: var(--text-dim); }
+.analise-sug-success .analise-sug-valor span:first-child { color: var(--text); }
+.analise-sug-error   .analise-sug-valor span:first-child { color: var(--danger); }
+.analise-sug-unit { display: block; font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin-top: 3px; }
+.analise-sug-info { flex: 1; }
+.analise-sug-info h5 { font-size: 0.6875rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.analise-sug-info p { font-size: 0.8125rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+.analise-sug-success .analise-sug-info h5 { color: var(--success); }
+.analise-sug-error .analise-sug-info h5 { color: var(--danger); }
+.btn-aplicar-sug { background: transparent; border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-dim); transition: var(--transition); flex-shrink: 0; }
+.btn-aplicar-sug:hover { border-color: var(--gold); color: var(--gold); }

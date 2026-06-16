@@ -1,0 +1,44 @@
+Created At: 2026-06-15T16:55:41Z
+Completed At: 2026-06-15T16:55:41Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2565
+Total Bytes: 55393
+Showing lines 2460 to 2495
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2460: 
+2461:   /* ── Paginação ── */
+2462:   .pagination-container { flex-direction: column; align-items: flex-start; gap: 10px; }
+2463:   .pagination-controls  { width: 100%; justify-content: center; }
+2464: 
+2465:   /* ── Modais ── */
+2466:   .modal-content {
+2467:     max-width: calc(100vw - 24px);
+2468:     max-height: 90dvh;
+2469:     overflow-y: auto;
+2470:   }
+2471:   .modal-header { padding: 16px 18px; }
+2472:   .modal-body   { padding: 16px 18px; }
+2473:   .modal-actions { flex-direction: column; }
+2474:   .modal-actions .btn-secondary,
+2475:   .modal-actions .btn-primary { width: 100%; justify-content: center; }
+2476: 
+2477:   /* ── Admin KPI ── */
+2478:   .kpi-grid  { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+2479:   .kpi-value { font-size: 1.75rem; }
+2480: 
+2481:   /* ── Admin section-hdr ── */
+2482:   .section-hdr { flex-direction: column; align-items: flex-start; gap: 8px; }
+2483: 
+2484:   /* ── Login ── */
+2485:   .login-card { padding: 28px 18px; border-radius: 16px; max-width: 100%; }
+2486: 
+2487:   /* ── Consultar ── */
+2488:   .consultar-header { flex-direction: column; gap: 12px; }
+2489:   .dashboard-grid   { grid-template-columns: 1fr; }
+2490: 
+2491:   /* ── Análise ── */
+2492:   .analise-body { padding: 14px; }
+2493:   .analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+2494:   .btn-iniciar-analise,
+2495:   .btn-confirmar-analise { width: 100%; }
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

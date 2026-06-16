@@ -1,0 +1,71 @@
+Created At: 2026-06-15T15:30:00Z
+Completed At: 2026-06-15T15:30:00Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/index.html`
+Total Lines: 871
+Total Bytes: 42715
+Showing lines 193 to 270
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+193:           </div>
+194: 
+195: 
+196:           <!-- ANÁLISE IMEDIATA - Botão -->
+197:           <div id="analiseImediataBtn" class="hidden">
+198:             <button class="btn-analise-imediata" onclick="abrirAnaliseImediata()">
+199:               <i data-lucide="zap"></i> Seguir com Análise Imediata
+200:             </button>
+201:           </div>
+202: 
+203:           <!-- ANÁLISE IMEDIATA - Passo 1: Abertura -->
+204:           <div id="analiseAbertaCard" class="analise-card hidden">
+205:             <div class="analise-header">
+206:               <i data-lucide="zap"></i>
+207:               <div>
+208:                 <h4>Análise Imediata</h4>
+209:                 <p class="sub-txt">Registre o numerador e as resmas adicionadas</p>
+210:               </div>
+211:               <button class="btn-close-analise" onclick="fecharCardAnalise()" title="Fechar">
+212:                 <i data-lucide="x"></i>
+213:               </button>
+214:             </div>
+215:             <div class="analise-body">
+216:               <div class="analise-info-row">
+217:                 <span class="analise-label">Série:</span>
+218:                 <strong id="analiseSerie">---</strong>
+219:               </div>
+220:               <div class="analise-info-row">
+221:                 <span class="analise-label">Numerador Atual:</span>
+222:                 <input type="number" id="analiseNumeradorAtual" class="analise-counter-input" placeholder="0" required oninput="analiseNumeradorChanged(); syncContador('analiseNumeradorAtual')" title="Numerador atual">
+223:          
+<truncated 928 bytes>
+-divider"></div>
+241:               <div class="analise-input-row">
+242:                 <span class="analise-label">Resmas a Entregar:</span>
+243:                 <div class="analise-qty-control">
+244:                   <button class="qty-btn" onclick="analiseAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button>
+245:                   <input type="number" id="analiseResmas" class="qty-input" value="1" min="1" oninput="analiseCalcularLimite()" title="Resmas">
+246:                   <button class="qty-btn" onclick="analiseAlterarResmas(1)" title="Aumentar"><i data-lucide="plus"></i></button>
+247:                 </div>
+248:               </div>
+249:               <div class="analise-resultado">
+250:                 <span>Próximo limite esperado:</span>
+251:                 <strong id="analiseLimite" class="gold-text">---</strong>
+252:                 <span class="analise-unit">páginas</span>
+253:               </div>
+254:               <input type="text" id="analiseOs" class="analise-os-input" placeholder="Nº O.S. (Obrigatório)" required>
+255:               <button class="btn-iniciar-analise" onclick="salvarAnaliseAberta()">
+256:                 <i data-lucide="check-circle"></i> CONFIRMAR A ENTREGA
+257:               </button>
+258:             </div>
+259:           </div>
+260: 
+261:           <!-- ANÁLISE IMEDIATA - Passo 2: Fechamento -->
+262:           <div id="analiseFecharCard" class="analise-card analise-fechar-card hidden">
+263:             <div class="analise-header analise-fechar-header">
+264:               <i data-lucide="activity"></i>
+265:               <div>
+266:                 <h4>Fechar Análise Imediata</h4>
+267:                 <p class="sub-txt">Informe o numerador atual para calcular o saldo</p>
+268:               </div>
+269:             </div>
+270:             <div class="analise-body">
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

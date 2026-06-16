@@ -1,0 +1,95 @@
+Created At: 2026-06-16T11:21:24Z
+Completed At: 2026-06-16T11:21:24Z
+
+				The command completed successfully.
+				Output:
+				<truncated 221 lines>
++                <p class="sub-txt">Informe o numerador atual para calcular o saldo</p>
++              </div>
++            </div>
++            <div class="analise-body">
++              <div class="analise-info-row">
++                <span class="analise-label">Série:</span>
++                <strong id="fecharSerie">---</strong>
++              </div>
++              <div class="analise-info-row">
++                <span class="analise-label">Numerador Anterior:</span>
++                <strong id="fecharNumeradorBase" class="gold-text">---</strong>
++              </div>
++              <div class="analise-info-row">
++                <span class="analise-label">Última Entrega:</span>
++                <strong id="fecharResmasAdicionadas">---</strong>
++              </div>
++              <div class="analise-info-row highlight-row">
++                <span class="analise-label">Limite Calculado:</span>
++                <strong id="fecharLimiteCalculado" class="gold-text">---</strong>
++              </div>
++              <div class="analise-divider"></div>
++              <div class="analise-input-row">
++                <span class="analise-label">Novo Numerador Atual:</span>
++                <input type="number" id="fecharNumeradorNovo" class="analise-counter-input" placeholder="0" oninput="fecharCalcularSaldo()" title="Contador atual">
++              </div>
++              <div class="analise-input-row">
++                <span class="analise-label">Resmas Entrega Atual:</span>
++                <div class="analise-qty-control">
++                  <button type="button" class="qty-btn" onclick="fecharAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button>
++                  <input type="number" id="fecharResmasInput" class="qty-input" value="1" min="1" title="Resmas">
++                  <button type="button" class="qty-btn" onclick="fecharAlterarResmas(1)" title="
+<truncated 4215 bytes>
+ss="spin"></i>
++    <span>Sincronizando dados...</span>
++  </div>
++
++  <script>
++  // Registro do Service Worker
++  if ('serviceWorker' in navigator) {
++    navigator.serviceWorker.register('./sw.js').then(reg => {
++      console.log('SW registrado', reg.scope);
++    }).catch(err => console.log('SW erro', err));
++
++    // Receber mensagem do SW (sync bem-sucedido)
++    navigator.serviceWorker.addEventListener('message', e => {
++      if (e.data && e.data.type === 'SYNC_OK') {
++        localStorage.setItem('lastSync', e.data.time);
++        document.getElementById('syncBanner').classList.add('hidden');
++      }
++    });
++  }
++
++  // Detectar online/offline
++  function updateOnlineStatus() {
++    const banner = document.getElementById('offlineBanner');
++    if (!navigator.onLine) {
++      banner.classList.remove('hidden');
++      const last = localStorage.getItem('lastSync');
++      if (last) {
++        const h = Math.round((Date.now() - Number(last)) / 3600000);
++        document.getElementById('offlineMsg').textContent = 
++          'Modo offline - dados de ' + (h < 1 ? 'menos de 1h' : h + 'h') + ' atras';
++      }
++    } else {
++      banner.classList.add('hidden');
++      if (window.currentUser && typeof verificarAutoSync === 'function') {
++        verificarAutoSync();
++      }
++    }
++  }
++  window.addEventListener('online', updateOnlineStatus);
++  window.addEventListener('offline', updateOnlineStatus);
++  updateOnlineStatus();
++
++  // Verificar se dados sao recentes (8h)
++  function verificarSync() {
++    const last = Number(localStorage.getItem('lastSync') || 0);
++    const oitoHoras = 8 * 60 * 60 * 1000;
++    if (Date.now() - last > oitoHoras && navigator.onLine) {
++      document.getElementById('syncBanner').classList.remove('hidden');
++      setTimeout(() => document.getElementById('syncBanner').classList.add('hidden'), 5000);
++    }
++  }
++  document.addEventListener('DOMContentLoaded', verificarSync);
++  </script>
+     <script src="js/app.js"></script>
+   <script>lucide.createIcons();</script>
+ </body>
+

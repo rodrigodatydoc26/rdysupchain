@@ -1,0 +1,54 @@
+Created At: 2026-06-15T15:06:14Z
+Completed At: 2026-06-15T15:06:14Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/js/app.js`
+Total Lines: 1795
+Total Bytes: 79528
+Showing lines 740 to 785
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+740:     document.getElementById('analiseResmas').value = 1;
+741:     _setAnaliseSugStatus('neutral', 0, 'AGUARDANDO LEITURA', 'Insira o numerador atual para o cálculo.');
+742:     document.getElementById('btnAplicarSugestao').classList.add('hidden');
+743:     analiseCalcularLimite();
+744:     document.getElementById('analiseImediataBtn').classList.add('hidden');
+745:     document.getElementById('analiseAbertaCard').classList.remove('hidden');
+746:     lucide.createIcons();
+747: }
+748: 
+749: function fecharCardAnalise() {
+750:     document.getElementById('analiseAbertaCard').classList.add('hidden');
+751:     document.getElementById('analiseImediataBtn').classList.remove('hidden');
+752: }
+753: 
+754: function analiseAlterarResmas(delta) {
+755:     const input = document.getElementById('analiseResmas');
+756:     input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+757:     analiseCalcularLimite();
+758: }
+759: 
+760: function _setAnaliseSugStatus(status, valor, titulo, subtitulo) {
+761:     const card = document.getElementById('analiseSugestaoCard');
+762:     card.className = `analise-sug-card analise-sug-${status}`;
+763:     document.getElementById('analiseSugValor').innerText = valor;
+764:     document.getElementById('analiseSugTitulo').innerText = titulo;
+765:     document.getElementById('analiseSugSubtitulo').innerText = subtitulo;
+766: }
+767: 
+768: function analiseAplicarSugestao() {
+769:     const valor = parseInt(document.getElementById('btnAplicarSugestao').dataset.sugestao) || 0;
+770:     if (valor > 0) {
+771:         document.getElementById('analiseResmas').value = valor;
+772:         analiseCalcularLimite();
+773:     }
+774: }
+775: 
+776: function analiseNumeradorChanged() {
+777:     const numerador = parseInt(document.getElementById('analiseNumeradorAtual').value) || 0;
+778:     const equip = state.equipamento;
+779:     const ultimoContador = equip?.ultimo_contador || 0;
+780:     const dataUltima = equip?.data_ultimo_contador;
+781:     const btnAplicar = document.getElementById('btnAplicarSugestao');
+782: 
+783:     if (!numerador) {
+784:         _setAnaliseSugStatus('neutral', 0, 'AGUARDANDO LEITURA', 'Insira o numerador atual para o cálculo.');
+785:         btnAplicar.classList.add('hidden');
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

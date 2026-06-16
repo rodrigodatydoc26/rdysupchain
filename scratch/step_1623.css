@@ -1,0 +1,59 @@
+Created At: 2026-06-15T20:56:11Z
+Completed At: 2026-06-15T20:56:11Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2686
+Total Bytes: 58725
+Showing lines 2240 to 2290
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2240:   text-align: center;
+2241:   color: var(--text-dim);
+2242:   font-size: 0.78rem;
+2243:   border-top: 1px solid var(--border);
+2244:   padding-top: 20px;
+2245: }
+2246: 
+2247: /* USER BADGE (topbar) */
+2248: .user-badge {
+2249:   display: flex;
+2250:   align-items: center;
+2251:   gap: 8px;
+2252:   background: var(--bg-2);
+2253:   border: 1px solid var(--border);
+2254:   border-radius: 100px;
+2255:   padding: 6px 10px 6px 12px;
+2256:   font-size: 0.82rem;
+2257:   font-weight: 600;
+2258: }
+2259: 
+2260: .user-badge > i {
+2261:   color: var(--gold);
+2262:   width: 16px;
+2263:   height: 16px;
+2264: }
+2265: 
+2266: .btn-logout {
+2267:   background: transparent;
+2268:   border: none;
+2269:   color: var(--text-dim);
+2270:   cursor: pointer;
+2271:   display: flex;
+2272:   align-items: center;
+2273:   padding: 4px;
+2274:   border-radius: 6px;
+2275:   transition: var(--transition);
+2276: }
+2277: 
+2278: .btn-logout:hover {
+2279:   color: var(--danger);
+2280: }
+2281: 
+2282: .btn-logout i {
+2283:   width: 14px;
+2284:   height: 14px;
+2285: }
+2286: 
+2287: 
+2288: /* ════════════════════════════════════════════════════
+2289:    ÁREA ADMIN (CTO)
+2290: ════════════════════════════════════════════════════ */
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

@@ -1,0 +1,1 @@
+I will search `scratch/reconstructed_full.css` for references to `analise-sug-card` to see if we can find the complete styling section for this interface.

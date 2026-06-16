@@ -1,0 +1,109 @@
+Created At: 2026-06-15T15:15:57Z
+Completed At: 2026-06-15T15:15:57Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2539
+Total Bytes: 54919
+Showing lines 1600 to 1700
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1600: .btn-page:disabled {
+1601:   opacity: 0.3;
+1602:   cursor: not-allowed;
+1603: }
+1604: 
+1605: .page-indicator {
+1606:   font-size: 0.875rem;
+1607:   color: var(--text-dim);
+1608: }
+1609: 
+1610: .page-indicator strong {
+1611:   color: var(--text);
+1612: }
+1613: 
+1614: /* QUICK FILTERS */
+1615: .quick-filters {
+1616:   display: flex;
+1617:   align-items: center;
+1618:   gap: 12px;
+1619:   margin-bottom: 16px;
+1620:   flex-wrap: wrap;
+1621: }
+1622: 
+1623: .quick-filters-label {
+1624:   font-size: 0.75rem;
+1625:   font-weight: 700;
+1626:   color: var(--text-dim);
+1627:   text-transform: uppercase;
+1628:   letter-spacing: 0.05em;
+1629:   display: flex;
+1630:   align-items: center;
+1631:   gap: 6px;
+1632: }
+1633: 
+1634: .filter-chip {
+1635:   background: var(--bg-1);
+1636:   border: 1px solid var(--border);
+1637:   color: var(--text-dim);
+1638:   padding: 6px 14px;
+1639:   border-radius: 30px;
+1640:   font-size: 0.85rem;
+1641:   font-weight: 600;
+1642:   cursor: pointer;
+1643:   transition: var(--transition);
+1644:   display: flex;
+1645:   align-items: center;
+1646:   gap: 6px;
+1647: }
+1648: 
+1649: .filter-chip:hover {
+1650:   border-color: var(--gold);
+1651:   color: var(--gold);
+1652:   background: rgba(212, 175, 55, 0.05);
+1653:   transform: translateY(-1px);
+1654: }
+1655: 
+1656: .filter-chip i {
+1657:   width: 14px;
+1658:   height: 14px;
+1659: }
+1660: 
+1661: .filter-chip.active {
+1662:   background: var(--gold);
+1663:   color: #000;
+1664:   border-color: var(--gold);
+1665: }
+1666: 
+1667: /* ============================================================
+1668:    ANÁLISE IMEDIATA
+1669:    ============================================================ */
+1670: 
+1671: .btn-analise-imediata {
+1672:   display: flex;
+1673:   align-items: center;
+1674:   justify-content: center;
+1675:   gap: 8px;
+1676:   width: 100%;
+1677:   padding: 14px 24px;
+1678:   margin-bottom: 16px;
+1679:   background: transparent;
+1680:   border: 2px dashed var(--gold);
+1681:   border-radius: var(--radius);
+1682:   color: var(--gold);
+1683:   font-family: var(--font-outfit);
+1684:   font-size: 0.875rem;
+1685:   font-weight: 700;
+1686:   letter-spacing: 0.06em;
+1687:   text-transform: uppercase;
+1688:   cursor: pointer;
+1689:   transition: var(--transition);
+1690: }
+1691: 
+1692: .btn-analise-imediata:hover {
+1693:   background: rgba(212, 175, 55, 0.08);
+1694:   border-style: solid;
+1695:   transform: translateY(-1px);
+1696: }
+1697: 
+1698: .analise-card {
+1699:   background: var(--bg-1);
+1700:   border: 1px solid var(--border);
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

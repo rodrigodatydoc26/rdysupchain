@@ -178,6 +178,23 @@
     }
     .legend-title { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px; }
     .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text); }
+
+    /* ── RESPONSIVO MOBILE ── */
+    @media (max-width: 768px) {
+      .kpi-grid, .kpi-grid-entregas { grid-template-columns: 1fr; }
+      .filter-row-top { flex-direction: column; align-items: stretch; }
+      .filter-input-group { width: 100%; }
+      .filter-row-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .section-hdr { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .header-actions { width: 100%; display: flex; flex-wrap: wrap; }
+      .header-actions button { width: 100%; justify-content: center; }
+      .btn-original { margin-right: 0; width: 100%; justify-content: center; }
+      .legend-row { flex-direction: column; align-items: flex-start; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; }
+      .topbar-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+      .nav-tabs { flex-wrap: wrap; width: 100%; }
+      .nav-tabs button { flex: 1 1 100%; justify-content: center; text-align: center; font-size: 0.8rem; padding: 10px 8px; }
+    }
   </style>
 
 

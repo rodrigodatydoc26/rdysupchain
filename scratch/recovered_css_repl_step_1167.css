@@ -1,0 +1,1 @@
+".data-table th, .data-table td {\n  padding: 8px 10px;\n  text-align: left;\n  border-bottom: 1px solid var(--border);\n  font-size: 0.875rem;\n}\n\n.data-table th {\n  font-family: var(--font-outfit);\n  color: var(--text-dim);\n  font-weight: 600;\n  background: var(--bg-2);\n  font-size: 0.85rem;\n}"

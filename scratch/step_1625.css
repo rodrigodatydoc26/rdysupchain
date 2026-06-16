@@ -1,0 +1,45 @@
+Created At: 2026-06-15T20:56:28Z
+Completed At: 2026-06-15T20:56:41Z
+The following changes were made by the replace_file_content tool to: c:\Users\Rodrigo Daty\Desktop\Projetos Antigravit\balanceamento\css\style.css. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -2223,35 +2223,6 @@
+   gap: 10px;
+   transition: var(--transition);
+   margin-top: 8px;
+-}
+-
+-.btn-login-submit:hover {
+-  opacity: 0.9;
+-  transform: translateY(-2px);
+-  box-shadow: 0 8px 20px rgba(212,175,55,0.3);
+-}
+-
+-.btn-login-submit i {
+-  width: 18px;
+-  height: 18px;
+-}
+-
+-.login-footer {
+-  text-align: center;
+-  color: var(--text-dim);
+-  font-size: 0.78rem;
+-  border-top: 1px solid var(--border);
+-  padding-top: 20px;
+-}
+-
+-/* USER BADGE (topbar) */
+-.user-badge {
+-  display: flex;
+-  align-items: center;
+-  gap: 8px;
+-  background: var(--bg-2);
+-  border: 1px solid var(--border);
+-  border-radius: 100px;
+   padding: 6px 10px 6px 12px;
+   font-size: 0.82rem;
+   font-weight: 600;
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+
+We did our best to apply changes despite some inaccuracies. Double check if the edit applied is what you intended.

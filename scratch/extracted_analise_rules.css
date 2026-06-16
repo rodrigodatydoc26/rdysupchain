@@ -1,0 +1,404 @@
+/* SELECTOR: /* Manual Qty Selector */ .manual-qty-selector */
+/* Manual Qty Selector */ .manual-qty-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* SELECTOR: .qty-btn */
+.qty-btn {
+  background: var(--bg-3);
+  color: var(--gold);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.qty-btn {
+  background: var(--bg-3);
+  color: var(--gold);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  }
+
+/* SELECTOR: .qty-btn:hover */
+.qty-btn:hover {
+  background: var(--gold);
+  color: #000;
+}
+
+.qty-btn:hover {
+  background: var(--gold);
+  color: #000;
+  }
+
+.qty-btn:hover {
+  background: var(--gold);
+  color: #000;
+  }
+
+/* SELECTOR: .qty-input */
+.qty-input {
+  background: transparent !important;
+  border: none !important;
+  width: 50px !important;
+  text-align: center !important;
+  font-family: var(--font-outfit) !important;
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: var(--text) !important;
+  padding: 0 !important;
+}
+
+.qty-input {
+  background: transparent !important;
+  border: none !important;
+  width: 50px !important;
+  text-align: center !important;
+  font-family: var(--font-outfit) !important;
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: var(--text) !important;
+  padding: 0 !important;
+  }
+
+.qty-input {
+  background: transparent !important;
+  border: none !important;
+  width: 50px !important;
+  text-align: center !important;
+  font-family: var(--font-outfit) !important;
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: var(--text) !important;
+  padding: 0 !important;
+  }
+
+/* SELECTOR: /* ── Análise ── */ 2494: .analise-body */
+/* ── Análise ── */ 2494: .analise-body { padding: 14px; }
+
+/* SELECTOR: .analise-input-row */
+.analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+/* SELECTOR: .btn-iniciar-analise, 2497: .btn-confirmar-analise */
+.btn-iniciar-analise, 2497: .btn-confirmar-analise { width: 100%; }
+
+/* SELECTOR: /* ── Saldo box ── */ 2500: .saldo-valores */
+/* ── Saldo box ── */ 2500: .saldo-valores { flex-direction: column; gap: 4px; }
+
+/* SELECTOR: Created At: 2026-06-15T20:26:22Z Completed At: 2026-06-15T20:26:23Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2683 Total Bytes: 58392 Showing lines 2500 to 2530 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 2500: /* ── Análise ── */ 2501: .analise-body */
+Created At: 2026-06-15T20:26:22Z Completed At: 2026-06-15T20:26:23Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2683 Total Bytes: 58392 Showing lines 2500 to 2530 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 2500: /* ── Análise ── */ 2501: .analise-body { padding: 14px; }
+
+/* SELECTOR: .btn-iniciar-analise, 2504: .btn-confirmar-analise */
+.btn-iniciar-analise, 2504: .btn-confirmar-analise { width: 100%; }
+
+/* SELECTOR: /* ── Saldo box ── */ 2507: .saldo-valores */
+/* ── Saldo box ── */ 2507: .saldo-valores { flex-direction: column; gap: 4px; }
+
+/* SELECTOR: Created At: 2026-06-15T14:52:08Z Completed At: 2026-06-15T14:52:08Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2526 Total Bytes: 54760 Showing lines 2300 to 2400 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 2300: /* ── ANÁLISE RÁPIDA DIRETA ── */ 2301: .analise-rapida-direct */
+Created At: 2026-06-15T14:52:08Z Completed At: 2026-06-15T14:52:08Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2526 Total Bytes: 54760 Showing lines 2300 to 2400 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 2300: /* ── ANÁLISE RÁPIDA DIRETA ── */ 2301: .analise-rapida-direct {
+  border-color: rgba(212,175,55,0.4);
+  background: var(--bg-1);
+  }
+
+/* SELECTOR: .analise-rapida-direct h2 i */
+.analise-rapida-direct h2 i { color: var(--gold); }
+
+/* SELECTOR: .analise-card */
+.analise-card { padding: 16px 14px; }
+
+.analise-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+  }
+
+/* SELECTOR: .search-input-wrapper .btn-primary, 2380: .search-input-wrapper .btn-analise-imediata */
+.search-input-wrapper .btn-primary, 2380: .search-input-wrapper .btn-analise-imediata { width: 100%; justify-content: center; }
+
+/* SELECTOR: /* ── Análise rápida direta ── */ 2383: .analise-rapida-direct .search-input-wrapper */
+/* ── Análise rápida direta ── */ 2383: .analise-rapida-direct .search-input-wrapper { flex-direction: column; }
+
+/* SELECTOR: Created At: 2026-06-16T11:21:24Z Completed At: 2026-06-16T11:21:24Z The command completed successfully. Output: <truncated 221 lines> + <p class="sub-txt">Informe o numerador atual para calcular o saldo</p> + </div> + </div> + <div class="analise-body"> + <div class="analise-info-row"> + <span class="analise-label">Série:</span> + <strong id="fecharSerie">---</strong> + </div> + <div class="analise-info-row"> + <span class="analise-label">Numerador Anterior:</span> + <strong id="fecharNumeradorBase" class="gold-text">---</strong> + </div> + <div class="analise-info-row"> + <span class="analise-label">Última Entrega:</span> + <strong id="fecharResmasAdicionadas">---</strong> + </div> + <div class="analise-info-row highlight-row"> + <span class="analise-label">Limite Calculado:</span> + <strong id="fecharLimiteCalculado" class="gold-text">---</strong> + </div> + <div class="analise-divider"></div> + <div class="analise-input-row"> + <span class="analise-label">Novo Numerador Atual:</span> + <input type="number" id="fecharNumeradorNovo" class="analise-counter-input" placeholder="0" oninput="fecharCalcularSaldo()" title="Contador atual"> + </div> + <div class="analise-input-row"> + <span class="analise-label">Resmas Entrega Atual:</span> + <div class="analise-qty-control"> + <button type="button" class="qty-btn" onclick="fecharAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button> + <input type="number" id="fecharResmasInput" class="qty-input" value="1" min="1" title="Resmas"> + <button type="button" class="qty-btn" onclick="fecharAlterarResmas(1)" title=" <truncated 4215 bytes> ss="spin"></i> + <span>Sincronizando dados...</span> + </div> + + <script> + // Registro do Service Worker + if ('serviceWorker' in navigator) */
+Created At: 2026-06-16T11:21:24Z Completed At: 2026-06-16T11:21:24Z The command completed successfully. Output: <truncated 221 lines> + <p class="sub-txt">Informe o numerador atual para calcular o saldo</p> + </div> + </div> + <div class="analise-body"> + <div class="analise-info-row"> + <span class="analise-label">Série:</span> + <strong id="fecharSerie">---</strong> + </div> + <div class="analise-info-row"> + <span class="analise-label">Numerador Anterior:</span> + <strong id="fecharNumeradorBase" class="gold-text">---</strong> + </div> + <div class="analise-info-row"> + <span class="analise-label">Última Entrega:</span> + <strong id="fecharResmasAdicionadas">---</strong> + </div> + <div class="analise-info-row highlight-row"> + <span class="analise-label">Limite Calculado:</span> + <strong id="fecharLimiteCalculado" class="gold-text">---</strong> + </div> + <div class="analise-divider"></div> + <div class="analise-input-row"> + <span class="analise-label">Novo Numerador Atual:</span> + <input type="number" id="fecharNumeradorNovo" class="analise-counter-input" placeholder="0" oninput="fecharCalcularSaldo()" title="Contador atual"> + </div> + <div class="analise-input-row"> + <span class="analise-label">Resmas Entrega Atual:</span> + <div class="analise-qty-control"> + <button type="button" class="qty-btn" onclick="fecharAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button> + <input type="number" id="fecharResmasInput" class="qty-input" value="1" min="1" title="Resmas"> + <button type="button" class="qty-btn" onclick="fecharAlterarResmas(1)" title=" <truncated 4215 bytes> ss="spin"></i> + <span>Sincronizando dados...</span> + </div> + + <script> + // Registro do Service Worker + if ('serviceWorker' in navigator) {
++    navigator.serviceWorker.register('./sw.js').then(reg => {
++      console.log('SW registrado', reg.scope);
++    }).catch(err => console.log('SW erro', err));
++
++    // Receber mensagem do SW (sync bem-sucedido)
++    navigator.serviceWorker.addEventListener('message', e => {
++      if (e.data && e.data.type === 'SYNC_OK') {
++        localStorage.setItem('lastSync', e.data.time);
++        document.getElementById('syncBanner').classList.add('hidden');
++      }
++    });
++  }
+
+/* SELECTOR: "File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2314,"LineContent":".analise-rapida-direct */
+"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2314,"LineContent":".analise-rapida-direct {"}
+
+/* SELECTOR: "File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2320,"LineContent":".analise-rapida-direct */
+"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2320,"LineContent":".analise-rapida-direct {"}
+
+/* SELECTOR: .analise-fechar-card */
+.analise-fechar-card {
+  border-color: rgba(16, 185, 129, 0.4);
+  }
+
+.analise-fechar-card {
+  border-color: rgba(16, 185, 129, 0.4);
+  }
+
+/* SELECTOR: .analise-header */
+.analise-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  }
+
+.analise-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  }
+
+/* SELECTOR: .analise-fechar-header */
+.analise-fechar-header {
+  background: rgba(16, 185, 129, 0.05);
+  }
+
+.analise-fechar-header {
+  background: rgba(16, 185, 129, 0.05);
+  }
+
+/* SELECTOR: .analise-header i */
+.analise-header i {
+  color: var(--gold);
+  flex-shrink: 0;
+  }
+
+.analise-header i {
+  color: var(--gold);
+  flex-shrink: 0;
+  }
+
+/* SELECTOR: .analise-fechar-header i */
+.analise-fechar-header i {
+  color: var(--success);
+  }
+
+.analise-fechar-header i {
+  color: var(--success);
+  }
+
+/* SELECTOR: .analise-header h4 */
+.analise-header h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  }
+
+.analise-header h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  }
+
+/* SELECTOR: .analise-header .sub-txt */
+.analise-header .sub-txt {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+  }
+
+.analise-header .sub-txt {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+  }
+
+/* SELECTOR: .btn-close-analise */
+.btn-close-analise {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: var(--transition);
+  }
+
+.btn-close-analise {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: var(--transition);
+  }
+
+/* SELECTOR: .btn-close-analise:hover */
+.btn-close-analise:hover { color: var(--danger); }
+
+/* SELECTOR: .analise-body */
+.analise-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  }
+
+.analise-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  }
+
+/* SELECTOR: .analise-info-row */
+.analise-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  }
+
+.analise-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  }
+
+/* SELECTOR: .analise-info-row:last-of-type */
+.analise-info-row:last-of-type { border-bottom: none; }
+
+/* SELECTOR: .analise-info-row.highlight-row */
+.analise-info-row.highlight-row {
+  background: rgba(212, 175, 55, 0.06);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  }
+
+.analise-info-row.highlight-row {
+  background: rgba(212, 175, 55, 0.06);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  }
+
+/* SELECTOR: .analise-label */
+.analise-label { color: var(--text-dim); }
+
+/* SELECTOR: .analise-divider */
+.analise-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+  }
+
+.analise-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+  }
+
+/* SELECTOR: /* ============================================================ 1668: ANÁLISE IMEDIATA 1669: ============================================================ */ 1670: 1671: .btn-analise-imediata */
+/* ============================================================ 1668: ANÁLISE IMEDIATA 1669: ============================================================ */ 1670: 1671: .btn-analise-imediata {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  margin-bottom: 16px;
+  background: transparent;
+  border: 2px dashed var(--gold);
+  border-radius: var(--radius);
+  color: var(--gold);
+  font-family: var(--font-outfit);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  }
+
+/* SELECTOR: .btn-analise-imediata:hover */
+.btn-analise-imediata:hover {
+  background: rgba(212, 175, 55, 0.08);
+  border-style: solid;
+  transform: translateY(-1px);
+  }
+
+/* SELECTOR: .search-input-wrapper .btn-primary, 2399: .search-input-wrapper .btn-analise-imediata */
+.search-input-wrapper .btn-primary, 2399: .search-input-wrapper .btn-analise-imediata { width: 100%; justify-content: center; }
+
+/* SELECTOR: "File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\css\\style.css","LineNumber":1704,"LineContent":".analise-card */
+"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\css\\style.css","LineNumber":1704,"LineContent":".analise-card {"}
+
+/* SELECTOR: Created At: 2026-06-15T16:49:53Z Completed At: 2026-06-15T16:49:53Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2547 Total Bytes: 55191 Showing lines 1020 to 1060 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 1020: 1021: .qty-btn */
+Created At: 2026-06-15T16:49:53Z Completed At: 2026-06-15T16:49:53Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2547 Total Bytes: 55191 Showing lines 1020 to 1060 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 1020: 1021: .qty-btn {
+  background: var(--bg-3);
+  color: var(--gold);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  }
+
+/* SELECTOR: /* ── Análise ── */ 2492: .analise-body */
+/* ── Análise ── */ 2492: .analise-body { padding: 14px; }
+
+/* SELECTOR: .btn-iniciar-analise, 2495: .btn-confirmar-analise */
+.btn-iniciar-analise, 2495: .btn-confirmar-analise { width: 100%; }
+
+/* SELECTOR: Created At: 2026-06-15T16:56:05Z Completed At: 2026-06-15T16:56:05Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2565 Total Bytes: 55393 Showing lines 2490 to 2505 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 2490: 2491: /* ── Análise ── */ 2492: .analise-body */
+Created At: 2026-06-15T16:56:05Z Completed At: 2026-06-15T16:56:05Z File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css` Total Lines: 2565 Total Bytes: 55393 Showing lines 2490 to 2505 The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space. 2490: 2491: /* ── Análise ── */ 2492: .analise-body { padding: 14px; }
+
+/* SELECTOR: /* ── Saldo box ── */ 2498: .saldo-valores */
+/* ── Saldo box ── */ 2498: .saldo-valores { flex-direction: column; gap: 4px; }
+

@@ -1,0 +1,1 @@
+I will search all `scratch/step_*.css` files for `analise-sug-card` to see if they contain the rest of the missing CSS classes.

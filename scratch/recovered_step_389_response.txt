@@ -1,0 +1,61 @@
+Created At: 2026-06-15T15:08:47Z
+Completed At: 2026-06-15T15:08:47Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/index.html`
+Total Lines: 860
+Total Bytes: 41999
+Showing lines 258 to 310
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+258:           <!-- ANÁLISE IMEDIATA - Passo 2: Fechamento -->
+259:           <div id="analiseFecharCard" class="analise-card analise-fechar-card hidden">
+260:             <div class="analise-header analise-fechar-header">
+261:               <i data-lucide="activity"></i>
+262:               <div>
+263:                 <h4>Fechar Análise Imediata</h4>
+264:                 <p class="sub-txt">Informe o numerador atual para calcular o saldo</p>
+265:               </div>
+266:             </div>
+267:             <div class="analise-body">
+268:               <div class="analise-info-row">
+269:                 <span class="analise-label">Série:</span>
+270:                 <strong id="fecharSerie">---</strong>
+271:               </div>
+272:               <div class="analise-info-row">
+273:                 <span class="analise-label">Numerador Anterior:</span>
+274:                 <strong id="fecharNumeradorBase" class="gold-text">---</strong>
+275:               </div>
+276:               <div class="analise-info-row">
+277:                 <span class="analise-label">Resmas Adicionadas:</span>
+278:                 <strong id="fecharResmasAdicionadas">---</strong>
+279:               </div>
+280:               <div class="analise-info-row highlight-row">
+281:                 <span class="analise-label">Limite Calculado:</span>
+282:                 <strong id="fecharLimiteCalculado" class="gold-text">---</strong>
+283:               </div>
+284:               <div class="analise-divider"></div>
+285:               <div class="analise-input-row">
+286:                 <span class="analise-label">Novo Numerador Atual:</span>
+287:                 <input type="number" id="fecharNumeradorNovo" class="analise-counter-input" placeholder="0" oninput="fecharCalcularSaldo()" title="Contador atual">
+288:               </div>
+289:               <div class="analise-input-row">
+290:                 <span class="analise-label">Resmas Entrega Atual:</span>
+291:                 <div class="analise-qty-control">
+292:                   <button type="button" class="qty-btn" onclick="fecharAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button>
+293:                   <input type="number" id="fecharResmasInput" class="qty-input" value="1" min="1" title="Resmas">
+294:                   <button type="button" class="qty-btn" onclick="fecharAlterarResmas(1)" title="Aumentar"><i data-lucide="plus"></i></button>
+295:                 </div>
+296:               </div>
+297:               <div id="saldoBox" class="saldo-box hidden">
+298:                 <span class="saldo-label">Saldo de Produção:</span>
+299:                 <div class="saldo-valores">
+300:                   <strong id="fecharSaldo" class="saldo-value">---</strong>
+301:                   <span id="fecharSaldoDesc" class="saldo-desc"></span>
+302:                 </div>
+303:                 <span id="fecharSaldoResmas" class="saldo-resmas"></span>
+304:               </div>
+305:               <button class="btn-confirmar-analise" onclick="confirmarFechamentoAnalise()">
+306:                 <i data-lucide="check-circle"></i> CONFIRMAR ANÁLISE
+307:               </button>
+308:             </div>
+309:           </div>
+310: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

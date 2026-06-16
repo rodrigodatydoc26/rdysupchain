@@ -1,0 +1,12 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Change label from Numerador na Abertura to Numerador Anterior in index.html\"",
+  "EndLine": "275",
+  "Instruction": "\"Replace 'Numerador na Abertura:' with 'Numerador Anterior:'.\"",
+  "ReplacementContent": "\"              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"analise-label\\\">Numerador Anterior:</span>\\n                <strong id=\\\"fecharNumeradorBase\\\" class=\\\"gold-text\\\">---</strong>\\n              </div>\"",
+  "StartLine": "271",
+  "TargetContent": "\"              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"analise-label\\\">Numerador na Abertura:</span>\\n                <strong id=\\\"fecharNumeradorBase\\\" class=\\\"gold-text\\\">---</strong>\\n              </div>\"",
+  "TargetFile": "\"c:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\\\\index.html\"",
+  "toolAction": "\"Changing label to Numerador Anterior\"",
+  "toolSummary": "\"Replace file content\""
+}

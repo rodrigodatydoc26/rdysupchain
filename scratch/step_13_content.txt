@@ -1,0 +1,85 @@
+Created At: 2026-06-15T14:27:44Z
+Completed At: 2026-06-15T14:27:45Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/index.html`
+Total Lines: 723
+Total Bytes: 33424
+Showing lines 1 to 723
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: <!DOCTYPE html>
+2: <html lang="pt-BR" data-theme="light">
+3: <head>
+4:   <meta charset="UTF-8">
+5:   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6:   <title>RDY - DOC CONTROL · Balanceamento</title>
+7:   <link rel="stylesheet" href="css/style.css">
+8:   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+9:   <script src="https://unpkg.com/lucide@latest"></script>
+10:   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+11: </head>
+12: <body>
+13: 
+14:   <!-- LOGIN SCREEN -->
+15:   <div id="loginScreen" class="login-screen">
+16:     <div class="login-card">
+17:       <div class="login-header">
+18:         <div class="login-logo">
+19:           <i data-lucide="package"></i>
+20:           <span>RDY <strong>DOC CONTROL</strong></span>
+21:         </div>
+22:         <h2>Acesso Restrito</h2>
+23:         <p>Balanceamento de Papel · Antigravit</p>
+24:       </div>
+25:       <form id="loginForm" onsubmit="event.preventDefault(); doLogin()">
+26:         <div class="lform-group">
+27:           <label>Usuário</label>
+28:           <div class="linput-icon">
+29:             <i data-lucide="user"></i>
+30:             <input type="text" id="loginUser" placeholder="Digite seu usuário" autocomplete="username" required>
+31:           </div>
+32:         </div>
+33:         <div class="lform-group">
+34:           <label>Senha</label>
+35:           <div class="linput-icon">
+36:         
+<truncated 33387 bytes>
+click="fecharModalEdicaoHistorico()" title="Fechar">&times;</button>
+685:         </div>
+686:         <div class="modal-body">
+687:           <form id="formEditHistorico" onsubmit="event.preventDefault(); salvarEdicaoHistorico();">
+688:             <input type="hidden" id="editHistId">
+689:             <p id="editHistEquip" class="modal-subtitle">Série - Cliente</p>
+690:             
+691:             <div class="form-grid">
+692:               <div class="form-group">
+693:                 <label for="editHistQtd">Quantidade (Resmas)</label>
+694:                 <input type="number" id="editHistQtd" step="1" title="Quantidade" required>
+695:               </div>
+696:               <div class="form-group">
+697:                 <label for="editHistOs">Número da O.S.</label>
+698:                 <input type="text" id="editHistOs" title="Número da OS">
+699:               </div>
+700:               <div class="form-group">
+701:                 <label for="editHistStatus">Status</label>
+702:                 <select id="editHistStatus" class="form-select select-inline-premium" title="Status do registro">
+703:                   <option value="confirmado">CONFIRMADO</option>
+704:                   <option value="pendente">PENDENTE</option>
+705:                   <option value="entregue">ENTREGUE</option>
+706:                 </select>
+707:               </div>
+708:             </div>
+709:             
+710:             <div class="form-actions modal-actions">
+711:               <button type="button" class="btn-secondary" onclick="fecharModalEdicaoHistorico()" title="Cancelar Edição">CANCELAR</button>
+712:               <button type="submit" class="btn-primary" title="Salvar Alterações">SALVAR ALTERAÇÕES</button>
+713:             </div>
+714:           </form>
+715:         </div>
+716:       </div>
+717:     </div>
+718: 
+719:     <script src="js/app.js"></script>
+720:   <script>lucide.createIcons();</script>
+721: </body>
+722: </html>
+723: 
+The above content shows the entire, complete file contents of the requested file.

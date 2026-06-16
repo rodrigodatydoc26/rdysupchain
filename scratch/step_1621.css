@@ -1,0 +1,33 @@
+Created At: 2026-06-15T20:56:04Z
+Completed At: 2026-06-15T20:56:06Z
+The following changes were made by the replace_file_content tool to: c:\Users\Rodrigo Daty\Desktop\Projetos Antigravit\balanceamento\index.html. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -84,19 +84,15 @@
+         <button id="themeToggle" class="btn-theme-circle" title="Alternar Tema">
+           <i data-lucide="moon"></i>
+         </button>
+-        <div class="sync-indicator" id="syncIndicator">
++        <button id="btnSync" class="sync-indicator" onclick="sincronizarDados()" title="Baixar dados para uso offline">
+           <span id="syncLabel" class="sync-label">-</span>
+-          <button id="btnSync" class="btn-sync" onclick="sincronizarDados()" title="Baixar dados para uso offline">
+-            <i data-lucide="download-cloud"></i>
+-          </button>
+-        </div>
+-        <div id="userBadge" class="user-badge hidden">
++          <i data-lucide="download-cloud"></i>
++        </button>
++        <button id="userBadge" class="user-badge hidden" onclick="doLogout()" title="Sair do sistema">
+           <i data-lucide="user-circle-2"></i>
+           <span id="userLabel"></span>
+-          <button class="btn-logout" onclick="doLogout()" title="Sair do sistema">
+-            <i data-lucide="log-out"></i>
+-          </button>
+-        </div>
++          <i data-lucide="log-out" class="btn-logout-icon"></i>
++        </button>
+       </div>
+     </header>
+ 
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

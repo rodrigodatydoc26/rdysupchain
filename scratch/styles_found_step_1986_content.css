@@ -1,0 +1,20 @@
+Created At: 2026-06-16T11:24:29Z
+Completed At: 2026-06-16T11:24:29Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/scratch/log_found_step_635.json`
+Total Lines: 12
+Total Bytes: 5032
+Showing lines 1 to 12
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: {
+2:   "AllowMultiple": "false",
+3:   "Description": "\"Rename Análise Imediata to Análise Real in index.html.\"",
+4:   "EndLine": "270",
+5:   "Instruction": "\"Rename Análise Imediata to Análise Real at lines 199, 208, and 266.\"",
+6:   "ReplacementContent": "\"          <!-- ANÁLISE REAL - Botão -->\\n          <div id=\\\"analiseImediataBtn\\\" class=\\\"hidden\\\">\\n            <button class=\\\"btn-analise-imediata\\\" onclick=\\\"abrirAnaliseImediata()\\\">\\n              <i data-lucide=\\\"zap\\\"></i> Seguir com Análise Real\\n            </button>\\n          </div>\\n\\n          <!-- ANÁLISE REAL - Passo 1: Abertura -->\\n          <div id=\\\"analiseAbertaCard\\\" class=\\\"analise-card hidden\\\">\\n            <div class=\\\"analise-header\\\">\\n              <i data-lucide=\\\"zap\\\"></i>\\n              <div>\\n                <h4>Análise Real</h4>\\n                <p class=\\\"sub-txt\\\">Registre o numerador e as resmas adicionadas</p>\\n              </div>\\n              <button class=\\\"btn-close-analise\\\" onclick=\\\"fecharCardAnalise()\\\" title=\\\"Fechar\\\">\\n                <i data-lucide=\\\"x\\\"></i>\\n              </button>\\n            </div>\\n            <div class=\\\"analise-body\\\">\\n              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"analise-label\\\">Série:</span>\\n                <strong id=\\\"analiseSerie\\\">---</strong>\\n              </div>\\n              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"anal
+<truncated 1545 bytes>
+  <i data-lucide=\\\"zap\\\"></i>\\n              <div>\\n                <h4>Análise Imediata</h4>\\n                <p class=\\\"sub-txt\\\">Registre o numerador e as resmas adicionadas</p>\\n              </div>\\n              <button class=\\\"btn-close-analise\\\" onclick=\\\"fecharCardAnalise()\\\" title=\\\"Fechar\\\">\\n                <i data-lucide=\\\"x\\\"></i>\\n              </button>\\n            </div>\\n            <div class=\\\"analise-body\\\">\\n              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"analise-label\\\">Série:</span>\\n                <strong id=\\\"analiseSerie\\\">---</strong>\\n              </div>\\n              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"analise-label\\\">Numerador Atual:</span>\\n                <input type=\\\"number\\\" id=\\\"analiseNumeradorAtual\\\" class=\\\"analise-counter-input\\\" placeholder=\\\"0\\\" required oninput=\\\"analiseNumeradorChanged(); syncContador('analiseNumeradorAtual')\\\" title=\\\"Numerador atual\\\">\\n              </div>\\n\\n              <!-- CARD DE SUGESTÃO DINÂMICO -->\\n              <div id=\\\"analiseSugestaoCard\\\" class=\\\"analise-sug-card analise-sug-neutral\\\">\\n                <div class=\\\"analise-sug-valor\\\">\\n                  <span id=\\\"analiseSugValor\\\">0</span>\\n                  <span class=\\\"analise-sug-unit\\\">Resmas</span>\\n                </div>\\n                <div class=\\\"analise-sug-info\\\">\\n                  <h5 id=\\\"analiseSugTitulo\\\">AGUARDANDO LEITURA</h5>\\n                  <p id=\\\"analiseSugSubtitulo\\\">Insira o numerador atual para o cál\n<truncated 2093 bytes>",
+9:   "TargetFile": "\"c:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\\\\index.html\"",
+10:   "toolAction": "\"Renaming Analise Imediata to Analise Real in HTML\"",
+11:   "toolSummary": "\"Rename labels in index.html\""
+12: }
+The above content shows the entire, complete file contents of the requested file.

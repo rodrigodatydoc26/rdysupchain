@@ -1,0 +1,60 @@
+Created At: 2026-06-15T15:20:02Z
+Completed At: 2026-06-15T15:20:02Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/js/app.js`
+Total Lines: 1847
+Total Bytes: 82333
+Showing lines 1 to 800
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: // RDY DOC CONTROL - App Logic (Direct Supabase)
+2: const SUPABASE_URL = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
+3: const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
+4: 
+5: // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+6: // AUTH â€” perfis de acesso
+7: // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+8: const USERS = {
+9:     'cto':            { password: '123456',  role: 'cto',     label: 'CTO',               cidade: null },
+10:     'limeira':        { password: '123456',   role: 'gestor',  label: 'Gestor Limeira',    cidade: 'LIMEIRA' },
+11:     'indaiatuba':     { password: '123456',   role: 
+<truncated 34760 bytes>
+ento_entregas?equipamento_id=eq.${equipId}&status=eq.analise_aberta&order=data_registro.desc&limit=1`);
+762:         return res.length > 0 ? res[0] : null;
+763:     } catch (e) {
+764:         return null;
+765:     }
+766: }
+767: 
+768: function abrirAnaliseImediata() {
+769:     const equip = state.equipamento;
+770:     if (!equip) return;
+771:     document.getElementById('analiseSerie').innerText = equip.serie;
+772:     document.getElementById('analiseNumeradorAtual').value = '';
+773:     document.getElementById('analiseResmas').value = 1;
+774:     _setAnaliseSugStatus('neutral', 0, 'AGUARDANDO LEITURA', 'Insira o numerador atual para o cálculo.');
+775:     document.getElementById('btnAplicarSugestao').classList.add('hidden');
+776:     analiseCalcularLimite();
+777:     document.getElementById('analiseImediataBtn').classList.add('hidden');
+778:     document.getElementById('analiseAbertaCard').classList.remove('hidden');
+779:     lucide.createIcons();
+780: }
+781: 
+782: function fecharCardAnalise() {
+783:     document.getElementById('analiseAbertaCard').classList.add('hidden');
+784:     document.getElementById('analiseImediataBtn').classList.remove('hidden');
+785: }
+786: 
+787: function analiseAlterarResmas(delta) {
+788:     const input = document.getElementById('analiseResmas');
+789:     input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+790:     analiseCalcularLimite();
+791: }
+792: 
+793: function _setAnaliseSugStatus(status, valor, titulo, subtitulo) {
+794:     const card = document.getElementById('analiseSugestaoCard');
+795:     card.className = `analise-sug-card analise-sug-${status}`;
+796:     document.getElementById('analiseSugValor').innerText = valor;
+797:     document.getElementById('analiseSugTitulo').innerText = titulo;
+798:     document.getElementById('analiseSugSubtitulo').innerText = subtitulo;
+799: }
+800: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

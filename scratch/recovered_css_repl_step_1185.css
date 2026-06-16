@@ -1,0 +1,1 @@
+".data-table tbody tr:hover {\n  background: var(--surface);\n}\n\n@media (max-width: 1200px) {\n  .data-table th, .data-table td {\n    padding: 6px 8px;\n    font-size: 0.8rem;\n  }\n}"

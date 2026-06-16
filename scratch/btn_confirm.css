@@ -1,0 +1,51 @@
+
+/* ============================================================ */
+/* BOTÕES DE CONFIRMAÇÃO DA ANÁLISE                             */
+/* ============================================================ */
+
+.btn-iniciar-analise,
+.btn-confirmar-analise {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--gold) 0%, #e8c65f 100%);
+  color: #000;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-outfit);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 12px;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+}
+
+.btn-iniciar-analise i,
+.btn-confirmar-analise i {
+  color: #000;
+  transition: transform 0.3s ease;
+}
+
+.btn-iniciar-analise:hover,
+.btn-confirmar-analise:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  background: linear-gradient(135deg, #f5d46c 0%, var(--gold) 100%);
+}
+
+.btn-iniciar-analise:hover i,
+.btn-confirmar-analise:hover i {
+  transform: scale(1.1);
+}
+
+.btn-iniciar-analise:active,
+.btn-confirmar-analise:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}

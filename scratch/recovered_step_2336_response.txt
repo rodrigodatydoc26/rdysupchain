@@ -1,0 +1,114 @@
+Created At: 2026-06-16T12:11:38Z
+Completed At: 2026-06-16T12:11:38Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/scratch/styles_found_step_476_content.css`
+Total Lines: 110
+Total Bytes: 3231
+Showing lines 1 to 110
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: Created At: 2026-06-15T15:15:51Z
+2: Completed At: 2026-06-15T15:15:52Z
+3: File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+4: Total Lines: 2539
+5: Total Bytes: 54919
+6: Showing lines 1700 to 1800
+7: The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+8: 1700:   border: 1px solid var(--border);
+9: 1701:   border-radius: var(--radius);
+10: 1702:   margin-bottom: 16px;
+11: 1703:   overflow: hidden;
+12: 1704: }
+13: 1705: 
+14: 1706: .analise-fechar-card {
+15: 1707:   border-color: rgba(16, 185, 129, 0.4);
+16: 1708: }
+17: 1709: 
+18: 1710: .analise-header {
+19: 1711:   display: flex;
+20: 1712:   align-items: center;
+21: 1713:   gap: 12px;
+22: 1714:   padding: 16px 20px;
+23: 1715:   border-bottom: 1px solid var(--border);
+24: 1716:   background: var(--surface);
+25: 1717: }
+26: 1718: 
+27: 1719: .analise-fechar-header {
+28: 1720:   background: rgba(16, 185, 129, 0.05);
+29: 1721: }
+30: 1722: 
+31: 1723: .analise-header i {
+32: 1724:   color: var(--gold);
+33: 1725:   flex-shrink: 0;
+34: 1726: }
+35: 1727: 
+36: 1728: .analise-fechar-header i {
+37: 1729:   color: var(--success);
+38: 1730: }
+39: 1731: 
+40: 1732: .analise-header h4 {
+41: 1733:   font-size: 0.9375rem;
+42: 1734:   font-weight: 600;
+43: 1735:   line-height: 1.2;
+44: 1736: }
+45: 1737: 
+46: 1738: .an
+<truncated 159 bytes>
+ .btn-close-analise {
+53: 1745:   margin-left: auto;
+54: 1746:   background: none;
+55: 1747:   border: none;
+56: 1748:   cursor: pointer;
+57: 1749:   color: var(--text-dim);
+58: 1750:   display: flex;
+59: 1751:   align-items: center;
+60: 1752:   padding: 4px;
+61: 1753:   border-radius: 6px;
+62: 1754:   transition: var(--transition);
+63: 1755: }
+64: 1756: 
+65: 1757: .btn-close-analise:hover { color: var(--danger); }
+66: 1758: 
+67: 1759: .analise-body {
+68: 1760:   padding: 20px;
+69: 1761:   display: flex;
+70: 1762:   flex-direction: column;
+71: 1763:   gap: 12px;
+72: 1764: }
+73: 1765: 
+74: 1766: .analise-info-row {
+75: 1767:   display: flex;
+76: 1768:   justify-content: space-between;
+77: 1769:   align-items: center;
+78: 1770:   padding: 8px 0;
+79: 1771:   border-bottom: 1px solid var(--border);
+80: 1772:   font-size: 0.875rem;
+81: 1773: }
+82: 1774: 
+83: 1775: .analise-info-row:last-of-type { border-bottom: none; }
+84: 1776: 
+85: 1777: .analise-info-row.highlight-row {
+86: 1778:   background: rgba(212, 175, 55, 0.06);
+87: 1779:   padding: 10px 12px;
+88: 1780:   border-radius: var(--radius-sm);
+89: 1781:   border: 1px solid rgba(212, 175, 55, 0.2);
+90: 1782: }
+91: 1783: 
+92: 1784: .analise-label { color: var(--text-dim); }
+93: 1785: 
+94: 1786: .analise-divider {
+95: 1787:   height: 1px;
+96: 1788:   background: var(--border);
+97: 1789:   margin: 4px 0;
+98: 1790: }
+99: 1791: 
+100: 1792: /* Card de sugestão dinâmico */
+101: 1793: .analise-sug-card {
+102: 1794:   display: flex;
+103: 1795:   align-items: center;
+104: 1796:   gap: 16px;
+105: 1797:   padding: 14px 16px;
+106: 1798:   border: 2px solid;
+107: 1799:   border-radius: var(--radius-sm);
+108: 1800:   transition: var(--transition);
+109: The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+110: 
+The above content shows the entire, complete file contents of the requested file.

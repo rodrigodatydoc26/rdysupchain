@@ -1,0 +1,149 @@
+Created At: 2026-06-16T11:29:36Z
+Completed At: 2026-06-16T11:29:36Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 1889
+Total Bytes: 36472
+Showing lines 1400 to 1889
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1400: 
+1401: .suggestions-list.hidden {
+1402:   display: none;
+1403: }
+1404: 
+1405: .suggestion-item {
+1406:   padding: 12px 20px;
+1407:   cursor: pointer;
+1408:   border-bottom: 1px solid var(--border);
+1409:   transition: var(--transition);
+1410: }
+1411: 
+1412: .suggestion-item:last-child {
+1413:   border-bottom: none;
+1414: }
+1415: 
+1416: .suggestion-item:hover {
+1417:   background: rgba(212, 175, 55, 0.1);
+1418: }
+1419: 
+1420: .sugg-main {
+1421:   display: flex;
+1422:   justify-content: space-between;
+1423:   align-items: center;
+1424:   margin-bottom: 4px;
+1425: }
+1426: 
+1427: .tag-sm {
+1428:   font-size: 0.65rem;
+1429:   background: var(--gold);
+1430:   color: #000;
+1431:   padding: 2px 8px;
+1432:   border-radius: 4px;
+1433:   font-weight: 700;
+1434: }
+1435: 
+1436: .sub {
+1437:   font-size: 0.8rem;
+1438:   color: var(--text-dim);
+1439: }
+1440: 
+1441: /* ── SCREEN VISIBILITY ─────────────────────────────────── */
+1442: #loginScreen { display: none; }
+1443: #appContainer { display: none; }
+1444: #adminApp { display: none; }
+1445: 
+1446: /* ── LOGIN SCREEN ──────────────────────────────────────── */
+1447: .login-screen {
+1448:   position: fixed;
+1449:   inset: 0;
+1450:   background: var(--bg-0);
+1451:   align-items: center;
+1452:   justify-content: center;
+1453:   z-index: 1000;
+1454: }
+1455: 
+1456: .login-card {
+1457:   background
+<truncated 8651 bytes>
+ solid var(--border);
+1809:   font-family: inherit;
+1810:   color: var(--text);
+1811:   font-weight: 600;
+1812:   cursor: pointer;
+1813:   display: inline-flex;
+1814:   align-items: center;
+1815:   transition: var(--transition);
+1816: }
+1817: 
+1818: .sync-indicator {
+1819:   gap: 8px;
+1820:   padding: 8px 14px;
+1821:   border-radius: var(--radius-sm);
+1822:   font-size: 0.82rem;
+1823: }
+1824: 
+1825: .sync-indicator:hover {
+1826:   border-color: var(--gold);
+1827:   background: rgba(212, 175, 55, 0.05);
+1828: }
+1829: 
+1830: .sync-indicator i, .sync-indicator svg {
+1831:   color: var(--gold);
+1832:   width: 16px;
+1833:   height: 16px;
+1834: }
+1835: 
+1836: .sync-indicator:disabled {
+1837:   opacity: 0.4;
+1838:   cursor: not-allowed;
+1839: }
+1840: 
+1841: .sync-label {
+1842:   color: var(--text-dim);
+1843:   font-size: 0.82rem;
+1844: }
+1845: 
+1846: .user-badge {
+1847:   gap: 8px;
+1848:   border-radius: 100px;
+1849:   padding: 6px 14px;
+1850:   font-size: 0.82rem;
+1851: }
+1852: 
+1853: .user-badge:hover {
+1854:   border-color: var(--danger);
+1855:   background: rgba(239, 68, 68, 0.05);
+1856: }
+1857: 
+1858: .user-badge:hover .btn-logout-icon {
+1859:   color: var(--danger);
+1860:   transform: translateX(2px);
+1861: }
+1862: 
+1863: .user-badge > i, .user-badge > svg {
+1864:   color: var(--text);
+1865:   width: 16px;
+1866:   height: 16px;
+1867: }
+1868: 
+1869: .btn-logout-icon {
+1870:   color: var(--text-dim);
+1871:   width: 14px;
+1872:   height: 14px;
+1873:   margin-left: 2px;
+1874:   transition: var(--transition);
+1875:   display: flex;
+1876:   align-items: center;
+1877: }
+1878: 
+1879: @media (max-width: 768px) {
+1880:   .sync-label {
+1881:     display: none;
+1882:   }
+1883:   .sync-indicator {
+1884:     padding: 8px 10px;
+1885:   }
+1886: }
+1887: 
+1888: 
+1889: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

@@ -1,0 +1,7 @@
+{
+  "CommandLine": "\"node scratch/find_analise_styles.js\"",
+  "Cwd": "\"c:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\"",
+  "WaitMsBeforeAsync": "5000",
+  "toolAction": "\"Running styles search script\"",
+  "toolSummary": "\"Command execution\""
+}

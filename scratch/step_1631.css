@@ -1,0 +1,135 @@
+Created At: 2026-06-15T20:57:01Z
+Completed At: 2026-06-15T20:57:06Z
+
+				The command completed successfully.
+				Output:
+				<truncated 1 lines>
++  .btn-filter-premium   { width: 100%; justify-content: center; }
++
++  /* ── Opções de entrega ── */
++  .options-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
++  .opt-header   { font-size: 0.7rem; }
++  .qtd          { font-size: 1.6rem; }
++
++  /* ── Media stats ── */
++  .media-stats { flex-direction: column; gap: 12px; }
++  .stat-divider { display: none; }
++
++  /* ── Resumo ── */
++  .summary-column { margin-top: 0; }
++  .summary-card   { padding: 16px 14px; }
++  .action-row     { flex-direction: column; }
++  .btn-success    { width: 100%; justify-content: center; }
++
++  /* ── Equip tags ── */
++  .equip-tags { flex-wrap: wrap; gap: 6px; }
++  .tag        { font-size: 0.7rem; padding: 3px 8px; }
++
++  /* ── Tabelas ── */
++  .data-table          { font-size: 0.77rem; }
++  .data-table th,
++  .data-table td       { padding: 8px 8px; white-space: nowrap; }
++
++  /* ── Formulários ── */
++  .form-grid      { grid-template-columns: 1fr; gap: 12px; }
++  .full-width     { grid-column: 1; }
++  .form-actions   { flex-direction: column; }
++  .btn-large      { width: 100%; justify-content: center; }
++
++  /* ── Histórico header ── */
++  .historico-header { flex-direction: column; align-items: flex-start; gap: 10px; }
++  .header-actions   { display: flex; gap: 8px; width: 100%; }
++  .header-actions .btn-outline { flex: 1; justify-content: center; }
++  .header-title-group { width: 100%; }
++
++  /* ── Quick filters ── */
++  .quick-filters { flex-wrap: wrap; gap: 6px; }
++  .filter-chip   { font-size: 0.75rem; padding: 5px 10px; }
++
++  /* ── Paginação ── */
++  .pagination-container { flex-direction: column; align-items: flex-start; gap: 10px; }
++  .pagination-controls  { width: 100%; justify-content: center; }
++
++  /* ── Modais ── */
++  .modal-content {
++    max-width: calc(100vw - 24px);
++    max-
+<truncated 4241 bytes>
+text-transform: uppercase;
++    letter-spacing: 0.05em;
++  }
++  #historicoTable tfoot tr.total-row #totalResmas {
++    font-size: 2.25rem;
++    font-weight: 800;
++    line-height: 1;
++    margin: 4px 0;
++  }
++}
++
++/* ════════════════════════════════════════════════════
++   RESPONSIVO — MOBILE PEQUENO (≤ 480px)
++════════════════════════════════════════════════════ */
++@media (max-width: 480px) {
++  .logo span { display: none; }
++  .kpi-value { font-size: 1.5rem; }
++  .kpi-grid  { gap: 8px; }
++  .kpi-card  { padding: 14px 12px; }
++
++  .options-grid { gap: 6px; }
++  .option-card  { padding: 12px 8px; }
++
++  .search-card { padding: 14px 12px; }
++  .main-content { padding: 8px 10px; }
++  .topbar { padding: 8px 12px; }
++
++  /* Tabelas: ocultar colunas menos críticas */
++  .data-table .hide-mobile { display: none; }
++}
++/* ── SYNC INDICATOR ── */
++.sync-indicator {
++  display: flex;
++  align-items: center;
++  gap: 6px;
++  padding: 5px 10px;
++  background: var(--bg-2);
++  border: 1px solid var(--border);
++  border-radius: var(--radius-sm);
++}
++.sync-label {
++  font-size: 0.68rem;
++  color: var(--text-dim);
++  white-space: nowrap;
++  max-width: 120px;
++  overflow: hidden;
++  text-overflow: ellipsis;
++}
++.btn-sync {
++  background: none;
++  border: none;
++  color: var(--gold);
++  cursor: pointer;
++  padding: 2px;
++  display: flex;
++  align-items: center;
++  transition: var(--transition);
++}
++.btn-sync:hover { opacity: 0.7; }
++.btn-sync i { width: 15px; height: 15px; }
++.btn-sync:disabled { opacity: 0.4; cursor: not-allowed; }
++
++@media (max-width: 768px) {
++  .sync-label { display: none; }
++  .sync-indicator { padding: 5px 8px; }
++}
++
++.btn-ver-historico {
++  margin-left: auto;
++  margin-right: 15px;
++}
++
++.opt-header-recomendado {
++  color: var(--gold);
++  font-weight: 700;
++}
+\ No newline at end of file
+

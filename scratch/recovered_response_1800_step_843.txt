@@ -1,0 +1,135 @@
+Created At: 2026-06-15T16:49:43Z
+Completed At: 2026-06-15T16:49:43Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2547
+Total Bytes: 55191
+Showing lines 1801 to 1950
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1801:   align-items: center;
+1802:   gap: 16px;
+1803:   padding: 14px 16px;
+1804:   border: 2px solid;
+1805:   border-radius: var(--radius-sm);
+1806:   transition: var(--transition);
+1807: }
+1808: 
+1809: .analise-sug-neutral {
+1810:   background: var(--surface);
+1811:   border-color: var(--border);
+1812:   border-style: dashed;
+1813: }
+1814: 
+1815: .analise-sug-success {
+1816:   background: rgba(16, 185, 129, 0.05);
+1817:   border-color: rgba(16, 185, 129, 0.35);
+1818: }
+1819: 
+1820: .analise-sug-error {
+1821:   background: rgba(239, 68, 68, 0.05);
+1822:   border-color: rgba(239, 68, 68, 0.35);
+1823: }
+1824: 
+1825: .analise-sug-valor {
+1826:   text-align: center;
+1827:   min-width: 52px;
+1828:   flex-shrink: 0;
+1829: }
+1830: 
+1831: .analise-sug-valor span:first-child {
+1832:   display: block;
+1833:   font-size: 2rem;
+1834:   font-weight: 800;
+1835:   line-height: 1;
+1836: }
+1837: 
+1838: .analise-sug-neutral .analise-sug-valor span:first-child { color: var(--text-dim); }
+1839: .analise-sug-success .analise-sug-valor span:first-child { color: var(--text); }
+1840: .analise-sug-error   .analise-sug-valor span:first-child { color: var(--danger); }
+1841: 
+1842: .analise-sug-unit {
+1843:   display: block;
+1844:   font-size: 0.625rem;
+1845:   font-weight: 700;
+1846:   text-transform: uppercase;
+1847:   letter-spacing: 0.06em;
+1848:   color: var(--text-dim);
+1849:   margin-top: 3px;
+1850: }
+1851: 
+1852: .analise-sug-info { flex: 1; }
+1853: 
+1854: .analise-sug-info h5 {
+1855:   font-size: 0.6875rem;
+1
+<truncated 788 bytes>
+--border);
+1882:   border-radius: var(--radius-sm);
+1883:   cursor: pointer;
+1884:   color: var(--text-dim);
+1885:   transition: var(--transition);
+1886:   flex-shrink: 0;
+1887: }
+1888: 
+1889: .btn-aplicar-sug:hover {
+1890:   border-color: var(--gold);
+1891:   color: var(--gold);
+1892: }
+1893: 
+1894: .analise-input-row {
+1895:   display: flex;
+1896:   align-items: center;
+1897:   justify-content: space-between;
+1898:   gap: 16px;
+1899:   font-size: 0.875rem;
+1900: }
+1901: 
+1902: .analise-label { color: var(--text-dim); white-space: nowrap; }
+1903: 
+1904: .analise-qty-control {
+1905:   display: flex;
+1906:   align-items: center;
+1907:   gap: 8px;
+1908: }
+1909: 
+1910: .analise-counter-input {
+1911:   width: 160px;
+1912:   padding: 10px 14px;
+1913:   background: var(--bg-2);
+1914:   border: 1px solid var(--border);
+1915:   border-radius: var(--radius-sm);
+1916:   color: var(--text);
+1917:   font-size: 1rem;
+1918:   font-weight: 600;
+1919:   text-align: right;
+1920: }
+1921: 
+1922: .analise-counter-input:focus {
+1923:   outline: none;
+1924:   border-color: var(--success);
+1925: }
+1926: 
+1927: .analise-resultado {
+1928:   display: flex;
+1929:   align-items: center;
+1930:   justify-content: space-between;
+1931:   gap: 8px;
+1932:   padding: 12px 16px;
+1933:   background: var(--surface);
+1934:   border-radius: var(--radius-sm);
+1935:   font-size: 0.875rem;
+1936: }
+1937: 
+1938: .analise-resultado span:first-child { color: var(--text-dim); }
+1939: .analise-unit { color: var(--text-dim); font-size: 0.75rem; }
+1940: 
+1941: .analise-os-input {
+1942:   width: 100%;
+1943:   padding: 10px 14px;
+1944:   background: var(--bg-2);
+1945:   border: 1px solid var(--border);
+1946:   border-radius: var(--radius-sm);
+1947:   color: var(--text);
+1948:   font-size: 0.875rem;
+1949: }
+1950: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

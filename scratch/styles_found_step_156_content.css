@@ -1,0 +1,85 @@
+Created At: 2026-06-15T14:52:08Z
+Completed At: 2026-06-15T14:52:08Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2526
+Total Bytes: 54760
+Showing lines 2300 to 2400
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2300: /* ── ANÁLISE RÁPIDA DIRETA ── */
+2301: .analise-rapida-direct {
+2302:   border-color: rgba(212,175,55,0.4);
+2303:   background: var(--bg-1);
+2304: }
+2305: .analise-rapida-direct h2 i { color: var(--gold); }
+2306: /* ════════════════════════════════════════════════════
+2307:    BANNERS OFFLINE / SYNC
+2308: ════════════════════════════════════════════════════ */
+2309: .offline-banner {
+2310:   position: fixed; bottom: 0; left: 0; right: 0; z-index: 10000;
+2311:   display: flex; align-items: center; gap: 10px;
+2312:   padding: 12px 20px;
+2313:   background: rgba(239,68,68,0.95); color: #fff;
+2314:   font-size: 0.875rem; font-weight: 600;
+2315:   backdrop-filter: blur(8px);
+2316: }
+2317: .offline-banner.hidden { display: none !important; }
+2318: .offline-banner i { flex-shrink: 0; }
+2319: .offline-banner span { flex: 1; }
+2320: .btn-banner-close { background: none; border: none; color: #fff; cursor: pointer; padding: 4px; }
+2321: 
+2322: .sync-banner {
+2323:   position: fixed; bottom: 0; left: 0; right: 0; z-index: 10000;
+2324:   display: flex; align-items: center; justify-content: center; gap: 10px;
+2325:   padding: 10px 20px;
+2326:   background: rgba(212,175,55,0.95); color: #000;
+2327:   font-size: 0.875rem; font-weight: 700;
+2328:   backdrop-filter: blur(8px);
+2329: }
+2330: .sync-banner.hidden { display: none !important; }
+23
+<truncated 1516 bytes>
+e;
+2358:     flex-wrap: nowrap;
+2359:     padding-bottom: 2px;
+2360:     gap: 4px;
+2361:   }
+2362:   .nav-tabs::-webkit-scrollbar { display: none; }
+2363:   .tab-btn { white-space: nowrap; flex-shrink: 0; padding: 8px 12px; font-size: 0.75rem; }
+2364:   .tab-btn i { width: 14px; height: 14px; }
+2365: 
+2366:   /* ── App container ── */
+2367:   .app-container { padding: 0; }
+2368:   .main-content  { padding: 12px 14px; }
+2369: 
+2370:   /* ── Cards gerais ── */
+2371:   .search-card     { padding: 18px 14px; border-radius: 12px; }
+2372:   .media-card      { padding: 16px 14px; }
+2373:   .info-card       { padding: 16px 14px; }
+2374:   .analise-card    { padding: 16px 14px; }
+2375: 
+2376:   /* ── Busca ── */
+2377:   .search-input-wrapper  { flex-direction: column; }
+2378:   .search-input-wrapper input { width: 100%; box-sizing: border-box; }
+2379:   .search-input-wrapper .btn-primary,
+2380:   .search-input-wrapper .btn-analise-imediata { width: 100%; justify-content: center; }
+2381: 
+2382:   /* ── Análise rápida direta ── */
+2383:   .analise-rapida-direct .search-input-wrapper { flex-direction: column; }
+2384: 
+2385:   /* ── Filtros ── */
+2386:   .filter-controls-wide { flex-direction: column; gap: 8px; }
+2387:   .date-range-group     { width: 100%; }
+2388:   .date-range-group input { flex: 1; min-width: 0; }
+2389:   .search-input-group   { width: 100%; }
+2390:   .btn-filter-premium   { width: 100%; justify-content: center; }
+2391: 
+2392:   /* ── Opções de entrega ── */
+2393:   .options-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+2394:   .opt-header   { font-size: 0.7rem; }
+2395:   .qtd          { font-size: 1.6rem; }
+2396: 
+2397:   /* ── Media stats ── */
+2398:   .media-stats { flex-direction: column; gap: 12px; }
+2399:   .stat-divider { display: none; }
+2400: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

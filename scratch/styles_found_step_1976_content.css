@@ -1,0 +1,18 @@
+Created At: 2026-06-16T11:23:41Z
+Completed At: 2026-06-16T11:23:42Z
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":182,"LineContent":"          \u003cdiv id=\"analiseAbertaCard\" class=\"analise-card hidden\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":183,"LineContent":"            \u003cdiv class=\"analise-header\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":193,"LineContent":"            \u003cdiv class=\"analise-body\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":194,"LineContent":"              \u003cdiv class=\"analise-info-row\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":195,"LineContent":"                \u003cspan class=\"analise-label\"\u003eSérie:\u003c/span\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":198,"LineContent":"              \u003cdiv class=\"analise-info-row\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":199,"LineContent":"                \u003cspan class=\"analise-label\"\u003eNumerador Atual:\u003c/span\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":200,"LineContent":"                \u003cinput type=\"number\" id=\"analiseNumeradorAtual\" class=\"analise-counter-input\" placeholder=\"0\" required oninput=\"analiseNumeradorChanged(); syncContador('analiseNumeradorAtual')\" title=\"Numerador atual\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2314,"LineContent":".analise-rapida-direct {"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2318,"LineContent":".analise-rapida-direct h2 i { color: var(--gold); }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2320,"LineContent":".analise-rapida-direct {"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2324,"LineContent":".analise-rapida-direct h2 i { color: var(--gold); }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2494,"LineContent":"  .analise-body { padding: 14px; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2495,"LineContent":"  .analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2501,"LineContent":"  .analise-body { padding: 14px; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2502,"LineContent":"  .analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }"}

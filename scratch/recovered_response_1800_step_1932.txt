@@ -1,0 +1,29 @@
+Created At: 2026-06-16T11:19:32Z
+Completed At: 2026-06-16T11:19:32Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 1805
+Total Bytes: 34980
+Showing lines 1785 to 1805
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1785: }
+1786: 
+1787: .filter-chip:hover {
+1788:   border-color: var(--gold);
+1789:   color: var(--gold);
+1790:   background: rgba(212, 175, 55, 0.05);
+1791:   transform: translateY(-1px);
+1792: }
+1793: 
+1794: .filter-chip i {
+1795:   width: 14px;
+1796:   height: 14px;
+1797: }
+1798: 
+1799: .filter-chip.active {
+1800:   background: var(--gold);
+1801:   color: #000;
+1802:   border-color: var(--gold);
+1803: }
+1804: 
+1805: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

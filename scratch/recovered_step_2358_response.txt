@@ -1,0 +1,80 @@
+Created At: 2026-06-16T12:12:15Z
+Completed At: 2026-06-16T12:12:15Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/index.html`
+Total Lines: 830
+Total Bytes: 38178
+Showing lines 200 to 350
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+200:               <i data-lucide="zap"></i> Seguir com Análise Real
+201:             </button>
+202:           </div>
+203: 
+204:           <!-- ANÁLISE REAL - Passo 1: Abertura -->
+205:           <div id="analiseAbertaCard" class="analise-card hidden">
+206:             <div class="analise-header">
+207:               <i data-lucide="zap"></i>
+208:               <div>
+209:                 <h4>Análise Real</h4>
+210:                 <p class="sub-txt">Registre o numerador e as resmas adicionadas</p>
+211:               </div>
+212:               <button class="btn-close-analise" onclick="fecharCardAnalise()" title="Fechar">
+213:                 <i data-lucide="x"></i>
+214:               </button>
+215:             </div>
+216:             <div class="analise-body">
+217:               <div class="analise-info-row">
+218:                 <span class="analise-label">Série:</span>
+219:                 <strong id="analiseSerie">---</strong>
+220:               </div>
+221:               <div class="analise-info-row">
+222:                 <span class="analise-label">Numerador Atual:</span>
+223:                 <input type="number" id="analiseNumeradorAtual" class="analise-counter-input" placeholder="0" required oninput="analiseNumeradorChanged(); syncContador('analiseNumeradorAtual')" title="Numerador atual">
+224:               </div>
+225: 
+226:               <!-- CARD DE SUGESTÃO DINÂMICO -->
+227:               <div id="analiseSugestaoCard" class="analise-sug-card analise-sug-neutral">
+228:                 <div class="analise-sug-valor">
+229:                   
+<truncated 5143 bytes>
+ÁLISE
+311:               </button>
+312:             </div>
+313:           </div>
+314: 
+315:           <div class="options-section">
+316:             <h4><i data-lucide="box"></i> OPÇÕES DE ENTREGA</h4>
+317:             <div class="options-grid">
+318:               
+319:               <div class="option-card" data-opcao="rec" onclick="selecionarOpcao('rec')">
+320:                 <div class="opt-header opt-header-recomendado">Recomendado</div>
+321:                 <div class="opt-body">
+322:                   <span class="qtd" id="optRecQtd">0</span> resmas
+323:                 </div>
+324:                 <div class="opt-footer">consumo real</div>
+325:               </div>
+326: 
+327:               <div class="option-card" data-opcao="1" onclick="selecionarOpcao(1)">
+328:                 <div class="opt-header">1x por mês</div>
+329:                 <div class="opt-body">
+330:                   <span class="qtd" id="opt1Qtd">0</span> resmas
+331:                 </div>
+332:                 <div class="opt-footer">entrega única</div>
+333:               </div>
+334: 
+335:               <div class="option-card" data-opcao="2" onclick="selecionarOpcao(2)">
+336:                 <div class="opt-header">2x por mês</div>
+337:                 <div class="opt-body">
+338:                   <span class="qtd" id="opt2Qtd">0</span> resmas
+339:                 </div>
+340:                 <div class="opt-footer">cada entrega</div>
+341:               </div>
+342: 
+343:               <div class="option-card" data-opcao="3" onclick="selecionarOpcao(3)">
+344:                 <div class="opt-header">3x por mês</div>
+345:                 <div class="opt-body">
+346:                   <span class="qtd" id="opt3Qtd">0</span> resmas
+347:                 </div>
+348:                 <div class="opt-footer">cada entrega</div>
+349:               </div>
+350: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

@@ -1,0 +1,12 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Add Resmas Entrega Atual input to the close analysis card in index.html\"",
+  "EndLine": "289",
+  "Instruction": "\"Add the Resmas Entrega Atual input row.\"",
+  "ReplacementContent": "\"              <div class=\\\"analise-divider\\\"></div>\\n              <div class=\\\"analise-input-row\\\">\\n                <span class=\\\"analise-label\\\">Novo Numerador Atual:</span>\\n                <input type=\\\"number\\\" id=\\\"fecharNumeradorNovo\\\" class=\\\"analise-counter-input\\\" placeholder=\\\"0\\\" oninput=\\\"fecharCalcularSaldo()\\\" title=\\\"Contador atual\\\">\\n              </div>\\n              <div class=\\\"analise-input-row\\\">\\n                <span class=\\\"analise-label\\\">Resmas Entrega Atual:</span>\\n                <div class=\\\"analise-qty-control\\\">\\n                  <button type=\\\"button\\\" class=\\\"qty-btn\\\" onclick=\\\"fecharAlterarResmas(-1)\\\" title=\\\"Diminuir\\\"><i data-lucide=\\\"minus\\\"></i></button>\\n                  <input type=\\\"number\\\" id=\\\"fecharResmasInput\\\" class=\\\"qty-input\\\" value=\\\"1\\\" min=\\\"1\\\" title=\\\"Resmas\\\">\\n                  <button type=\\\"button\\\" class=\\\"qty-btn\\\" onclick=\\\"fecharAlterarResmas(1)\\\" title=\\\"Aumentar\\\"><i data-lucide=\\\"plus\\\"></i></button>\\n                </div>\\n              </div>\"",
+  "StartLine": "284",
+  "TargetContent": "\"              <div class=\\\"analise-divider\\\"></div>\\n              <div class=\\\"analise-input-row\\\">\\n                <span class=\\\"analise-label\\\">Novo Numerador Atual:</span>\\n                <input type=\\\"number\\\" id=\\\"fecharNumeradorNovo\\\" class=\\\"analise-counter-input\\\" placeholder=\\\"0\\\" oninput=\\\"fecharCalcularSaldo()\\\" title=\\\"Contador atual\\\">\\n              </div>\"",
+  "TargetFile": "\"c:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\\\\index.html\"",
+  "toolAction": "\"Adding Resmas Entrega Atual input\"",
+  "toolSummary": "\"Replace file content\""
+}

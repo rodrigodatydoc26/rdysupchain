@@ -1,0 +1,158 @@
+Created At: 2026-06-16T12:12:43Z
+Completed At: 2026-06-16T12:13:13Z
+
+				The command completed successfully.
+				Output:
+				<truncated 204 lines>
+{"}
+
+--- "File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2320,"LineContent":".analise-rapida-direct ---
+{"}
+
+--- 1706: .analise-fechar-card ---
+{
+1707:   border-color: rgba(16, 185, 129, 0.4);
+1708: }
+
+--- 1710: .analise-header ---
+{
+1711:   display: flex;
+1712:   align-items: center;
+1713:   gap: 12px;
+1714:   padding: 16px 20px;
+1715:   border-bottom: 1px solid var(--border);
+1716:   background: var(--surface);
+1717: }
+
+--- 1719: .analise-fechar-header ---
+{
+1720:   background: rgba(16, 185, 129, 0.05);
+1721: }
+
+--- 1723: .analise-header i ---
+{
+1724:   color: var(--gold);
+1725:   flex-shrink: 0;
+1726: }
+
+--- 1728: .analise-fechar-header i ---
+{
+1729:   color: var(--success);
+1730: }
+
+--- 1732: .analise-header h4 ---
+{
+1733:   font-size: 0.9375rem;
+1734:   font-weight: 600;
+1735:   line-height: 1.2;
+1736: }
+
+--- 1738: .analise-header .sub-txt ---
+{
+1739:   font-size: 0.75rem;
+1740:   color: var(--text-dim);
+1741:   margin-top: 2px;
+1742: }
+
+--- 1744: .btn-close-analise ---
+{
+1745:   margin-left: auto;
+1746:   background: none;
+1747:   border: none;
+1748:   cursor: pointer;
+1749:   color: var(--text-dim);
+1750:   display: flex;
+1751:   align-items: center;
+1752:   padding: 4px;
+1753:   border-radius: 6px;
+1754:   transition: var(--transition);
+1755: }
+
+--- 1757: .btn-close-analise:hover ---
+{ color: var(--danger); }
+
+--- 1759: .analise-body ---
+{
+1760:   padding: 20px;
+1761:   display: flex;
+1762:   flex-direction: column;
+1763:   gap: 12px;
+1764: }
+
+--- 1766: .analise-info-row ---
+{
+1767:   display: flex;
+1768:   justify-content: space-between;
+1769:   align-items: center;
+1770:   padding: 8px 0;
+1771:   border-bottom: 1px solid var(--border);
+1772:   font-size: 0.875rem;
+1773: }
+
+--- 1775: .analise-info-row:last-of-type ---
+{ border-bottom: none
+<truncated 4135 bytes>
+ktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2547
+Total Bytes: 55191
+Showing lines 1020 to 1060
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1020: 
+1021: .qty-btn ---
+{
+1022:   background: var(--bg-3);
+1023:   color: var(--gold);
+1024:   border: none;
+1025:   width: 32px;
+1026:   height: 32px;
+1027:   border-radius: 8px;
+1028:   display: flex;
+1029:   align-items: center;
+1030:   justify-content: center;
+1031:   cursor: pointer;
+1032:   transition: var(--transition);
+1033: }
+
+--- 1035: .qty-btn:hover ---
+{
+1036:   background: var(--gold);
+1037:   color: #000;
+1038: }
+
+--- 1040: .qty-input ---
+{
+1041:   background: transparent !important;
+1042:   border: none !important;
+1043:   width: 50px !important;
+1044:   text-align: center !important;
+1045:   font-family: var(--font-outfit) !important;
+1046:   font-weight: 700 !important;
+1047:   font-size: 1.2rem !important;
+1048:   color: var(--text) !important;
+1049:   padding: 0 !important;
+1050: }
+
+--- 2491:   /* ── Análise ── */
+2492:   .analise-body ---
+{ padding: 14px; }
+
+--- .btn-iniciar-analise,
+2495:   .btn-confirmar-analise ---
+{ width: 100%; }
+
+--- Created At: 2026-06-15T16:56:05Z
+Completed At: 2026-06-15T16:56:05Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2565
+Total Bytes: 55393
+Showing lines 2490 to 2505
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2490: 
+2491:   /* ── Análise ── */
+2492:   .analise-body ---
+{ padding: 14px; }
+
+--- 2497:   /* ── Saldo box ── */
+2498:   .saldo-valores ---
+{ flex-direction: column; gap: 4px; }
+

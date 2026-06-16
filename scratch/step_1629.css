@@ -1,0 +1,49 @@
+Created At: 2026-06-15T20:56:52Z
+Completed At: 2026-06-15T20:56:52Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2657
+Total Bytes: 58187
+Showing lines 2200 to 2240
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2200:   font-size: 0.85rem;
+2201:   font-weight: 600;
+2202:   background: rgba(239,68,68,0.08);
+2203:   border: 1px solid rgba(239,68,68,0.2);
+2204:   border-radius: var(--radius-sm);
+2205:   padding: 10px 14px;
+2206: }
+2207: 
+2208: .btn-login-submit {
+2209:   width: 100%;
+2210:   height: 52px;
+2211:   background: var(--gold);
+2212:   color: #000;
+2213:   border: none;
+2214:   border-radius: var(--radius-sm);
+2215:   font-family: var(--font-outfit);
+2216:   font-weight: 700;
+2217:   font-size: 0.95rem;
+2218:   letter-spacing: 0.04em;
+2219:   cursor: pointer;
+2220:   display: flex;
+2221:   align-items: center;
+2222:   justify-content: center;
+2223:   gap: 10px;
+2224:   transition: var(--transition);
+2225:   margin-top: 8px;
+2226:   padding: 6px 10px 6px 12px;
+2227:   font-size: 0.82rem;
+2228:   font-weight: 600;
+2229: }
+2230: 
+2231: .user-badge > i {
+2232:   color: var(--gold);
+2233:   width: 16px;
+2234:   height: 16px;
+2235: }
+2236: 
+2237: .btn-logout {
+2238:   background: transparent;
+2239:   border: none;
+2240:   color: var(--text-dim);
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

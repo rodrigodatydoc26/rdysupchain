@@ -1,0 +1,1 @@
+".app-container {\n  max-width: 1600px;\n  margin: 0 auto;\n  padding: 24px 40px;\n}\n\n#appContainer, #adminApp {\n  display: none;\n}\n\n#adminApp .topbar-actions {\n  gap: 12px;\n}\n\n.section-hdr-actions {\n  display: flex;\n  gap: 8px;\n}"

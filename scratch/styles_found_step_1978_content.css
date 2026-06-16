@@ -1,0 +1,23 @@
+Created At: 2026-06-16T11:23:52Z
+Completed At: 2026-06-16T11:23:52Z
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\run_app_mock.js","LineNumber":120,"LineContent":"                new MockElement('', 'button', { dataset: { admtab: 'analises' } })"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\run_app_mock.js","LineNumber":127,"LineContent":"                new MockElement('adm-tab-analises')"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":174,"LineContent":"  2. **Abertura da Análise Real** (`salvarAnaliseAberta`): Compara o input de resmas com o volume da última entrega confirmada."}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":175,"LineContent":"  3. **Fechamento da Análise Real** (`confirmarFechamentoAnalise`): Compara a entrega sugerida final com o volume adicionado na abertura desta mesma análise."}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":182,"LineContent":"          \u003cdiv id=\"analiseAbertaCard\" class=\"analise-card hidden\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":183,"LineContent":"            \u003cdiv class=\"analise-header\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":189,"LineContent":"              \u003cbutton class=\"btn-close-analise\" onclick=\"fecharCardAnalise()\" title=\"Fechar\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":193,"LineContent":"            \u003cdiv class=\"analise-body\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full
+<truncated 1612 bytes>
+anceamento\\scratch\\reconstructed_full.css","LineNumber":2318,"LineContent":".analise-rapida-direct h2 i { color: var(--gold); }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2320,"LineContent":".analise-rapida-direct {"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2324,"LineContent":".analise-rapida-direct h2 i { color: var(--gold); }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2494,"LineContent":"  .analise-body { padding: 14px; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2495,"LineContent":"  .analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2496,"LineContent":"  .btn-iniciar-analise,"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2497,"LineContent":"  .btn-confirmar-analise { width: 100%; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2501,"LineContent":"  .analise-body { padding: 14px; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2502,"LineContent":"  .analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2503,"LineContent":"  .btn-iniciar-analise,"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":2504,"LineContent":"  .btn-confirmar-analise { width: 100%; }"}

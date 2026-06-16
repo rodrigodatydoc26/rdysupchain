@@ -1,0 +1,12 @@
+{
+  "AllowMultiple": "false",
+  "Description": "\"Rename Resmas Adicionadas label to Última Entrega in closing card.\"",
+  "EndLine": "260",
+  "Instruction": "\"Replace Resmas Adicionadas with Última Entrega in the span element.\"",
+  "ReplacementContent": "\"              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"analise-label\\\">Última Entrega:</span>\\n                <strong id=\\\"fecharResmasAdicionadas\\\">---</strong>\\n              </div>\"",
+  "StartLine": "257",
+  "TargetContent": "\"              <div class=\\\"analise-info-row\\\">\\n                <span class=\\\"analise-label\\\">Resmas Adicionadas:</span>\\n                <strong id=\\\"fecharResmasAdicionadas\\\">---</strong>\\n              </div>\"",
+  "TargetFile": "\"c:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\\\\index.html\"",
+  "toolAction": "\"Renaming label in index.html\"",
+  "toolSummary": "\"Rename label in index.html\""
+}

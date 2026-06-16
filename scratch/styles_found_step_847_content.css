@@ -1,0 +1,49 @@
+Created At: 2026-06-15T16:49:53Z
+Completed At: 2026-06-15T16:49:53Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2547
+Total Bytes: 55191
+Showing lines 1020 to 1060
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1020: 
+1021: .qty-btn {
+1022:   background: var(--bg-3);
+1023:   color: var(--gold);
+1024:   border: none;
+1025:   width: 32px;
+1026:   height: 32px;
+1027:   border-radius: 8px;
+1028:   display: flex;
+1029:   align-items: center;
+1030:   justify-content: center;
+1031:   cursor: pointer;
+1032:   transition: var(--transition);
+1033: }
+1034: 
+1035: .qty-btn:hover {
+1036:   background: var(--gold);
+1037:   color: #000;
+1038: }
+1039: 
+1040: .qty-input {
+1041:   background: transparent !important;
+1042:   border: none !important;
+1043:   width: 50px !important;
+1044:   text-align: center !important;
+1045:   font-family: var(--font-outfit) !important;
+1046:   font-weight: 700 !important;
+1047:   font-size: 1.2rem !important;
+1048:   color: var(--text) !important;
+1049:   padding: 0 !important;
+1050: }
+1051: 
+1052: .filter-controls-wide, .filters-bar {
+1053:   display: flex;
+1054:   flex-wrap: wrap;
+1055:   gap: 12px;
+1056:   width: 100%;
+1057:   margin: 16px 0;
+1058:   align-items: center;
+1059: }
+1060: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

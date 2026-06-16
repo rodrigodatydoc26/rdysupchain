@@ -1,0 +1,49 @@
+Created At: 2026-06-15T15:30:12Z
+Completed At: 2026-06-15T15:30:14Z
+The following changes were made by the replace_file_content tool to: c:\Users\Rodrigo Daty\Desktop\Projetos Antigravit\balanceamento\index.html. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -193,14 +193,14 @@
+           </div>
+ 
+ 
+-          <!-- ANÁLISE IMEDIATA - Botão -->
++          <!-- ANÁLISE REAL - Botão -->
+           <div id="analiseImediataBtn" class="hidden">
+             <button class="btn-analise-imediata" onclick="abrirAnaliseImediata()">
+-              <i data-lucide="zap"></i> Seguir com Análise Imediata
+-            </button>
+-          </div>
+-
+-          <!-- ANÁLISE IMEDIATA - Passo 1: Abertura -->
++              <i data-lucide="zap"></i> Seguir com Análise Real
++            </button>
++          </div>
++
++          <!-- ANÁLISE REAL - Passo 1: Abertura -->
+           <div id="analiseAbertaCard" class="analise-card hidden">
+             <div class="analise-header">
+               <i data-lucide="zap"></i>
+@@ -207,4 +207,4 @@
+-                <h4>Análise Imediata</h4>
++                <h4>Análise Real</h4>
+                 <p class="sub-txt">Registre o numerador e as resmas adicionadas</p>
+               </div>
+               <button class="btn-close-analise" onclick="fecharCardAnalise()" title="Fechar">
+@@ -256,7 +256,7 @@
+             </div>
+           </div>
+ 
+-          <!-- ANÁLISE IMEDIATA - Passo 2: Fechamento -->
++          <!-- ANÁLISE REAL - Passo 2: Fechamento -->
+           <div id="analiseFecharCard" class="analise-card analise-fechar-card hidden">
+             <div class="analise-header analise-fechar-header">
+               <i data-lucide="activity"></i>
+@@ -263,4 +263,4 @@
+-                <h4>Fechar Análise Imediata</h4>
++                <h4>Fechar Análise Real</h4>
+                 <p class="sub-txt">Informe o numerador atual para calcular o saldo</p>
+               </div>
+             </div>
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

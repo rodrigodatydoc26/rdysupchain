@@ -1,0 +1,5 @@
+Created At: 2026-06-16T11:24:01Z
+Completed At: 2026-06-16T11:24:01Z
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\scratch\\reconstructed_full.css","LineNumber":182,"LineContent":"          \u003cdiv id=\"analiseAbertaCard\" class=\"analise-card hidden\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\index.html","LineNumber":190,"LineContent":"          \u003cdiv id=\"analiseAbertaCard\" class=\"analise-card hidden\"\u003e"}
+{"File":"c:\\Users\\Rodrigo Daty\\Desktop\\Projetos Antigravit\\balanceamento\\index.html","LineNumber":248,"LineContent":"          \u003cdiv id=\"analiseFecharCard\" class=\"analise-card analise-fechar-card hidden\"\u003e"}

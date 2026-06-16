@@ -1,0 +1,59 @@
+Created At: 2026-06-15T20:56:46Z
+Completed At: 2026-06-15T20:56:46Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2657
+Total Bytes: 58187
+Showing lines 2240 to 2290
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2240:   color: var(--text-dim);
+2241:   cursor: pointer;
+2242:   display: flex;
+2243:   align-items: center;
+2244:   padding: 4px;
+2245:   border-radius: 6px;
+2246:   transition: var(--transition);
+2247: }
+2248: 
+2249: .btn-logout:hover {
+2250:   color: var(--danger);
+2251: }
+2252: 
+2253: .btn-logout i {
+2254:   width: 14px;
+2255:   height: 14px;
+2256: }
+2257: 
+2258: 
+2259: /* ════════════════════════════════════════════════════
+2260:    ÁREA ADMIN (CTO)
+2261: ════════════════════════════════════════════════════ */
+2262: .admin-badge {
+2263:   padding: 4px 12px;
+2264:   background: var(--gold); color: #000;
+2265:   font-size: 0.6875rem; font-weight: 800;
+2266:   text-transform: uppercase; letter-spacing: 0.08em;
+2267:   border-radius: 30px;
+2268: }
+2269: .admin-city {
+2270:   font-size: 0.75rem; font-weight: 600;
+2271:   color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em;
+2272: }
+2273: .kpi-grid {
+2274:   display: grid;
+2275:   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+2276:   gap: 16px; margin-bottom: 28px;
+2277: }
+2278: .kpi-card {
+2279:   background: var(--bg-1); border: 1px solid var(--border);
+2280:   border-radius: var(--radius); padding: 20px 24px;
+2281:   display: flex; flex-direction: column; gap: 8px;
+2282: }
+2283: .kpi-card.kpi-alerta { border-color: rgba(239,68,68,0.35); }
+2284: .kpi-card.kpi-warn   { border-color: rgba(245,158,11,0.35); }
+2285: .kpi-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+2286: .kpi-value { font-size: 2.25rem; font-weight: 800; line-height: 1; }
+2287: .kpi-alerta .kpi-value { color: var(--danger); }
+2288: .kpi-warn   .kpi-value { color: #f59e0b; }
+2289: .section-hdr {
+2290:   display: flex; align-items: center; justify-content: space-between;
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

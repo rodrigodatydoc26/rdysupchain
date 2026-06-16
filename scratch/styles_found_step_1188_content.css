@@ -1,0 +1,39 @@
+Created At: 2026-06-15T20:26:22Z
+Completed At: 2026-06-15T20:26:23Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2683
+Total Bytes: 58392
+Showing lines 2500 to 2530
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2500:   /* ── Análise ── */
+2501:   .analise-body { padding: 14px; }
+2502:   .analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+2503:   .btn-iniciar-analise,
+2504:   .btn-confirmar-analise { width: 100%; }
+2505: 
+2506:   /* ── Saldo box ── */
+2507:   .saldo-valores { flex-direction: column; gap: 4px; }
+2508: 
+2509:   /* ── Tabela Responsiva em Cards Sequenciais (Histórico e Consulta) ── */
+2510:   #historicoTable,
+2511:   #tab-consultar .data-table {
+2512:     display: block;
+2513:     width: 100%;
+2514:     border: none;
+2515:     background: transparent;
+2516:   }
+2517:   #historicoTable thead,
+2518:   #tab-consultar .data-table thead {
+2519:     display: none; /* Oculta cabeçalhos em formato coluna */
+2520:   }
+2521:   #historicoTable tbody,
+2522:   #tab-consultar .data-table tbody {
+2523:     display: block;
+2524:     width: 100%;
+2525:   }
+2526:   #historicoTable tbody tr,
+2527:   #tab-consultar .data-table tbody tr {
+2528:     display: block;
+2529:     background: var(--bg-1);
+2530:     border: 1px solid var(--border);
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

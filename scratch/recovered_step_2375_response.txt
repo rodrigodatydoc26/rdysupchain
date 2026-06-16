@@ -1,0 +1,1 @@
+I will search the full IDE logs for any mentions of `analise-sug-card` to locate any CSS rule blocks that were added in previous turns but didn't get fully captured in our basic CSS file scans.

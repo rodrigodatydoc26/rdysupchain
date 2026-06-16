@@ -1,0 +1,156 @@
+Created At: 2026-06-15T14:28:11Z
+Completed At: 2026-06-15T14:28:11Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2259
+Total Bytes: 44450
+Showing lines 183 to 982
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+183:   left: 0;
+184:   width: 100%;
+185:   background: var(--bg-1);
+186:   border: 1px solid var(--border);
+187:   border-radius: var(--radius-sm);
+188:   z-index: 1000;
+189:   max-height: 300px;
+190:   overflow-y: auto;
+191:   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+192: }
+193: 
+194: .suggestion-item {
+195:   padding: 12px 20px;
+196:   text-align: left;
+197:   cursor: pointer;
+198:   border-bottom: 1px solid var(--border);
+199:   transition: var(--transition);
+200: }
+201: 
+202: .suggestion-item:last-child {
+203:   border-bottom: none;
+204: }
+205: 
+206: .card-input {
+207:   width: 70px;
+208:   background: var(--bg-0);
+209:   border: 1px solid var(--gold);
+210:   color: var(--gold);
+211:   border-radius: 4px;
+212:   padding: 4px;
+213:   text-align: center;
+214:   font-size: 1.2rem;
+215:   font-weight: 700;
+216:   outline: none;
+217: }
+218: 
+219: .suggestion-item:hover {
+220:   background: var(--bg-2);
+221:   color: var(--gold);
+222: }
+223: 
+224: .sugg-main {
+225:   display: flex;
+226:   justify-content: space-between;
+227:   align-items: center;
+228:   margin-bottom: 2px;
+229: }
+230: 
+231: .tag-sm {
+232:   font-size: 0.65rem;
+233:   background: var(--bg-0);
+234:   padding: 2px 6px;
+235:   border-radius: 4px;
+236:   color: var(--text-dim);
+237:   border: 1px solid var(--border);
+238: }
+239: 
+240: .suggestion-item .sub {
+241:   display: block;
+242:   font-size: 0.75rem;
+243:   color: var(--text-dim);
+244:   white-space: nowrap;
+245:   overflow: hidden;
+246:   text-overflow: ellipsis;
+24
+<truncated 15897 bytes>
+orm-group {
+902:   display: flex;
+903:   flex-direction: column;
+904:   gap: 8px;
+905: }
+906: 
+907: .label-row {
+908:   display: flex;
+909:   justify-content: space-between;
+910:   align-items: center;
+911: }
+912: 
+913: .btn-text {
+914:   background: transparent;
+915:   border: none;
+916:   color: var(--gold);
+917:   font-size: 0.75rem;
+918:   font-weight: 600;
+919:   cursor: pointer;
+920:   display: flex;
+921:   align-items: center;
+922:   gap: 4px;
+923:   transition: var(--transition);
+924:   padding: 4px 8px;
+925:   border-radius: 4px;
+926: }
+927: 
+928: .btn-text:hover {
+929:   background: rgba(212, 175, 55, 0.1);
+930: }
+931: 
+932: .form-group.full-width {
+933:   grid-column: span 2;
+934: }
+935: 
+936: .form-select {
+937:   background: var(--bg-2);
+938:   border: 1px solid var(--border);
+939:   color: var(--text);
+940:   padding: 12px 16px;
+941:   border-radius: var(--radius-sm);
+942:   font-size: 1rem;
+943:   outline: none;
+944:   cursor: pointer;
+945:   transition: var(--transition);
+946: }
+947: 
+948: .form-select:focus {
+949:   border-color: var(--gold);
+950: }
+951: 
+952: .form-actions {
+953:   margin-top: 32px;
+954:   display: flex;
+955:   justify-content: center;
+956: }
+957: 
+958: .btn-large {
+959:   padding: 16px 48px !important;
+960:   font-size: 1.1rem;
+961:   display: flex;
+962:   align-items: center;
+963:   gap: 12px;
+964: }
+965: 
+966: /* DASHBOARD */
+967: .consultar-header, .historico-header {
+968:   display: flex;
+969:   flex-direction: column;
+970:   gap: 20px;
+971:   margin-bottom: 32px;
+972:   background: var(--bg-1);
+973:   padding: 24px;
+974:   border-radius: var(--radius);
+975:   border: 1px solid var(--border);
+976: }
+977: 
+978: .consultar-header h2, .historico-header h2 {
+979:   margin: 0;
+980:   font-size: 1.5rem;
+981: }
+982: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

@@ -1,0 +1,28 @@
+Created At: 2026-06-15T14:57:44Z
+Completed At: 2026-06-15T14:57:45Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/index.html`
+Total Lines: 852
+Total Bytes: 41351
+Showing lines 241 to 260
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+241:                   <button class="qty-btn" onclick="analiseAlterarResmas(-1)" title="Diminuir"><i data-lucide="minus"></i></button>
+242:                   <input type="number" id="analiseResmas" class="qty-input" value="1" min="1" oninput="analiseCalcularLimite()" title="Resmas">
+243:                   <button class="qty-btn" onclick="analiseAlterarResmas(1)" title="Aumentar"><i data-lucide="plus"></i></button>
+244:                 </div>
+245:               </div>
+246:               <div class="analise-resultado">
+247:                 <span>Próximo limite esperado:</span>
+248:                 <strong id="analiseLimite" class="gold-text">---</strong>
+249:                 <span class="analise-unit">páginas</span>
+250:               </div>
+251:               <input type="text" id="analiseOs" class="analise-os-input" placeholder="Nº O.S. (opcional)">
+252:               <button class="btn-iniciar-analise" onclick="salvarAnaliseAberta()">
+253:                 <i data-lucide="play-circle"></i> INICIAR ANÁLISE
+254:               </button>
+255:             </div>
+256:           </div>
+257: 
+258:           <!-- ANÁLISE IMEDIATA - Passo 2: Fechamento -->
+259:           <div id="analiseFecharCard" class="analise-card analise-fechar-card hidden">
+260:             <div class="analise-header analise-fechar-header">
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

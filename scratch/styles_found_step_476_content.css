@@ -1,0 +1,109 @@
+Created At: 2026-06-15T15:15:51Z
+Completed At: 2026-06-15T15:15:52Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2539
+Total Bytes: 54919
+Showing lines 1700 to 1800
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1700:   border: 1px solid var(--border);
+1701:   border-radius: var(--radius);
+1702:   margin-bottom: 16px;
+1703:   overflow: hidden;
+1704: }
+1705: 
+1706: .analise-fechar-card {
+1707:   border-color: rgba(16, 185, 129, 0.4);
+1708: }
+1709: 
+1710: .analise-header {
+1711:   display: flex;
+1712:   align-items: center;
+1713:   gap: 12px;
+1714:   padding: 16px 20px;
+1715:   border-bottom: 1px solid var(--border);
+1716:   background: var(--surface);
+1717: }
+1718: 
+1719: .analise-fechar-header {
+1720:   background: rgba(16, 185, 129, 0.05);
+1721: }
+1722: 
+1723: .analise-header i {
+1724:   color: var(--gold);
+1725:   flex-shrink: 0;
+1726: }
+1727: 
+1728: .analise-fechar-header i {
+1729:   color: var(--success);
+1730: }
+1731: 
+1732: .analise-header h4 {
+1733:   font-size: 0.9375rem;
+1734:   font-weight: 600;
+1735:   line-height: 1.2;
+1736: }
+1737: 
+1738: .analise-header .sub-txt {
+1739:   font-size: 0.75rem;
+1740:   color: var(--text-dim);
+1741:   margin-top: 2px;
+1742: }
+1743: 
+1744: .btn-close-analise {
+1745:   margin-left: auto;
+1746:   background: none;
+1747:   border: none;
+1748:   cursor: pointer;
+1749:   color: var(--text-dim);
+1750:   display: flex;
+1751:   align-items: center;
+1752:   padding: 4px;
+1753:   border-radius: 6px;
+1754:   transition: var(--transition);
+1755: }
+1756: 
+1757: .btn-close-analise:hover { color: var(--danger); }
+1758: 
+1759: .analise-body {
+1760:   padding: 20px;
+1761:   display: flex;
+1762:   flex-direction: column;
+1763:   gap: 12px;
+1764: }
+1765: 
+1766: .analise-info-row {
+1767:   display: flex;
+1768:   justify-content: space-between;
+1769:   align-items: center;
+1770:   padding: 8px 0;
+1771:   border-bottom: 1px solid var(--border);
+1772:   font-size: 0.875rem;
+1773: }
+1774: 
+1775: .analise-info-row:last-of-type { border-bottom: none; }
+1776: 
+1777: .analise-info-row.highlight-row {
+1778:   background: rgba(212, 175, 55, 0.06);
+1779:   padding: 10px 12px;
+1780:   border-radius: var(--radius-sm);
+1781:   border: 1px solid rgba(212, 175, 55, 0.2);
+1782: }
+1783: 
+1784: .analise-label { color: var(--text-dim); }
+1785: 
+1786: .analise-divider {
+1787:   height: 1px;
+1788:   background: var(--border);
+1789:   margin: 4px 0;
+1790: }
+1791: 
+1792: /* Card de sugestão dinâmico */
+1793: .analise-sug-card {
+1794:   display: flex;
+1795:   align-items: center;
+1796:   gap: 16px;
+1797:   padding: 14px 16px;
+1798:   border: 2px solid;
+1799:   border-radius: var(--radius-sm);
+1800:   transition: var(--transition);
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

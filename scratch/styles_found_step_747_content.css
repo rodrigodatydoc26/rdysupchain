@@ -1,0 +1,49 @@
+Created At: 2026-06-15T16:45:52Z
+Completed At: 2026-06-15T16:45:52Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2545
+Total Bytes: 55115
+Showing lines 2360 to 2400
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2360: /* ════════════════════════════════════════════════════
+2361:    RESPONSIVO — MOBILE (≤ 768px)
+2362: ════════════════════════════════════════════════════ */
+2363: @media (max-width: 768px) {
+2364: 
+2365:   /* ── Topbar ── */
+2366:   .topbar { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+2367:   .logo h1 { font-size: 0.875rem; }
+2368:   .color-selector { display: none; }
+2369:   .topbar-actions { gap: 8px; }
+2370:   .user-badge { font-size: 0.75rem; gap: 6px; padding: 5px 10px; }
+2371: 
+2372:   /* ── Tabs — scrollagem horizontal ── */
+2373:   .nav-tabs {
+2374:     overflow-x: auto;
+2375:     -webkit-overflow-scrolling: touch;
+2376:     scrollbar-width: none;
+2377:     flex-wrap: nowrap;
+2378:     padding-bottom: 2px;
+2379:     gap: 4px;
+2380:   }
+2381:   .nav-tabs::-webkit-scrollbar { display: none; }
+2382:   .tab-btn { white-space: nowrap; flex-shrink: 0; padding: 8px 12px; font-size: 0.75rem; }
+2383:   .tab-btn i { width: 14px; height: 14px; }
+2384: 
+2385:   /* ── App container ── */
+2386:   .app-container { padding: 0; }
+2387:   .main-content  { padding: 12px 14px; }
+2388: 
+2389:   /* ── Cards gerais ── */
+2390:   .search-card     { padding: 18px 14px; border-radius: 12px; }
+2391:   .media-card      { padding: 16px 14px; }
+2392:   .info-card       { padding: 16px 14px; }
+2393:   .analise-card    { padding: 16px 14px; }
+2394: 
+2395:   /* ── Busca ── */
+2396:   .search-input-wrapper  { flex-direction: column; }
+2397:   .search-input-wrapper input { width: 100%; box-sizing: border-box; }
+2398:   .search-input-wrapper .btn-primary,
+2399:   .search-input-wrapper .btn-analise-imediata { width: 100%; justify-content: center; }
+2400: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

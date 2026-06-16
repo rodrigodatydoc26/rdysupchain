@@ -1,0 +1,24 @@
+Created At: 2026-06-15T16:56:05Z
+Completed At: 2026-06-15T16:56:05Z
+File Path: `file:///c:/Users/Rodrigo%20Daty/Desktop/Projetos%20Antigravit/balanceamento/css/style.css`
+Total Lines: 2565
+Total Bytes: 55393
+Showing lines 2490 to 2505
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2490: 
+2491:   /* ── Análise ── */
+2492:   .analise-body { padding: 14px; }
+2493:   .analise-input-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+2494:   .btn-iniciar-analise,
+2495:   .btn-confirmar-analise { width: 100%; }
+2496: 
+2497:   /* ── Saldo box ── */
+2498:   .saldo-valores { flex-direction: column; gap: 4px; }
+2499: }
+2500: 
+2501: /* ════════════════════════════════════════════════════
+2502:    RESPONSIVO — MOBILE PEQUENO (≤ 480px)
+2503: ════════════════════════════════════════════════════ */
+2504: @media (max-width: 480px) {
+2505:   .logo span { display: none; }
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
