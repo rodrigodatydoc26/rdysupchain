@@ -1082,7 +1082,7 @@ function fecharCalcularSaldo(evitarSobrescreverInputResmas = false) {
     }
 
     saldoEl.innerText = `${recomendacao} resma${recomendacao !== 1 ? 's' : ''}`;
-    saldoEl.className = 'saldo-value saldo-positivo';
+    saldoEl.className = recomendacao > 0 ? 'saldo-value saldo-positivo sugestao-animada' : 'saldo-value saldo-positivo';
     descEl.innerText = `sugerida${recomendacao !== 1 ? 's' : ''} para reposição`;
 
     resmasEl.innerText = `CPD: ${cpd.toFixed(0)} pgs/dia · Consumo: ${consumoPaginas.toLocaleString('pt-BR')} págs. (${(consumoPaginas / 500).toFixed(1).replace('.', ',')} resmas) desde a abertura`;
