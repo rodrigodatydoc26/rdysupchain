@@ -202,6 +202,9 @@
                 <h4 class="orig-hist-title">Últimas 4 Entregas</h4>
                 <p class="sub-txt orig-hist-subtitle">Histórico recente de resmas entregues</p>
               </div>
+              <button class="btn-ver-historico" onclick="verTodoHistorico()" style="margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; border: 1px solid var(--gold); background: transparent; color: var(--gold); transition: var(--transition);" onmouseover="this.style.background='rgba(212, 175, 55, 0.08)'" onmouseout="this.style.background='transparent'">
+                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i> Ver Histórico Completo
+              </button>
             </div>
             <div class="analise-body orig-hist-body">
               <div class="table-responsive">
@@ -209,13 +212,14 @@
                   <thead>
                     <tr>
                       <th>Data</th>
+                      <th>Contador</th>
                       <th class="text-center">Resmas</th>
                       <th>O.S.</th>
                       <th>Observação</th>
                     </tr>
                   </thead>
                   <tbody id="historicoOriginalTbody">
-                    <tr><td colspan="4" class="text-center">Carregando histórico...</td></tr>
+                    <tr><td colspan="5" class="text-center">Carregando histórico...</td></tr>
                   </tbody>
                 </table>
               </div>

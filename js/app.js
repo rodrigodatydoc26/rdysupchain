@@ -534,7 +534,7 @@ async function buscarEquipamento(serie) {
                     document.getElementById('analiseAbertaCard').classList.add('hidden');
                     document.getElementById('analiseFecharCard').classList.add('hidden');
                     const tbody = document.getElementById('historicoOriginalTbody');
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-dim">Offline. Histórico indisponível.</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dim">Offline. Histórico indisponível.</td></tr>';
                     document.getElementById('historicoOriginalCard').classList.remove('hidden');
                 } else {
                     document.getElementById('historicoOriginalCard').classList.add('hidden');
@@ -608,10 +608,11 @@ async function buscarEquipamento(serie) {
             const tbody = document.getElementById('historicoOriginalTbody');
             if (tbody) {
                 if (ultimasEntregas.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-dim">Nenhuma entrega registrada.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dim">Nenhuma entrega registrada.</td></tr>';
                 } else {
                     tbody.innerHTML = ultimasEntregas.map(e => {
                         const dt = new Date(e.data_registro).toLocaleDateString('pt-BR');
+                        const cont = (e.contador_atual !== null && e.contador_atual !== undefined) ? parseInt(e.contador_atual).toLocaleString('pt-BR') : '—';
                         const qtd = parseFloat(e.quantidade_definida) || 0;
                         const os = e.numero_os || '—';
                         let obs = e.observacao || '—';
@@ -622,6 +623,7 @@ async function buscarEquipamento(serie) {
                         return `
                             <tr>
                                 <td>${esc(dt)}</td>
+                                <td>${esc(cont)}</td>
                                 <td class="text-center"><strong>${esc(String(qtd))}</strong></td>
                                 <td>${esc(os)}</td>
                                 <td><span class="text-dim" style="font-size:0.75rem;">${esc(obs)}</span></td>
