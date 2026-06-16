@@ -381,8 +381,10 @@ input[type="text"]:focus, input[type="number"]:focus {
   align-items: center;
 }
 
-.media-title i {
+.media-title i, .media-title svg {
   color: var(--gold);
+  width: 24px;
+  height: 24px;
 }
 
 .media-title h4 {
@@ -1513,7 +1515,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   align-items: center;
 }
 
-.linput-icon i, .linput-icon svg {
+.linput-icon > i, .linput-icon > svg {
   position: absolute;
   left: 12px;
   color: var(--text-dim);
@@ -2102,6 +2104,9 @@ color: var(--gold);
   .search-card h2, .consultar-header h2 { font-size: 1.25rem; }
   .search-input-wrapper { flex-direction: column; width: 100%; }
   .search-input-wrapper .btn-primary { width: 100%; justify-content: center; }
+  .filter-controls-wide { flex-direction: column; }
+  .filter-controls-wide .search-input-group,
+  .filter-controls-wide .date-range-group { width: 100%; }
 
   /* Filtros — remove min-width fixo que estoura a tela */
   .filter-row-premium { flex-direction: column; gap: 10px; }

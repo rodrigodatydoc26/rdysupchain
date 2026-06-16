@@ -516,7 +516,7 @@ async function buscarEquipamento(serie) {
         ]);
 
         const ultimaOs = osHistory.length > 0 ? osHistory[osHistory.length - 1] : null;
-        equip.ultimo_contador = ultimaOs?.contador_atual || 0;
+        equip.ultimo_contador = ultimaOs?.contador_atual || equip.ultimo_contador || 0;
         equip.data_ultimo_contador = ultimaOs?.data_os || null;
 
         state.equipamento = equip;
