@@ -14,10 +14,10 @@
       alert('REJEIÇÃO DE PROMISE JS EM ADMIN:\n' + msg);
       console.error(event.reason);
     });
-    // Exige adm_user E adm_tk — impede acesso apenas colocando a URL ou manipulando sessionStorage
-    if (!sessionStorage.getItem('adm_user') || !sessionStorage.getItem('adm_tk')) {
-      sessionStorage.removeItem('adm_user');
-      sessionStorage.removeItem('adm_tk');
+    // Exige adm_user E adm_tk — impede acesso apenas colocando a URL ou manipulando localStorage
+    if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
+      localStorage.removeItem('adm_user');
+      localStorage.removeItem('adm_tk');
       window.location.href = 'index.html?v=20260616';
     }
   </script>
@@ -706,7 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('admDataFim').value = hojeStr;
   safeCreateIcons();
   initTheme();
-  const saved = sessionStorage.getItem('adm_user');
+  const saved = localStorage.getItem('adm_user');
   if (saved) {
     try {
       const cfg = JSON.parse(saved);
@@ -714,8 +714,8 @@ document.addEventListener('DOMContentLoaded', () => {
       entrarAdmin(cfg.username, cfg);
     } catch(e) {
       console.error('Erro ao restaurar sessão admin:', e);
-      sessionStorage.removeItem('adm_user');
-      sessionStorage.removeItem('adm_tk');
+      localStorage.removeItem('adm_user');
+      localStorage.removeItem('adm_tk');
       // loginScreen já está display:flex por default no admin.html
       const userIn = document.getElementById('loginUser');
       if (userIn) userIn.focus();
@@ -732,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function fazerLogin() {
   const errEl = document.getElementById('loginErro');
 
-  const lockUntil = parseInt(sessionStorage.getItem('admLockUntil') || 0);
+  const lockUntil = parseInt(localStorage.getItem('admLockUntil') || 0);
   if (Date.now() < lockUntil) {
     const minutos = Math.ceil((lockUntil - Date.now()) / 60000);
     errEl.textContent = `Acesso bloqueado. Tente novamente em ${minutos} minuto(s).`;
@@ -748,11 +748,11 @@ async function fazerLogin() {
     const cfg = result[0];
 
     if (!cfg || cfg.password !== pass) {
-      const tentativas = parseInt(sessionStorage.getItem('admTentativas') || 0) + 1;
-      sessionStorage.setItem('admTentativas', tentativas);
+      const tentativas = parseInt(localStorage.getItem('admTentativas') || 0) + 1;
+      localStorage.setItem('admTentativas', tentativas);
       if (tentativas >= 5) {
-        sessionStorage.setItem('admLockUntil', Date.now() + 15 * 60 * 1000);
-        sessionStorage.removeItem('admTentativas');
+        localStorage.setItem('admLockUntil', Date.now() + 15 * 60 * 1000);
+        localStorage.removeItem('admTentativas');
         errEl.textContent = 'Acesso bloqueado por 15 minutos após múltiplas tentativas.';
       } else {
         errEl.textContent = `Usuário ou senha incorretos. (${tentativas}/5 tentativas)`;
@@ -763,10 +763,10 @@ async function fazerLogin() {
       return;
     }
 
-    sessionStorage.removeItem('admTentativas');
-    sessionStorage.removeItem('admLockUntil');
-    sessionStorage.setItem('adm_user', JSON.stringify(cfg));
-    sessionStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
+    localStorage.removeItem('admTentativas');
+    localStorage.removeItem('admLockUntil');
+    localStorage.setItem('adm_user', JSON.stringify(cfg));
+    localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
     entrarAdmin(cfg.username, cfg);
   } catch(err) {
     console.error("Login error:", err);
@@ -776,9 +776,9 @@ async function fazerLogin() {
 }
 
 function fazerLogout() {
-  sessionStorage.removeItem('adm_user');
-  sessionStorage.removeItem('adm_tk');
-  sessionStorage.removeItem('rdyUser');
+  localStorage.removeItem('adm_user');
+  localStorage.removeItem('adm_tk');
+  localStorage.removeItem('rdyUser');
   location.reload();
 }
 

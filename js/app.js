@@ -22,7 +22,7 @@ const escAttr = esc;
 let currentUser = null;
 
 function initLogin() {
-    const saved = sessionStorage.getItem('rdyUser');
+    const saved = localStorage.getItem('rdyUser');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
@@ -33,9 +33,9 @@ function initLogin() {
             }
         } catch (e) {}
         // Sessão inválida — força novo login
-        sessionStorage.removeItem('rdyUser');
-        sessionStorage.removeItem('adm_user');
-        sessionStorage.removeItem('adm_tk');
+        localStorage.removeItem('rdyUser');
+        localStorage.removeItem('adm_user');
+        localStorage.removeItem('adm_tk');
     }
     const screen = document.getElementById('loginScreen');
     if (screen) screen.style.display = 'flex';
@@ -49,7 +49,7 @@ async function doLogin() {
     const errEl = document.getElementById('loginError');
 
     // Proteção contra força bruta: bloqueia após 5 tentativas por 15 minutos
-    const lockUntil = parseInt(sessionStorage.getItem('loginLockUntil') || 0);
+    const lockUntil = parseInt(localStorage.getItem('loginLockUntil') || 0);
     if (Date.now() < lockUntil) {
         const minutos = Math.ceil((lockUntil - Date.now()) / 60000);
         errEl.textContent = `Acesso bloqueado. Tente novamente em ${minutos} minuto(s).`;
@@ -65,13 +65,13 @@ async function doLogin() {
         const found = result[0];
 
         if (!found || found.password !== password) {
-            const tentativas = parseInt(sessionStorage.getItem('loginTentativas') || 0) + 1;
-            sessionStorage.setItem('loginTentativas', tentativas);
+            const tentativas = parseInt(localStorage.getItem('loginTentativas') || 0) + 1;
+            localStorage.setItem('loginTentativas', tentativas);
 
             if (tentativas >= 5) {
                 const bloqueioAte = Date.now() + 15 * 60 * 1000;
-                sessionStorage.setItem('loginLockUntil', bloqueioAte);
-                sessionStorage.removeItem('loginTentativas');
+                localStorage.setItem('loginLockUntil', bloqueioAte);
+                localStorage.removeItem('loginTentativas');
                 errEl.textContent = 'Acesso bloqueado por 15 minutos após múltiplas tentativas.';
             } else {
                 errEl.textContent = `Usuário ou senha incorretos. (${tentativas}/5 tentativas)`;
@@ -82,12 +82,12 @@ async function doLogin() {
             return;
         }
 
-        sessionStorage.removeItem('loginTentativas');
-        sessionStorage.removeItem('loginLockUntil');
+        localStorage.removeItem('loginTentativas');
+        localStorage.removeItem('loginLockUntil');
         errEl.textContent = 'Usuário ou senha incorretos.';
         errEl.classList.add('hidden');
         currentUser = found;
-        sessionStorage.setItem('rdyUser', JSON.stringify(currentUser));
+        localStorage.setItem('rdyUser', JSON.stringify(currentUser));
         showApp();
     } catch(err) {
         console.error("Login error:", err);
@@ -97,9 +97,9 @@ async function doLogin() {
 }
 
 function doLogout() {
-    sessionStorage.removeItem('rdyUser');
-    sessionStorage.removeItem('adm_user');
-    sessionStorage.removeItem('adm_tk');
+    localStorage.removeItem('rdyUser');
+    localStorage.removeItem('adm_user');
+    localStorage.removeItem('adm_tk');
     currentUser = null;
     window.location.reload();
 }
@@ -116,7 +116,7 @@ function toggleLoginPass() {
 function showApp() {
     if (!currentUser) {
         currentUser = null;
-        sessionStorage.removeItem('rdyUser');
+        localStorage.removeItem('rdyUser');
         const screen = document.getElementById('loginScreen');
         if (screen) {
             screen.style.display = 'flex';
@@ -1609,8 +1609,8 @@ function showAdmin() {
                 showTech();
                 return;
             }
-            sessionStorage.setItem('adm_user', JSON.stringify(currentUser));
-            sessionStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
+            localStorage.setItem('adm_user', JSON.stringify(currentUser));
+            localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
                 window.location.href = 'admin.html?v=20260616';
             }
