@@ -193,8 +193,14 @@
       .topbar { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; }
       .topbar-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
       .nav-tabs { flex-wrap: wrap; width: 100%; }
-      .nav-tabs button { flex: 1 1 100%; justify-content: center; text-align: center; font-size: 0.8rem; padding: 10px 8px; }
     }
+    /* ── LINT FIX CLASSES ── */
+    .pos-relative { position: relative; }
+    .search-icon-gov { position: absolute; margin: 10px; color: var(--text-dim); width: 18px; }
+    .pl-36 { padding-left: 36px !important; }
+    .max-w-200 { max-width: 200px; }
+    .db-import-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .tag-superior-ultima { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: rgba(239, 68, 68, 0.35); }
   </style>
 
 
@@ -393,12 +399,18 @@
               <span class="toggle-switch-slider"></span>
               <span class="toggle-switch-text">Apenas Justificados</span>
             </label>
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="admFiltroSuperiorUltima" class="toggle-switch-checkbox" onchange="carregarEntregas()">
+              <span class="toggle-switch-slider"></span>
+              <span class="toggle-switch-text">Apenas Superior à Última Entrega</span>
+            </label>
           </div>
         </div>
         <div class="legend-row">
           <span class="legend-title">Legenda de Sinais:</span>
           <div class="legend-item"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Entregue</div>
           <div class="legend-item"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
+          <div class="legend-item"><span class="badge-tag tag-superior-ultima"><i data-lucide="chevrons-up"></i></span> Superior à Última Entrega</div>
           <div class="legend-item"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Via Novo Portal</div>
           <div class="legend-item"><span class="badge-tag tag-antigo"><i data-lucide="archive"></i></span> Via Sistema Antigo</div>
         </div>
@@ -463,13 +475,13 @@
           </div>
         </div>
 
-        <div class="admin-filters-grid" style="margin-bottom: 16px;">
+        <div class="admin-filters-grid">
           <div class="filter-row-top">
-            <div class="filter-input-group" style="position:relative;">
-              <i data-lucide="search" style="position:absolute; margin:10px; color:var(--text-dim); width:18px;"></i>
-              <input type="text" id="filtroGovNome" class="input-text" placeholder="Buscar por Nome ou Usuário..." style="padding-left:36px;" onkeyup="filtrarGovernanca()">
+            <div class="filter-input-group pos-relative">
+              <i data-lucide="search" class="search-icon-gov"></i>
+              <input type="text" id="filtroGovNome" class="input-text pl-36" placeholder="Buscar por Nome ou Usuário..." onkeyup="filtrarGovernanca()">
             </div>
-            <div class="filter-input-group" style="max-width: 200px;">
+            <div class="filter-input-group max-w-200">
               <select id="filtroGovPerfil" class="input-text" onchange="filtrarGovernanca()">
                 <option value="">Todos os Perfis</option>
                 <option value="cto">CTO</option>
@@ -477,7 +489,7 @@
                 <option value="tecnico">Técnico</option>
               </select>
             </div>
-            <div class="filter-input-group" style="max-width: 200px;">
+            <div class="filter-input-group max-w-200">
               <select id="filtroGovCidade" class="input-text" onchange="filtrarGovernanca()">
                 <option value="">Todas as Cidades</option>
               </select>
@@ -524,7 +536,7 @@
           <p class="db-import-instrucoes-desc">Atenção: A primeira linha (cabeçalho) deve conter exatamente estes nomes.</p>
         </div>
 
-        <div class="db-import-actions" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <div class="db-import-actions">
           <input type="file" id="dbImportFile" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="input-text db-import-file">
           <button class="btn-outline" onclick="baixarModeloImportacao()" title="Baixar planilha de exemplo">
             <i data-lucide="download"></i> Baixar Modelo
@@ -712,6 +724,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const cfg = JSON.parse(saved);
       if (!cfg || !cfg.username) throw new Error('Sessão inválida');
       entrarAdmin(cfg.username, cfg);
+
+      // Background refresh admin user profile to reflect database updates (e.g. role/city changes)
+      if (navigator.onLine) {
+        API.fetch(`/balanceamento_usuarios?username=eq.${encodeURIComponent(cfg.username.toLowerCase())}&select=*`)
+          .then(result => {
+            const found = result[0];
+            if (found) {
+              const changed = found.role !== cfg.role || 
+                              found.cidade !== cfg.cidade || 
+                              found.label !== cfg.label ||
+                              found.password !== cfg.password;
+              if (changed) {
+                localStorage.setItem('adm_user', JSON.stringify(found));
+                entrarAdmin(found.username, found);
+              }
+            }
+          })
+          .catch(err => console.warn("Failed to background refresh admin user profile:", err));
+      }
     } catch(e) {
       console.error('Erro ao restaurar sessão admin:', e);
       localStorage.removeItem('adm_user');
@@ -815,7 +846,10 @@ async function entrarAdmin(user, cfg) {
   }
 
   safeCreateIcons();
-  initAdminTabs();
+  if (!window.adminTabsInitialized) {
+    window.adminTabsInitialized = true;
+    initAdminTabs();
+  }
   carregarDashboard();
 }
 
@@ -930,6 +964,7 @@ async function carregarEntregas() {
   const fOrdem = document.getElementById('admFiltroOrdem').value;
   const fAcimaMedia = document.getElementById('admFiltroAcimaMedia').checked;
   const fJustificados = document.getElementById('admFiltroJustificados').checked;
+  const fSuperiorUltima = document.getElementById('admFiltroSuperiorUltima').checked;
 
   let params = `status=eq.confirmado${cidadeFilter()}&limit=1000`;
   params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`;
@@ -961,6 +996,10 @@ async function carregarEntregas() {
     if (fJustificados) {
         data = data.filter(e => e.observacao && e.observacao.trim() !== '' && !e.observacao.startsWith('ANALISE_BASE'));
     }
+
+    if (fSuperiorUltima) {
+        data = data.filter(e => e.observacao && e.observacao.includes('[SUPERIOR A ULTIMA]'));
+    }
     
     // Ordenação em Memória
     if (fOrdem === 'maiores') {
@@ -991,12 +1030,21 @@ async function carregarEntregas() {
           obsText = obsText.replace('[ACIMA DO LIMITE]', '').trim();
       }
 
+      let isSuperiorUltima = false;
+      if (obsText.includes('[SUPERIOR A ULTIMA]')) {
+          isSuperiorUltima = true;
+          obsText = obsText.replace('[SUPERIOR A ULTIMA]', '').trim();
+      }
+
       let tags = '';
       if (e.status === 'confirmado') {
         tags += `<span class="badge-tag tag-entregue" title="Entregue"><i data-lucide="package-check"></i></span>`;
       }
       if (isExcecao || (parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0)) {
         tags += `<span class="badge-tag tag-acima-media" title="Acima da Média / Exceção"><i data-lucide="trending-up"></i></span>`;
+      }
+      if (isSuperiorUltima) {
+        tags += `<span class="badge-tag tag-superior-ultima" title="Superior à Última Entrega"><i data-lucide="chevrons-up"></i></span>`;
       }
       if (e.criado_por === 'Portal') {
         tags += `<span class="badge-tag tag-portal" title="Via Portal"><i data-lucide="globe"></i></span>`;

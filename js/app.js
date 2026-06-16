@@ -29,6 +29,31 @@ function initLogin() {
             if (parsed && parsed.username && parsed.role) {
                 currentUser = parsed;
                 showApp();
+
+                // Background refresh user profile to reflect database updates (e.g. role/city changes)
+                if (navigator.onLine) {
+                    API.fetch(`/balanceamento_usuarios?username=eq.${encodeURIComponent(parsed.username.toLowerCase())}&select=*`)
+                        .then(result => {
+                            const found = result[0];
+                            if (found) {
+                                const changed = found.role !== parsed.role || 
+                                                found.cidade !== parsed.cidade || 
+                                                found.label !== parsed.label ||
+                                                found.password !== parsed.password;
+                                if (changed) {
+                                    currentUser = found;
+                                    localStorage.setItem('rdyUser', JSON.stringify(found));
+                                    const { role } = currentUser;
+                                    if (role === 'cto') {
+                                        showAdmin();
+                                    } else {
+                                        showTech();
+                                    }
+                                }
+                            }
+                        })
+                        .catch(err => console.warn("Error refreshing user profile in background:", err));
+                }
                 return;
             }
         } catch (e) {}
@@ -133,6 +158,8 @@ function showTech() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appContainer').style.display = 'block';
     applyRoleRestrictions();
+    if (window.techAppInitialized) return;
+    window.techAppInitialized = true;
     lucide.createIcons();
     initTabs();
     initSearch();
@@ -148,16 +175,23 @@ function applyRoleRestrictions() {
     document.getElementById('userLabel').innerText = label;
     document.getElementById('userBadge').classList.remove('hidden');
 
-    if (role === 'tecnico' || role === 'gestor') {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            if (!['balancear', 'historico'].includes(btn.dataset.tab)) btn.style.display = 'none';
-        });
-    }
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (role === 'tecnico' || role === 'gestor') {
+            if (!['balancear', 'historico'].includes(btn.dataset.tab)) {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = '';
+            }
+        } else {
+            btn.style.display = '';
+        }
+    });
 
-    // Ocultar opções de entrega e resumo de balanceamento para usuários regionais (Indaiatuba e Limeira)
-    const isRegional = cidade === 'LIMEIRA' || cidade === 'INDAIATUBA';
+    // Ocultar opções de entrega e resumo de balanceamento para técnicos, gestores ou usuários regionais (exceto no Sistema Original)
+    const isSistemaOriginal = window !== window.top;
+    const hideOptions = !isSistemaOriginal && (role === 'tecnico' || role === 'gestor' || cidade === 'LIMEIRA' || cidade === 'INDAIATUBA');
     document.querySelectorAll('.options-section, .summary-column').forEach(el => {
-        el.style.display = isRegional ? 'none' : '';
+        el.style.display = hideOptions ? 'none' : '';
     });
 
     // Controlar exibição dos chips de filtros rápidos de cidade no histórico
@@ -488,7 +522,18 @@ async function buscarEquipamento(serie) {
                 document.getElementById('resUltimaEntrega').innerText = 'N/D (Offline)';
                 state.entregas = [];
 
-                abrirAnaliseImediata();
+                const isSistemaOriginal = window !== window.top;
+                if (isSistemaOriginal) {
+                    document.getElementById('analiseImediataBtn').classList.add('hidden');
+                    document.getElementById('analiseAbertaCard').classList.add('hidden');
+                    document.getElementById('analiseFecharCard').classList.add('hidden');
+                    const tbody = document.getElementById('historicoOriginalTbody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-dim">Offline. Histórico indisponível.</td></tr>';
+                    document.getElementById('historicoOriginalCard').classList.remove('hidden');
+                } else {
+                    document.getElementById('historicoOriginalCard').classList.add('hidden');
+                    abrirAnaliseImediata();
+                }
                 setLoading(false);
                 return;
             } else {
@@ -542,10 +587,51 @@ async function buscarEquipamento(serie) {
             resUltima.innerText = 'Nenhuma';
         }
 
-        if (analiseEmAberto) {
-            mostrarFecharAnalise(analiseEmAberto);
+        const isSistemaOriginal = window !== window.top;
+        if (isSistemaOriginal) {
+            document.getElementById('analiseImediataBtn').classList.add('hidden');
+            document.getElementById('analiseAbertaCard').classList.add('hidden');
+            document.getElementById('analiseFecharCard').classList.add('hidden');
+            
+            // Renderiza e mostra as Últimas 4 Entregas
+            const ultimasEntregas = [...entregas]
+                .filter(e => e.status === 'confirmado')
+                .sort((a, b) => new Date(b.data_registro) - new Date(a.data_registro))
+                .slice(0, 4);
+
+            const tbody = document.getElementById('historicoOriginalTbody');
+            if (tbody) {
+                if (ultimasEntregas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-dim">Nenhuma entrega registrada.</td></tr>';
+                } else {
+                    tbody.innerHTML = ultimasEntregas.map(e => {
+                        const dt = new Date(e.data_registro).toLocaleDateString('pt-BR');
+                        const qtd = parseFloat(e.quantidade_definida) || 0;
+                        const os = e.numero_os || '—';
+                        let obs = e.observacao || '—';
+                        obs = obs.replace(/\[ACIMA DO LIMITE\]/g, '')
+                                 .replace(/\[SUPERIOR A ULTIMA\]/g, '')
+                                 .replace(/\[RECOMENDADO\]/g, '')
+                                 .trim() || '—';
+                        return `
+                            <tr>
+                                <td>${esc(dt)}</td>
+                                <td class="text-center"><strong>${esc(String(qtd))}</strong></td>
+                                <td>${esc(os)}</td>
+                                <td><span class="text-dim" style="font-size:0.75rem;">${esc(obs)}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+            document.getElementById('historicoOriginalCard').classList.remove('hidden');
         } else {
-            abrirAnaliseImediata();
+            document.getElementById('historicoOriginalCard').classList.add('hidden');
+            if (analiseEmAberto) {
+                mostrarFecharAnalise(analiseEmAberto);
+            } else {
+                abrirAnaliseImediata();
+            }
         }
 
     } catch (e) {
@@ -818,7 +904,15 @@ async function salvarBalanceamento() {
     if (!qtd) return alert("Selecione uma opção de entrega!");
 
     let isExcecao = false;
+    let isSuperiorUltima = false;
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
+
+    if (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) {
+        const confirmou = confirm(`A quantidade atual (${qtd} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
+        if (!confirmou) return;
+        isSuperiorUltima = true;
+    }
+
     if ((ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
         if (!obs) {
             alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal ou o limite da última entrega. Por favor, preencha o campo 'Observação' com o motivo.");
@@ -844,6 +938,7 @@ async function salvarBalanceamento() {
         let finalObs = obs || '';
         if (state.opcao === 'rec') finalObs = `[RECOMENDADO] ${finalObs}`.trim();
         if (isExcecao) finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
+        if (isSuperiorUltima) finalObs = `[SUPERIOR A ULTIMA] ${finalObs}`.trim();
 
         await API.post('/balanceamento_entregas', {
             equipamento_id: state.equipamento.id,
@@ -1015,7 +1110,15 @@ async function salvarAnaliseAberta() {
         return alert(`O numerador atual (${numeradorBase.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${ultimoContador.toLocaleString('pt-BR')})!`);
     }
 
+    let isSuperiorUltima = false;
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
+
+    if (ultimaEntregaResmas > 0 && resmas > ultimaEntregaResmas) {
+        const confirmou = confirm(`A quantidade atual (${resmas} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
+        if (!confirmou) return;
+        isSuperiorUltima = true;
+    }
+
     if ((ultimaEntregaResmas > 0 && resmas > ultimaEntregaResmas) || (calcularEntregasMes() + resmas > (state.media || 0))) {
         const confirmou = confirm("Certeza que deseja entregar? Se sim, clique em OK para confirmar a entrega e lembre-se de sinalizar no chamado o motivo da exceção.");
         if (!confirmou) return;
@@ -1030,7 +1133,7 @@ async function salvarAnaliseAberta() {
             opcao_entrega: null,
             quantidade_definida: resmas,
             contador_atual: numeradorBase,
-            observacao: `ANALISE_BASE:${numeradorBase}`,
+            observacao: isSuperiorUltima ? `[SUPERIOR A ULTIMA] ANALISE_BASE:${numeradorBase}` : `ANALISE_BASE:${numeradorBase}`,
             status: 'analise_aberta',
             criado_por: 'Portal'
         });
@@ -1136,6 +1239,18 @@ async function confirmarFechamentoAnalise() {
 
     const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 1;
 
+    // Calcular se o valor é superior à última entrega
+    const confirmadas = entregas.filter(e => e.status === 'confirmado' && e.id !== analise.id);
+    const ultimaConfirmada = confirmadas.length > 0 ? confirmadas[confirmadas.length - 1] : null;
+    const ultimaEntregaResmas = ultimaConfirmada ? (parseInt(ultimaConfirmada.quantidade_definida) || 0) : 0;
+
+    let isSuperiorUltima = false;
+    if (ultimaEntregaResmas > 0 && novasResmas > ultimaEntregaResmas) {
+        const confirmou = confirm(`A quantidade atual (${novasResmas} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
+        if (!confirmou) return;
+        isSuperiorUltima = true;
+    }
+
     if ((resmas > 0 && novasResmas > resmas) || (calcularEntregasMes() + novasResmas > (state.media || 0))) {
         const confirmou = confirm("Certeza que deseja entregar? Se sim, clique em OK para confirmar a entrega e lembre-se de sinalizar no chamado o motivo da exceção.");
         if (!confirmou) return;
@@ -1163,7 +1278,7 @@ async function confirmarFechamentoAnalise() {
             opcao_entrega: null,
             quantidade_definida: novasResmas,
             contador_atual: novoContador,
-            observacao: `ANALISE_BASE:${novoContador}`,
+            observacao: isSuperiorUltima ? `[SUPERIOR A ULTIMA] ANALISE_BASE:${novoContador}` : `ANALISE_BASE:${novoContador}`,
             status: 'analise_aberta',
             criado_por: 'Portal'
         });
@@ -1557,7 +1672,7 @@ function setBtnLoading(s) {
 }
 
 function resetUI() {
-    ['resultContainer', 'formLineOs', 'formLineObs', 'actionRow', 'saldoBox'].forEach(id =>
+    ['resultContainer', 'formLineOs', 'formLineObs', 'actionRow', 'saldoBox', 'historicoOriginalCard'].forEach(id =>
         document.getElementById(id)?.classList.add('hidden')
     );
     [['inputContador',''],['inputOs',''],['inputObs',''],

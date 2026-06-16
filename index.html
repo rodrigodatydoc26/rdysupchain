@@ -27,6 +27,11 @@
   <link rel="apple-touch-icon" href="icon.svg">
   <style>
     #appContainer { display: none; }
+    .orig-hist-header { background: var(--bg-1); border-bottom: 1px solid var(--border); }
+    .orig-hist-title { margin: 0; font-size: 0.9375rem; font-weight: 700; }
+    .orig-hist-subtitle { margin: 0; font-size: 0.75rem; color: var(--text-dim); }
+    .orig-hist-body { padding: 16px; }
+    .orig-hist-table { width: 100%; font-size: 0.85rem; }
   </style>
 </head>
 <body>
@@ -186,6 +191,34 @@
                 <div id="consumoProgressBar" class="progress-bar-fill"></div>
               </div>
               <p id="consumoAvisoTexto" class="consumo-aviso hidden"></p>
+            </div>
+          </div>
+
+          <!-- HISTÓRICO DAS ÚLTIMAS 4 ENTREGAS (SISTEMA ORIGINAL) -->
+          <div id="historicoOriginalCard" class="analise-card hidden">
+            <div class="analise-header orig-hist-header">
+              <i data-lucide="history"></i>
+              <div>
+                <h4 class="orig-hist-title">Últimas 4 Entregas</h4>
+                <p class="sub-txt orig-hist-subtitle">Histórico recente de resmas entregues</p>
+              </div>
+            </div>
+            <div class="analise-body orig-hist-body">
+              <div class="table-responsive">
+                <table class="data-table orig-hist-table">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th class="text-center">Resmas</th>
+                      <th>O.S.</th>
+                      <th>Observação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="historicoOriginalTbody">
+                    <tr><td colspan="4" class="text-center">Carregando histórico...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
