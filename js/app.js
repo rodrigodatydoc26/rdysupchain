@@ -194,6 +194,12 @@ function applyRoleRestrictions() {
         el.style.display = hideOptions ? 'none' : '';
     });
 
+    // Ocultar card "Recomendado" no Sistema Original
+    const recCard = document.querySelector('.option-card[data-opcao="rec"]');
+    if (recCard) {
+        recCard.style.display = isSistemaOriginal ? 'none' : '';
+    }
+
     // Controlar exibição dos chips de filtros rápidos de cidade no histórico
     const chipLimeira = document.getElementById('chip-limeira');
     const chipIndaiatuba = document.getElementById('chip-indaiatuba');
@@ -841,8 +847,8 @@ function updateProxima() {
 
     const consumo = Math.max(0, cont - ultimoContador);
     const recomendado = cont > 0 ? Math.max(1, Math.ceil(consumo / 500)) : 0;
-    
-    document.getElementById('optRecQtd').innerText = recomendado;
+    const optRecEl = document.getElementById('optRecQtd');
+    if (optRecEl) optRecEl.innerText = recomendado;
     state.sugestoes['rec'] = recomendado;
 
     let qtd = 0;
