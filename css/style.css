@@ -323,7 +323,8 @@ input[type="text"]:focus, input[type="number"]:focus {
 
 .info-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
   align-items: flex-start;
   margin-bottom: 12px;
 }
@@ -338,7 +339,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .tag {
