@@ -1,4 +1,4 @@
-const CACHE = 'rdy-v7';
+const CACHE = 'rdy-bal-v8';
 const SUPABASE = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
 
 const SHELL = [
@@ -37,7 +37,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(req.clone())
         .then(res => {
-          if (res.ok) {
+          if (res.status === 200) {
             const resToCache = res.clone();
             caches.open(CACHE).then(c => c.put(req, resToCache));
             // Notificar clientes sobre sync bem-sucedido
@@ -63,7 +63,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       caches.match(req).then(cached => {
         const network = fetch(req.clone()).then(res => {
-          if (res.ok) {
+          if (res.status === 200) {
             const resToCache = res.clone();
             caches.open(CACHE).then(c => c.put(req, resToCache));
           }
