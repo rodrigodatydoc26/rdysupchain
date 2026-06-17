@@ -78,7 +78,7 @@
     <header class="topbar">
       <div class="logo">
         <i data-lucide="package"></i>
-        <h1>RDY - DOC CONTROL <span class="app-version">v26</span></h1>
+        <h1>RDY - DOC CONTROL <span class="app-version">v27</span></h1>
       </div>
       <div class="topbar-actions">
         <div class="color-selector">
@@ -800,10 +800,13 @@
   </div>
 
   <script>
-  // Registro do Service Worker
+  // Registro do Service Worker — updateViaCache: 'none' força o browser
+  // a sempre checar o SW no servidor sem usar cache HTTP
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
       console.log('SW registrado', reg.scope);
+      // Verifica atualizações a cada 60 segundos
+      setInterval(() => reg.update(), 60000);
     }).catch(err => console.log('SW erro', err));
 
     // Receber mensagem do SW (sync bem-sucedido)
@@ -812,13 +815,17 @@
         localStorage.setItem('lastSync', e.data.time);
         document.getElementById('syncBanner').classList.add('hidden');
       }
+      // SW atualizado → recarregar página automaticamente
+      if (e.data && e.data.type === 'SW_UPDATED') {
+        window.location.reload(true);
+      }
     });
 
     // Recarregar a página automaticamente ao atualizar o SW
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!refreshing) {
-        window.location.reload();
+        window.location.reload(true);
         refreshing = true;
       }
     });
@@ -859,7 +866,7 @@
   </script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script src="js/app.js?v=20260627"></script>
+  <script src="js/app.js?v=20260617"></script>
   <script>
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
       try { lucide.createIcons(); } catch (e) {}
