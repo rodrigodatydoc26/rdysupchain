@@ -2251,11 +2251,11 @@ select.input-text option { background: var(--bg-0); color: var(--text); }
 .btn-close-analise:hover { color: var(--danger); }
 
 .analise-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-.analise-info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+.analise-info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; gap: 12px; }
 .analise-info-row:last-of-type { border-bottom: none; }
 .analise-info-row.highlight-row { background: rgba(212, 175, 55, 0.06); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(212, 175, 55, 0.2); }
-.analise-label { color: var(--text-dim); white-space: nowrap; font-size: 1.05rem; }
-.analise-info-row strong { font-size: 1.1rem; }
+.analise-label { color: var(--text-dim); font-size: 0.9rem; line-height: 1.3; }
+.analise-info-row strong { font-size: 1.1rem; text-align: right; }
 .analise-divider { height: 1px; background: var(--border); margin: 4px 0; }
 .analise-input-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 0.875rem; }
 
