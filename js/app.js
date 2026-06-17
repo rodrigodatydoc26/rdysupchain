@@ -1,4 +1,9 @@
 // RDY DOC CONTROL - App Logic (Direct Supabase)
+if (typeof lucide === 'undefined') {
+    window.lucide = {
+        createIcons: function() { console.warn("Lucide fallback: icons not loaded."); }
+    };
+}
 const SUPABASE_URL = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
 
@@ -1711,6 +1716,9 @@ async function carregarRelatorios() {
 }
 
 function exportarExcel(id, name) {
+    if (typeof XLSX === 'undefined') {
+        return alert("Erro: A biblioteca XLSX (Excel) não foi carregada. Verifique sua conexão à internet.");
+    }
     const table = document.getElementById(id);
     const wb = XLSX.utils.table_to_book(table);
     XLSX.writeFile(wb, `${name}.xlsx`);
