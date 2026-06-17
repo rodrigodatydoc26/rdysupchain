@@ -562,7 +562,7 @@ async function buscarEquipamento(serie) {
 
         [osHistory, entregas, analiseEmAberto] = await Promise.all([
             API.fetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.asc`).catch(() => []),
-            API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=eq.confirmado&order=data_registro.asc`).catch(() => []),
+            API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=in.(confirmado,analise_aberta)&order=data_registro.asc`).catch(() => []),
             verificarAnaliseAberta(equip.id).catch(() => null)
         ]);
 
@@ -1187,7 +1187,7 @@ function mostrarFecharAnalise(analise) {
 
     document.getElementById('fecharSerie').innerText = equip.serie;
     document.getElementById('fecharNumeradorBase').innerText = numeradorBase.toLocaleString('pt-BR');
-    document.getElementById('fecharResmasAdicionadas').innerText = `${resmas} resmas (${(resmas * 500).toLocaleString('pt-BR')} pgs) · ${dataEntrega} · O.S.: ${osEntrega}`;
+    document.getElementById('fecharResmasAdicionadas').innerText = `${resmas} resma${resmas !== 1 ? 's' : ''} · ${dataEntrega} · O.S.: ${osEntrega}`;
     document.getElementById('fecharLimiteCalculado').innerText = limite.toLocaleString('pt-BR');
 
     // Reset inputs when opening this card
@@ -1920,9 +1920,9 @@ async function admCarregarDashboard() {
     try {
         const [equips, entregasMes, analises, recentes] = await Promise.all([
             API.fetch('/equipamentos?select=id' + admCidadeFilter() + '&limit=2000'),
-            API.fetch('/balanceamento_entregas?status=eq.confirmado&data_registro=gte.' + inicioMes + admCidadeFilter() + '&select=quantidade_definida&limit=2000'),
+            API.fetch('/balanceamento_entregas?status=in.(confirmado,analise_aberta)&data_registro=gte.' + inicioMes + admCidadeFilter() + '&select=quantidade_definida&limit=2000'),
             API.fetch('/balanceamento_entregas?status=eq.analise_aberta' + admCidadeFilter() + '&select=id&limit=1000'),
-            API.fetch('/balanceamento_entregas?status=eq.confirmado' + admCidadeFilter() + '&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))'),
+            API.fetch('/balanceamento_entregas?status=in.(confirmado,analise_aberta)' + admCidadeFilter() + '&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))'),
         ]);
         document.getElementById('kpiEquip').innerText    = equips.length;
         document.getElementById('kpiEntregas').innerText  = entregasMes.length;
@@ -1938,7 +1938,7 @@ async function admCarregarDashboard() {
 async function admCarregarEntregas() {
     const di = document.getElementById('admDataInicio').value;
     const df = document.getElementById('admDataFim').value;
-    let params = 'status=eq.confirmado' + admCidadeFilter() + '&order=data_registro.desc&limit=300&select=data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))';
+    let params = 'status=in.(confirmado,analise_aberta)' + admCidadeFilter() + '&order=data_registro.desc&limit=300&select=data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))';
     if (di) params += '&data_registro=gte.' + di;
     if (df) params += '&data_registro=lte.' + df + 'T23:59:59';
     document.getElementById('admEntregasTbody').innerHTML = '<tr><td colspan="9" class="text-center">Carregando...</td></tr>';

@@ -929,9 +929,9 @@ async function carregarDashboard() {
   try {
     const [equips, entregasMes, analises, recentes] = await Promise.all([
       API.fetch(`/equipamentos?select=id${equipFilter()}&limit=5000`),
-      API.fetch(`/balanceamento_entregas?status=eq.confirmado${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=5000`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
-      API.fetch(`/balanceamento_entregas?status=eq.confirmado${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
     ]);
 
     const label = (di || df || fCidade) ? "Filtradas" : "Este mês";
@@ -1030,7 +1030,7 @@ async function carregarEntregas() {
   const fJustificados = document.getElementById('admFiltroJustificados').checked;
   const fSuperiorUltima = document.getElementById('admFiltroSuperiorUltima').checked;
 
-  let params = `status=eq.confirmado${cidadeFilter()}&limit=1000`;
+  let params = `status=in.(confirmado,analise_aberta)${cidadeFilter()}&limit=1000`;
   params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`;
   
   if (di) params += `&data_registro=gte.${di}`;
