@@ -1074,7 +1074,8 @@ function analiseNumeradorChanged() {
         btnAplicar.classList.add('hidden');
     } else {
         const consumoPaginas = numerador - ultimoContador;
-        const sugerido = Math.max(0, Math.floor(consumoPaginas / 500));
+        const limiteMinimo = (ultimaEntregaResmas > 0 ? ultimaEntregaResmas : 1) * 500;
+        const sugerido = consumoPaginas < limiteMinimo ? 0 : Math.floor(consumoPaginas / 500);
         
         let subtitulo = '';
         if (ultimaEntregaResmas > 0) {
@@ -1221,7 +1222,8 @@ function fecharCalcularSaldo(evitarSobrescreverInputResmas = false) {
     const descEl = document.getElementById('fecharSaldoDesc');
     const resmasEl = document.getElementById('fecharSaldoResmas');
 
-    const recomendacao = Math.max(0, Math.floor(consumoPaginas / 500));
+    const limiteMinimo = (resmas > 0 ? resmas : 1) * 500;
+    const recomendacao = consumoPaginas < limiteMinimo ? 0 : Math.floor(consumoPaginas / 500);
     if (!evitarSobrescreverInputResmas) {
         document.getElementById('fecharResmasInput').value = recomendacao;
     }
