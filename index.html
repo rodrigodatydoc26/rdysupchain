@@ -813,6 +813,15 @@
         document.getElementById('syncBanner').classList.add('hidden');
       }
     });
+
+    // Recarregar a página automaticamente ao atualizar o SW
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        window.location.reload();
+        refreshing = true;
+      }
+    });
   }
 
   // Detectar online/offline
