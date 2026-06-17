@@ -879,18 +879,18 @@ function recalcularComContador() {
 }
 
 async function salvarBalanceamento() {
+    const isSistemaOriginal = window !== window.top;
+
     let os = document.getElementById('inputOs').value.trim().toUpperCase();
-    if (!os) return alert("Por favor, insira o número da O.S.!");
+    if (!isSistemaOriginal && !os) return alert("Por favor, insira o número da O.S.!");
     
     document.getElementById('inputOs').value = os;
 
-    const isSistemaOriginal = window !== window.top;
-    
     const contVal = document.getElementById('inputContador').value.trim();
     if (!isSistemaOriginal && (contVal === '' || isNaN(parseInt(contVal)))) {
         return alert("Por favor, insira o Contador/Numerador Atual!");
     }
-    const cont = parseInt(contVal) || 0;
+    const cont = contVal !== '' ? (parseInt(contVal) || 0) : null;
 
     // Validar se o contador atual é menor que o anterior
     const entregas = state.entregas || [];
@@ -899,7 +899,7 @@ async function salvarBalanceamento() {
         ? parseInt(ultimaEntrega.contador_atual)
         : (state.equipamento?.ultimo_contador || 0);
 
-    if (!isSistemaOriginal && cont < ultimoContador) {
+    if (!isSistemaOriginal && cont !== null && cont < ultimoContador) {
         return alert(`O contador atual (${cont.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${ultimoContador.toLocaleString('pt-BR')})!`);
     }
 
@@ -913,44 +913,46 @@ async function salvarBalanceamento() {
 
     let isExcecao = false;
     let isSuperiorUltima = false;
+    let isEntregaAMais = false;
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
 
-    // VALIDAR CONSUMO DA ENTREGA ANTERIOR
-    let isEntregaAMais = false;
-    if (cont > 0 && ultimaEntregaResmas > 0) {
-        const paginasProduzidas = cont - ultimoContador;
-        const paginasEsperadas = ultimaEntregaResmas * 500;
-        if (paginasProduzidas < paginasEsperadas) {
-            const minLiberar = ultimoContador + paginasEsperadas;
-            const confirmou = confirm(`Aviso: O equipamento produziu apenas ${paginasProduzidas.toLocaleString('pt-BR')} páginas desde a última entrega de ${ultimaEntregaResmas} resma(s) (esperado: ${paginasEsperadas.toLocaleString('pt-BR')} páginas). O numerador atual para liberar normalmente precisaria ser no mínimo ${minLiberar.toLocaleString('pt-BR')}. Você confirma que deseja realizar esta entrega a mais?`);
+    if (!isSistemaOriginal) {
+        // VALIDAR CONSUMO DA ENTREGA ANTERIOR
+        if (cont !== null && cont > 0 && ultimaEntregaResmas > 0) {
+            const paginasProduzidas = cont - ultimoContador;
+            const paginasEsperadas = ultimaEntregaResmas * 500;
+            if (paginasProduzidas < paginasEsperadas) {
+                const minLiberar = ultimoContador + paginasEsperadas;
+                const confirmou = confirm(`Aviso: O equipamento produziu apenas ${paginasProduzidas.toLocaleString('pt-BR')} páginas desde a última entrega de ${ultimaEntregaResmas} resma(s) (esperado: ${paginasEsperadas.toLocaleString('pt-BR')} páginas). O numerador atual para liberar normalmente precisaria ser no mínimo ${minLiberar.toLocaleString('pt-BR')}. Você confirma que deseja realizar esta entrega a mais?`);
+                if (!confirmou) return;
+                isEntregaAMais = true;
+            }
+        }
+
+        if (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) {
+            const confirmou = confirm(`A quantidade atual (${qtd} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
             if (!confirmou) return;
-            isEntregaAMais = true;
+            isSuperiorUltima = true;
         }
-    }
 
-    if (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) {
-        const confirmou = confirm(`A quantidade atual (${qtd} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
-        if (!confirmou) return;
-        isSuperiorUltima = true;
-    }
-
-    if (isEntregaAMais || (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
-        if (!obs) {
-            alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal, o limite da última entrega ou o equipamento não consumiu a entrega anterior. Por favor, preencha o campo 'Observação' com o motivo.");
-            document.getElementById('formLineObs').classList.remove('hidden');
-            document.getElementById('inputObs').focus();
-            return;
+        if (isEntregaAMais || (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
+            if (!obs) {
+                alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal, o limite da última entrega ou o equipamento não consumiu a entrega anterior. Por favor, preencha o campo 'Observação' com o motivo.");
+                document.getElementById('formLineObs').classList.remove('hidden');
+                document.getElementById('inputObs').focus();
+                return;
+            }
+            const confirmou = confirm("Exceção detectada: Você preencheu a justificativa. Deseja confirmar a entrega?");
+            if (!confirmou) return;
+            isExcecao = true;
         }
-        const confirmou = confirm("Exceção detectada: Você preencheu a justificativa. Deseja confirmar a entrega?");
-        if (!confirmou) return;
-        isExcecao = true;
     }
 
     setBtnLoading(true);
 
     try {
         let finalMedia = state.media;
-        if (state.equipamento.ultimo_contador && state.equipamento.data_ultimo_contador) {
+        if (cont !== null && state.equipamento.ultimo_contador && state.equipamento.data_ultimo_contador) {
             const dias = Math.ceil(Math.abs(new Date() - new Date(state.equipamento.data_ultimo_contador)) / (1000 * 60 * 60 * 24)) || 1;
             finalMedia = Math.ceil(((cont - state.equipamento.ultimo_contador) / dias * 30 / 500) * 10) / 10;
         }
@@ -967,7 +969,7 @@ async function salvarBalanceamento() {
             cliente_id: state.equipamento.cliente.id,
             numero_os: os || '',
             media_consumo_mensal: finalMedia,
-            opcao_entrega: (state.opcao === 'rec' || state.opcao === 0) ? 0 : state.opcao,
+            opcao_entrega: (state.opcao === 'rec' || state.opcao === 0) ? null : state.opcao,
             quantidade_definida: qtd,
             contador_atual: cont,
             observacao: finalObs,
@@ -1626,7 +1628,7 @@ async function carregarHistorico() {
                 data-local="${escAttr(i.equipamento?.secretaria || 'N/D')}"
                 data-serie="${escAttr(i.equipamento?.serie || 'N/D')}"
                 data-media="${escAttr(mediaStr)}"
-                data-freq="${escAttr(i.opcao_entrega === 0 ? 'Manual' : (i.opcao_entrega ? i.opcao_entrega + 'x' : '-'))}"
+                data-freq="${escAttr((i.opcao_entrega === null || i.opcao_entrega === undefined || i.opcao_entrega === 0) ? 'Manual' : i.opcao_entrega + 'x')}"
                 data-resmas="${escAttr(i.quantidade_definida !== null && i.quantidade_definida !== undefined ? String(i.quantidade_definida) : '-')}"
                 data-os="${escAttr(i.numero_os || '-')}"
                 data-status="${escAttr(i.status)}">
@@ -1635,7 +1637,7 @@ async function carregarHistorico() {
                 <td data-label="Local/Setor">${esc(i.equipamento?.secretaria || 'N/D')}</td>
                 <td data-label="Série">${esc(i.equipamento?.serie || 'N/D')}</td>
                 <td data-label="Média/mês">${esc(mediaStr)}</td>
-                <td data-label="Frequência">${esc(i.opcao_entrega === 0 ? 'Manual' : (i.opcao_entrega ? i.opcao_entrega + 'x' : '-'))}</td>
+                <td data-label="Frequência">${esc((i.opcao_entrega === null || i.opcao_entrega === undefined || i.opcao_entrega === 0) ? 'Manual' : i.opcao_entrega + 'x')}</td>
                 <td data-label="Resmas">${esc(i.quantidade_definida !== null && i.quantidade_definida !== undefined ? String(i.quantidade_definida) : '-')}</td>
                 <td data-label="O.S.">${esc(i.numero_os || '-')}</td>
                 <td data-label="Status">${formatarStatus(i.status)}</td>
