@@ -979,7 +979,7 @@ async function salvarBalanceamento() {
             contador_atual: cont,
             observacao: finalObs,
             status: 'confirmado',
-            criado_por: 'Portal'
+            criado_por: isSistemaOriginal ? 'Sistema Original' : 'Portal'
         });
 
         if (cont !== null && !isNaN(cont)) {

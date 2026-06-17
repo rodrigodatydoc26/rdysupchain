@@ -31,7 +31,8 @@ $payload = [
     'quantidade_definida' => (float)$input['quantidade_definida'],
     'contador_atual' => isset($input['contador_atual']) ? (int)$input['contador_atual'] : null,
     'observacao' => $input['observacao'] ?? '',
-    'status' => 'confirmado'
+    'status' => 'confirmado',
+    'criado_por' => 'Sistema Original'
 ];
 
 $url = $supabaseUrl . '/rest/v1/balanceamento_entregas';
