@@ -2471,3 +2471,12 @@ select.input-text option { background: var(--bg-0); color: var(--text); }
   width: 14px;
   height: 14px;
 }
+
+/* App Version label spacing and font properties */
+.app-version {
+  font-size: 0.65rem;
+  font-weight: normal;
+  color: var(--text-dim);
+  opacity: 0.6;
+  margin-left: 8px;
+}
