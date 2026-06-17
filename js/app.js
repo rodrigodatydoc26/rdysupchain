@@ -915,15 +915,28 @@ async function salvarBalanceamento() {
     let isSuperiorUltima = false;
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
 
+    // VALIDAR CONSUMO DA ENTREGA ANTERIOR
+    let isEntregaAMais = false;
+    if (cont > 0 && ultimaEntregaResmas > 0) {
+        const paginasProduzidas = cont - ultimoContador;
+        const paginasEsperadas = ultimaEntregaResmas * 500;
+        if (paginasProduzidas < paginasEsperadas) {
+            const minLiberar = ultimoContador + paginasEsperadas;
+            const confirmou = confirm(`Aviso: O equipamento produziu apenas ${paginasProduzidas.toLocaleString('pt-BR')} páginas desde a última entrega de ${ultimaEntregaResmas} resma(s) (esperado: ${paginasEsperadas.toLocaleString('pt-BR')} páginas). O numerador atual para liberar normalmente precisaria ser no mínimo ${minLiberar.toLocaleString('pt-BR')}. Você confirma que deseja realizar esta entrega a mais?`);
+            if (!confirmou) return;
+            isEntregaAMais = true;
+        }
+    }
+
     if (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) {
         const confirmou = confirm(`A quantidade atual (${qtd} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
         if (!confirmou) return;
         isSuperiorUltima = true;
     }
 
-    if ((ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
+    if (isEntregaAMais || (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
         if (!obs) {
-            alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal ou o limite da última entrega. Por favor, preencha o campo 'Observação' com o motivo.");
+            alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal, o limite da última entrega ou o equipamento não consumiu a entrega anterior. Por favor, preencha o campo 'Observação' com o motivo.");
             document.getElementById('formLineObs').classList.remove('hidden');
             document.getElementById('inputObs').focus();
             return;
@@ -947,6 +960,7 @@ async function salvarBalanceamento() {
         if (state.opcao === 'rec') finalObs = `[RECOMENDADO] ${finalObs}`.trim();
         if (isExcecao) finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
         if (isSuperiorUltima) finalObs = `[SUPERIOR A ULTIMA] ${finalObs}`.trim();
+        if (isEntregaAMais) finalObs = `[ENTREGA A MAIS] ${finalObs}`.trim();
 
         await API.post('/balanceamento_entregas', {
             equipamento_id: state.equipamento.id,
@@ -999,7 +1013,7 @@ function abrirAnaliseImediata() {
     if (!equip) return;
     document.getElementById('analiseSerie').innerText = equip.serie;
     document.getElementById('analiseNumeradorAtual').value = '';
-    document.getElementById('analiseResmas').value = 1;
+    document.getElementById('analiseResmas').value = 0;
     _setAnaliseSugStatus('neutral', 0, 'AGUARDANDO LEITURA', 'Insira o numerador atual para o cálculo.');
     document.getElementById('btnAplicarSugestao').classList.add('hidden');
     analiseCalcularLimite();
@@ -1016,7 +1030,7 @@ function fecharCardAnalise() {
 
 function analiseAlterarResmas(delta) {
     const input = document.getElementById('analiseResmas');
-    input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+    input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
     analiseCalcularLimite();
 }
 
@@ -1060,7 +1074,7 @@ function analiseNumeradorChanged() {
         btnAplicar.classList.add('hidden');
     } else {
         const consumoPaginas = numerador - ultimoContador;
-        const sugerido = Math.max(1, Math.ceil(consumoPaginas / 500));
+        const sugerido = Math.max(0, Math.floor(consumoPaginas / 500));
         
         let subtitulo = '';
         if (ultimaEntregaResmas > 0) {
@@ -1070,9 +1084,15 @@ function analiseNumeradorChanged() {
             subtitulo = `Sem entregas anteriores · Consumo de ${consumoPaginas.toLocaleString('pt-BR')} págs desde o numerador base (${ultimoContador.toLocaleString('pt-BR')})`;
         }
 
-        _setAnaliseSugStatus('success', sugerido, 'SUGESTÃO DE REPOSIÇÃO', subtitulo);
-        btnAplicar.dataset.sugestao = sugerido;
-        btnAplicar.classList.remove('hidden');
+        if (sugerido > 0) {
+            _setAnaliseSugStatus('success', sugerido, 'SUGESTÃO DE REPOSIÇÃO', subtitulo);
+            btnAplicar.dataset.sugestao = sugerido;
+            btnAplicar.classList.remove('hidden');
+        } else {
+            _setAnaliseSugStatus('neutral', 0, 'NENHUMA REPOSIÇÃO SUGERIDA', subtitulo);
+            btnAplicar.dataset.sugestao = 0;
+            btnAplicar.classList.add('hidden');
+        }
     }
 
     analiseCalcularLimite();
@@ -1168,6 +1188,12 @@ function mostrarFecharAnalise(analise) {
     document.getElementById('fecharNumeradorBase').innerText = numeradorBase.toLocaleString('pt-BR');
     document.getElementById('fecharResmasAdicionadas').innerText = `${resmas} resmas (${(resmas * 500).toLocaleString('pt-BR')} pgs) · ${dataEntrega} · O.S.: ${osEntrega}`;
     document.getElementById('fecharLimiteCalculado').innerText = limite.toLocaleString('pt-BR');
+
+    // Reset inputs when opening this card
+    document.getElementById('fecharNumeradorNovo').value = '';
+    document.getElementById('fecharResmasInput').value = '0';
+    document.getElementById('saldoBox').classList.add('hidden');
+
     document.getElementById('analiseAbertaCard').classList.add('hidden');
     document.getElementById('analiseFecharCard').classList.remove('hidden');
     document.getElementById('analiseImediataBtn').classList.add('hidden');
@@ -1195,16 +1221,21 @@ function fecharCalcularSaldo(evitarSobrescreverInputResmas = false) {
     const descEl = document.getElementById('fecharSaldoDesc');
     const resmasEl = document.getElementById('fecharSaldoResmas');
 
-    const recomendacao = Math.max(1, Math.ceil(consumoPaginas / 500));
+    const recomendacao = Math.max(0, Math.floor(consumoPaginas / 500));
     if (!evitarSobrescreverInputResmas) {
         document.getElementById('fecharResmasInput').value = recomendacao;
     }
 
     saldoEl.innerText = `${recomendacao} resma${recomendacao !== 1 ? 's' : ''}`;
-    saldoEl.className = 'saldo-value saldo-positivo';
-    if (recomendacao > 0) box.classList.add('sugestao-card');
-    else box.classList.remove('sugestao-card');
-    descEl.innerText = `sugerida${recomendacao !== 1 ? 's' : ''} para reposição`;
+    if (recomendacao > 0) {
+        saldoEl.className = 'saldo-value saldo-positivo';
+        box.classList.add('sugestao-card');
+        descEl.innerText = `sugerida${recomendacao !== 1 ? 's' : ''} para reposição`;
+    } else {
+        saldoEl.className = 'saldo-value';
+        box.classList.remove('sugestao-card');
+        descEl.innerText = `sugeridas (nenhuma reposição necessária)`;
+    }
 
     resmasEl.innerText = `CPD: ${cpd.toFixed(0)} pgs/dia · Consumo: ${consumoPaginas.toLocaleString('pt-BR')} págs. (${(consumoPaginas / 500).toFixed(1).replace('.', ',')} resmas) desde a abertura`;
     box.classList.remove('hidden');
@@ -1212,9 +1243,9 @@ function fecharCalcularSaldo(evitarSobrescreverInputResmas = false) {
 
 function fecharAlterarResmas(delta) {
     const input = document.getElementById('fecharResmasInput');
-    input.value = Math.max(1, (parseInt(input.value) || 1) + delta);
+    input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
     fecharCalcularSaldo(true);
-    const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 1;
+    const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 0;
     atualizarBarraConsumo(novasResmas);
 }
 
@@ -1245,12 +1276,25 @@ async function confirmarFechamentoAnalise() {
     const pagsRestantes = resmas * 500 - consumoPaginas;
     const saldoDias = cpd > 0 ? Math.round(pagsRestantes / cpd) : null;
 
-    const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 1;
+    const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 0;
 
     // Calcular se o valor é superior à última entrega
     const confirmadas = entregas.filter(e => e.status === 'confirmado' && e.id !== analise.id);
     const ultimaConfirmada = confirmadas.length > 0 ? confirmadas[confirmadas.length - 1] : null;
     const ultimaEntregaResmas = ultimaConfirmada ? (parseInt(ultimaConfirmada.quantidade_definida) || 0) : 0;
+
+    // VALIDAR CONSUMO DA ENTREGA ANTERIOR (DA ABERTURA DA ANÁLISE)
+    let isEntregaAMais = false;
+    if (novoContador > 0 && resmas > 0) {
+        const paginasProduzidas = novoContador - numeradorBase;
+        const paginasEsperadas = resmas * 500;
+        if (paginasProduzidas < paginasEsperadas) {
+            const minLiberar = numeradorBase + paginasEsperadas;
+            const confirmou = confirm(`Aviso: O equipamento produziu apenas ${paginasProduzidas.toLocaleString('pt-BR')} páginas desde a abertura da análise de ${resmas} resma(s) (esperado: ${paginasEsperadas.toLocaleString('pt-BR')} páginas). O numerador atual para liberar normalmente precisaria ser no mínimo ${minLiberar.toLocaleString('pt-BR')}. Você confirma que deseja realizar esta entrega a mais?`);
+            if (!confirmou) return;
+            isEntregaAMais = true;
+        }
+    }
 
     let isSuperiorUltima = false;
     if (ultimaEntregaResmas > 0 && novasResmas > ultimaEntregaResmas) {
@@ -1286,7 +1330,7 @@ async function confirmarFechamentoAnalise() {
             opcao_entrega: null,
             quantidade_definida: novasResmas,
             contador_atual: novoContador,
-            observacao: isSuperiorUltima ? `[SUPERIOR A ULTIMA] ANALISE_BASE:${novoContador}` : `ANALISE_BASE:${novoContador}`,
+            observacao: (isSuperiorUltima ? `[SUPERIOR A ULTIMA] ` : '') + (isEntregaAMais ? `[ENTREGA A MAIS] ` : '') + `ANALISE_BASE:${novoContador}`,
             status: 'analise_aberta',
             criado_por: 'Portal'
         });
@@ -1684,8 +1728,8 @@ function resetUI() {
         document.getElementById(id)?.classList.add('hidden')
     );
     [['inputContador',''],['inputOs',''],['inputObs',''],
-     ['analiseNumeradorAtual',''],['analiseOs',''],['analiseResmas','1'],
-     ['fecharNumeradorNovo',''],['fecharResmasInput','1']].forEach(([id, val]) => {
+     ['analiseNumeradorAtual',''],['analiseOs',''],['analiseResmas','0'],
+     ['fecharNumeradorNovo',''],['fecharResmasInput','0']].forEach(([id, val]) => {
         const el = document.getElementById(id);
         if (el) el.value = val;
     });
