@@ -340,11 +340,10 @@ function initModalEdicao() {
 
             if (novoContador > 0) {
                 const equip = state._editEquip;
-                await API.post('/ordens_servico', {
-                    equipamento_id: currentEditingId,
-                    cliente_id: equip.cliente_id,
-                    numero_os: '',
-                    contador_atual: novoContador
+                await API.post('/ctrl_os', {
+                    equipment_id: currentEditingId,
+                    os_number: '',
+                    counter_reading: novoContador
                 });
             }
 
@@ -566,14 +565,14 @@ async function buscarEquipamento(serie) {
         }
 
         [osHistory, entregas, analiseEmAberto] = await Promise.all([
-            API.fetch(`/ordens_servico?equipamento_id=eq.${equip.id}&select=contador_atual,data_os&order=data_os.asc`).catch(() => []),
+            API.fetch(`/ctrl_os?equipment_id=eq.${equip.id}&select=counter_reading,os_date&order=os_date.asc`).catch(() => []),
             API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=in.(confirmado,analise_aberta)&order=data_registro.asc`).catch(() => []),
             verificarAnaliseAberta(equip.id).catch(() => null)
         ]);
 
         const ultimaOs = osHistory.length > 0 ? osHistory[osHistory.length - 1] : null;
-        equip.ultimo_contador = ultimaOs?.contador_atual || equip.ultimo_contador || 0;
-        equip.data_ultimo_contador = ultimaOs?.data_os || null;
+        equip.ultimo_contador = ultimaOs?.counter_reading || equip.current_counter || 0;
+        equip.data_ultimo_contador = ultimaOs?.os_date || null;
 
         state.equipamento = equip;
         state.entregas = entregas;
@@ -983,11 +982,10 @@ async function salvarBalanceamento() {
         });
 
         if (cont !== null && !isNaN(cont)) {
-            await API.post('/ordens_servico', {
-                equipamento_id: state.equipamento.id,
-                cliente_id: state.equipamento.cliente.id,
-                numero_os: os || '',
-                contador_atual: cont
+            await API.post('/ctrl_os', {
+                equipment_id: state.equipamento.id,
+                os_number: os || '',
+                counter_reading: cont
             });
         }
 
@@ -1323,11 +1321,10 @@ async function confirmarFechamentoAnalise() {
             contador_atual: novoContador,
             observacao: `${analise.observacao} | Fechada. Cnt final: ${novoContador}. CPD: ${cpd.toFixed(0)} pgs/dia. Saldo: ${pagsRestantes >= 0 ? '+' : ''}${pagsRestantes} pgs${saldoDias !== null ? ` (≈ ${saldoDias}d)` : ''}.`
         });
-        await API.post('/ordens_servico', {
-            equipamento_id: equip.id,
-            cliente_id: equip.cliente.id,
-            numero_os: analise.numero_os || '',
-            contador_atual: novoContador
+        await API.post('/ctrl_os', {
+            equipment_id: equip.id,
+            os_number: analise.numero_os || '',
+            counter_reading: novoContador
         });
         
         // Criar a nova entrega de resmas no balanceamento (como análise aberta)
@@ -1761,8 +1758,8 @@ async function prepararEdicao(id) {
         const [eq] = await API.fetch(`/equipamentos?id=eq.${id}&select=*,cliente:clientes(nome)`);
         if (!eq) return alert("Equipamento não encontrado!");
 
-        const os = await API.fetch(`/ordens_servico?equipamento_id=eq.${id}&order=data_os.desc&limit=1&select=contador_atual`);
-        const ultimoContador = os[0]?.contador_atual || 0;
+        const os = await API.fetch(`/ctrl_os?equipment_id=eq.${id}&order=os_date.desc&limit=1&select=counter_reading`);
+        const ultimoContador = os[0]?.counter_reading || 0;
 
         state._editEquip = eq;
 
