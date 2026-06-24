@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: application/json');
 
-$supabaseUrl = getenv('SUPABASE_URL') ?: 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
-$supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
+$supabaseUrl = getenv('SUPABASE_URL') ?: 'https://iedkbtceqgrawgubxslh.supabase.co';
+$supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllZGtidGNlcWdyYXdndWJ4c2xoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjgwNjYsImV4cCI6MjA5MzE0NDA2Nn0.O29RYcYN2NOAz8pZUCa0ntBHXDEFRLmbeojpwdAArBo';
 
 $equipamento_id = $_GET['equipamento_id'] ?? '';
 
@@ -11,17 +11,16 @@ if (!$equipamento_id) {
     exit;
 }
 
-// Data de 90 dias atrás
 $date = new DateTime();
 $date->modify('-90 days');
 $dataCorte = $date->format('Y-m-d\TH:i:s.000\Z');
 
-// Buscar entregas_papel para esse equipamento nos últimos 90 dias
-$url = $supabaseUrl . '/rest/v1/entregas_papel'
+$url = $supabaseUrl . '/rest/v1/balanceamento_entregas'
      . '?equipamento_id=eq.' . urlencode($equipamento_id)
-     . '&data_entrega=gte.' . urlencode($dataCorte)
-     . '&select=quantidade,data_entrega,numero_os,created_at'
-     . '&order=data_entrega.desc';
+     . '&data_registro=gte.' . urlencode($dataCorte)
+     . '&status=eq.confirmado'
+     . '&select=quantidade_definida,data_registro,numero_os,created_at'
+     . '&order=data_registro.desc';
 
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -39,17 +38,13 @@ if (!is_array($entregas)) {
     exit;
 }
 
-// Calcular a média
 $total = 0;
 foreach ($entregas as $e) {
-    $total += floatval($e['quantidade']);
+    $total += floatval($e['quantidade_definida']);
 }
 
-// Como consideramos os últimos 3 meses:
 $media = $total / 3;
-$mediaArredondada = ceil($media * 10) / 10; // 1 casa decimal arredondada p/ cima
-
-// Margem de segurança de 15%
+$mediaArredondada = ceil($media * 10) / 10;
 $comMargem = $mediaArredondada * 1.15;
 
 $sugestoes = [

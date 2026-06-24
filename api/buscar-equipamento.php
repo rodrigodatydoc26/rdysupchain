@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: application/json');
 
-$supabaseUrl = getenv('SUPABASE_URL') ?: 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
-$supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
+$supabaseUrl = getenv('SUPABASE_URL') ?: 'https://iedkbtceqgrawgubxslh.supabase.co';
+$supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllZGtidGNlcWdyYXdndWJ4c2xoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjgwNjYsImV4cCI6MjA5MzE0NDA2Nn0.O29RYcYN2NOAz8pZUCa0ntBHXDEFRLmbeojpwdAArBo';
 
 $q = $_GET['q'] ?? '';
 $type = $_GET['type'] ?? 'single';
@@ -13,12 +13,11 @@ if (strlen($q) < 3) {
 }
 
 if ($type === 'list') {
-    // Busca lista para autocomplete (Serie, Patrimonio e Cliente/Local)
     $url = $supabaseUrl . '/rest/v1/equipamentos'
          . '?select=serie,patrimonio,secretaria,media_referencia,cliente:clientes(nome)'
          . '&or=(serie.ilike.*' . urlencode($q) . '*,patrimonio.ilike.*' . urlencode($q) . '*)'
          . '&limit=8';
-    
+
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'apikey: ' . $supabaseKey,
@@ -50,13 +49,13 @@ if (is_array($resData) && count($resData) > 0) {
     $data = is_array($resData) ? $resData[0] : null;
 
     if ($data) {
-        // Buscar último contador na tabela ordens_servico
-        $urlOs = $supabaseUrl . '/rest/v1/ordens_servico'
-               . '?equipamento_id=eq.' . urlencode($data['id'])
-               . '&contador=gt.0'
-               . '&select=contador,data_os'
-               . '&order=data_os.desc&limit=1';
-        
+        // Buscar último contador em ctrl_os
+        $urlOs = $supabaseUrl . '/rest/v1/ctrl_os'
+               . '?equipment_id=eq.' . urlencode($data['id'])
+               . '&counter_reading=gt.0'
+               . '&select=counter_reading,os_date'
+               . '&order=os_date.desc&limit=1';
+
         $chOs = curl_init($urlOs);
         curl_setopt($chOs, CURLOPT_HTTPHEADER, [
             'apikey: ' . $supabaseKey,
@@ -65,13 +64,13 @@ if (is_array($resData) && count($resData) > 0) {
         curl_setopt($chOs, CURLOPT_RETURNTRANSFER, true);
         $resOs = curl_exec($chOs);
         curl_close($chOs);
-        
+
         $dataOs = json_decode($resOs, true);
-        if (is_array($dataOs) && isset($dataOs[0]) && is_array($dataOs[0]) && array_key_exists('contador', $dataOs[0])) {
-            $data['ultimo_contador'] = $dataOs[0]['contador'];
-            $data['data_ultimo_contador'] = $dataOs[0]['data_os'];
+        if (is_array($dataOs) && isset($dataOs[0]) && is_array($dataOs[0]) && array_key_exists('counter_reading', $dataOs[0])) {
+            $data['ultimo_contador'] = $dataOs[0]['counter_reading'];
+            $data['data_ultimo_contador'] = $dataOs[0]['os_date'];
         } else {
-            $data['ultimo_contador'] = 0;
+            $data['ultimo_contador'] = $data['current_counter'] ?? 0;
             $data['data_ultimo_contador'] = null;
         }
     }
