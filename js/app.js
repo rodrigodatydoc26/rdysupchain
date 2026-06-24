@@ -367,7 +367,8 @@ function initModalEdicao() {
                 await API.post('/ctrl_os', {
                     equipment_id: currentEditingId,
                     os_number: '',
-                    counter_reading: novoContador
+                    counter_reading: novoContador,
+                    os_date: new Date().toISOString().slice(0, 10)
                 });
             }
 
@@ -1009,7 +1010,8 @@ async function salvarBalanceamento() {
             await API.post('/ctrl_os', {
                 equipment_id: state.equipamento.id,
                 os_number: os || '',
-                counter_reading: cont
+                counter_reading: cont,
+                os_date: new Date().toISOString().slice(0, 10)
             });
         }
 
@@ -1348,7 +1350,8 @@ async function confirmarFechamentoAnalise() {
         await API.post('/ctrl_os', {
             equipment_id: equip.id,
             os_number: analise.numero_os || '',
-            counter_reading: novoContador
+            counter_reading: novoContador,
+            os_date: new Date().toISOString().slice(0, 10)
         });
         
         // Criar a nova entrega de resmas no balanceamento (como análise aberta)
