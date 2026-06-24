@@ -313,6 +313,17 @@
 
 </head>
 <body>
+<div id="diagnostics-banner" style="background: red; color: white; padding: 20px; font-size: 16px; z-index: 99999; position: relative;">
+  Diagnostics:
+  <div id="diag-rdyUser">rdyUser: loading...</div>
+  <div id="diag-adm_user">adm_user: loading...</div>
+</div>
+<script>
+  setTimeout(() => {
+    document.getElementById('diag-rdyUser').innerText = "rdyUser: " + localStorage.getItem('rdyUser');
+    document.getElementById('diag-adm_user').innerText = "adm_user: " + localStorage.getItem('adm_user');
+  }, 500);
+</script>
 
 <!-- ═══════════════ LOGIN ═══════════════ -->
 <div id="loginScreen" class="login-screen">
