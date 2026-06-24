@@ -18,13 +18,14 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260616';
+      window.location.href = 'index.html?v=20260628';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260616">
+  <link rel="stylesheet" href="css/style.css?v=20260628">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     #adminApp { display: none; }
     /* Garante que loginScreen seja visível por padrão no admin.html,
@@ -214,6 +215,99 @@
     .max-w-200 { max-width: 200px; }
     .db-import-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .tag-superior-ultima { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: rgba(239, 68, 68, 0.35); }
+    
+    /* ── DASHBOARD CHARTS ── */
+    .dashboard-charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .chart-card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+    }
+    .chart-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow);
+    }
+    .chart-card h4 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+    .chart-card h4 i {
+      color: var(--gold);
+      width: 16px;
+      height: 16px;
+    }
+    .chart-container {
+      position: relative;
+      height: 240px;
+      width: 100%;
+    }
+    .tag-analise-aberta {
+      background: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+      border-color: rgba(245, 158, 11, 0.2);
+    }
+    /* ── ACTION BUTTONS IN TABLE ── */
+    .action-btns {
+      display: inline-flex;
+      justify-content: center;
+      gap: 6px;
+      align-items: center;
+    }
+    .btn-edit-icon, .btn-delete-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: var(--transition);
+      padding: 0;
+    }
+    .btn-edit-icon:hover {
+      background: var(--bg-0);
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+    .btn-delete-icon {
+      background: rgba(239, 68, 68, 0.08);
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .btn-delete-icon:hover {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+    #editHistEquip {
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-dim);
+    }
+    #formEditHistorico .input-text {
+      width: 100%;
+    }
   </style>
 
 
@@ -278,8 +372,7 @@
   <main class="main-content">
     <nav class="nav-tabs">
       <button class="tab-btn active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Visão Geral</button>
-      <button class="tab-btn" data-tab="entregas"><i data-lucide="history"></i> Histórico de Entregas</button>
-      <button class="tab-btn" data-tab="analises"><i data-lucide="activity"></i> Análises e Auditorias</button>
+      <button class="tab-btn" data-tab="entregas"><i data-lucide="history"></i> Histórico & Auditorias</button>
       <button class="tab-btn hidden" data-tab="governanca" id="btnTabGovernanca"><i data-lucide="users"></i> Governança</button>
       <button class="tab-btn hidden" data-tab="bancodados" id="btnTabBancoDados"><i data-lucide="database"></i> Banco de Dados</button>
     </nav>
@@ -321,6 +414,34 @@
         </div>
       </div>
 
+      <!-- ── DASHBOARD CHARTS ── -->
+      <div class="dashboard-charts-grid">
+        <div class="chart-card">
+          <h4><i data-lucide="bar-chart-3"></i> Consumo de Resmas por Cidade</h4>
+          <div class="chart-container">
+            <canvas id="chartCidades"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h4><i data-lucide="trending-up"></i> Evolução Temporal de Entregas</h4>
+          <div class="chart-container">
+            <canvas id="chartEvolucao"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h4><i data-lucide="award"></i> Top Clientes Consumidores</h4>
+          <div class="chart-container">
+            <canvas id="chartTopClientes"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h4><i data-lucide="pie-chart"></i> Distribuição por Status</h4>
+          <div class="chart-container">
+            <canvas id="chartStatus"></canvas>
+          </div>
+        </div>
+      </div>
+
       <div class="search-card">
         <div class="section-hdr">
           <h3><i data-lucide="clock"></i> Últimas Entregas</h3>
@@ -348,7 +469,7 @@
     <section id="tab-entregas" class="tab-content">
       <div class="search-card">
         <div class="section-hdr">
-          <h3><i data-lucide="package"></i> Histórico de Entregas</h3>
+          <h3><i data-lucide="history"></i> Histórico & Auditorias</h3>
           <div class="section-hdr-actions">
             <button class="btn-outline btn-excel" onclick="exportarExcel('entregasTable','Admin_Entregas')">
               <i data-lucide="file-spreadsheet"></i> Excel
@@ -390,6 +511,13 @@
               <input type="text" id="admFiltroOs" placeholder="Filtrar por O.S..." title="Ordem de Serviço">
             </div>
             <div class="filter-input-group">
+              <select id="admFiltroStatus" title="Status" onchange="carregarEntregas()">
+                <option value="todos">Todos os Status</option>
+                <option value="confirmado">Confirmados / Entregues</option>
+                <option value="analise_aberta">Análises em Aberto</option>
+              </select>
+            </div>
+            <div class="filter-input-group">
               <select id="admFiltroOrdem" title="Ordenação">
                 <option value="recentes">Mais Recentes</option>
                 <option value="maiores">Maiores Consumidores</option>
@@ -422,6 +550,7 @@
         <div class="legend-row">
           <span class="legend-title">Legenda de Sinais:</span>
           <div class="legend-item" onclick="toggleLegendFilter('entregue')"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Entregue</div>
+          <div class="legend-item" onclick="toggleLegendFilter('analise_aberta')"><span class="badge-tag tag-analise-aberta"><i data-lucide="activity"></i></span> Análise Aberta</div>
           <div class="legend-item" onclick="toggleLegendFilter('acima-media')"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
           <div class="legend-item" onclick="toggleLegendFilter('superior-ultima')"><span class="badge-tag tag-superior-ultima"><i data-lucide="chevrons-up"></i></span> Superior à Última Entrega</div>
           <div class="legend-item" onclick="toggleLegendFilter('portal')"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Técnicos</div>
@@ -433,43 +562,16 @@
             <thead>
               <tr>
                 <th width="80" class="text-center">ID / Ato</th>
-                <th>Data</th><th>Série</th><th>Cliente</th><th>Setor</th>
+                <th>Data</th><th>Série</th><th>Cliente / Setor</th>
                 <th class="text-center">Resmas</th><th class="text-center">Média/mês</th>
+                <th class="text-center">Auditoria (Base / Limite / Tempo)</th>
                 <th>Sinais</th>
                 <th>O.S.</th><th>Observação</th><th>Técnico</th><th>Status</th>
+                <th class="text-center" width="90">Ações</th>
               </tr>
             </thead>
             <tbody id="entregasTbody">
-              <tr><td colspan="11" class="text-center">Use os filtros para carregar.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ TAB: ANÁLISES ABERTAS ══ -->
-    <section id="tab-analises" class="tab-content">
-      <div class="search-card">
-        <div class="section-hdr">
-          <h3><i data-lucide="activity"></i> Análises Imediatas em Aberto</h3>
-          <button class="btn-outline" onclick="carregarAnalises()">
-            <i data-lucide="refresh-cw"></i> Atualizar
-          </button>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="analisesTable">
-            <thead>
-              <tr>
-                <th>Abertura</th><th>Série</th><th>Cliente</th><th>Setor</th>
-                <th class="text-center">Num. Base</th>
-                <th class="text-center">Resmas</th>
-                <th class="text-center">Limite</th>
-                <th>O.S.</th>
-                <th class="text-center">Dias Aberta</th>
-              </tr>
-            </thead>
-            <tbody id="analisesTabody">
-              <tr><td colspan="11" class="text-center">Carregando...</td></tr>
+              <tr><td colspan="13" class="text-center">Use os filtros para carregar.</td></tr>
             </tbody>
           </table>
         </div>
@@ -649,6 +751,43 @@
           <div class="modal-actions mt-20">
             <button type="button" class="btn-outline" onclick="fecharModalDbAuth()">Cancelar</button>
             <button type="submit" class="btn-primary btn-danger-solid">Confirmar Exclusão</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIÇÃO HISTÓRICO - Linter Refreshed -->
+  <div id="modalEdicaoHistorico" class="modal-overlay hidden">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h3><i data-lucide="history"></i> Editar Registro de Histórico</h3>
+        <button class="btn-close" onclick="fecharModalEdicaoHistorico()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditHistorico" onsubmit="event.preventDefault(); salvarEdicaoHistorico();">
+          <input type="hidden" id="editHistId">
+          <p id="editHistEquip" class="modal-subtitle"></p>
+          
+          <div class="form-group">
+            <label for="editHistQtd">Quantidade (Resmas)</label>
+            <input type="number" id="editHistQtd" class="input-text" step="1" required>
+          </div>
+          <div class="form-group">
+            <label for="editHistOs">Número da O.S.</label>
+            <input type="text" id="editHistOs" class="input-text">
+          </div>
+          <div class="form-group">
+            <label for="editHistStatus">Status</label>
+            <select id="editHistStatus" class="input-text">
+              <option value="confirmado">Confirmado</option>
+              <option value="analise_aberta">Análise em Aberto</option>
+            </select>
+          </div>
+          
+          <div class="modal-actions mt-20">
+            <button type="button" class="btn-outline" onclick="fecharModalEdicaoHistorico()">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar Alterações</button>
           </div>
         </form>
       </div>
@@ -876,10 +1015,209 @@ function initAdminTabs() {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabId}`));
       if (tabId === 'entregas') carregarEntregas();
-      if (tabId === 'analises') carregarAnalises();
       if (tabId === 'governanca') carregarGovernanca();
     });
   });
+}
+
+// ════════════════════════════════════════════════════════
+// RENDERIZAR GRÁFICOS (CHART.JS)
+// ════════════════════════════════════════════════════════
+function renderizarGraficos(entregas) {
+  if (window.chartCidadesInstance) window.chartCidadesInstance.destroy();
+  if (window.chartEvolucaoInstance) window.chartEvolucaoInstance.destroy();
+  if (window.chartTopClientesInstance) window.chartTopClientesInstance.destroy();
+  if (window.chartStatusInstance) window.chartStatusInstance.destroy();
+
+  const rootStyle = getComputedStyle(document.documentElement);
+  const goldColor = rootStyle.getPropertyValue('--gold').trim() || '#e60000';
+  const textColor = rootStyle.getPropertyValue('--text').trim() || '#ffffff';
+  const textDimColor = rootStyle.getPropertyValue('--text-dim').trim() || '#a0a0ac';
+  const bg2Color = rootStyle.getPropertyValue('--bg-2').trim() || '#16161f';
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: textDimColor,
+          font: { family: 'Outfit', size: 11, weight: '500' }
+        }
+      },
+      tooltip: {
+        backgroundColor: bg2Color,
+        titleColor: textColor,
+        bodyColor: textColor,
+        titleFont: { family: 'Outfit', weight: '700' },
+        bodyFont: { family: 'Outfit' },
+        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        borderWidth: 1
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+        ticks: { color: textDimColor, font: { family: 'Outfit', size: 10 } }
+      },
+      y: {
+        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+        ticks: { color: textDimColor, font: { family: 'Outfit', size: 10 } }
+      }
+    }
+  };
+
+  // 1. CONSUMO POR CIDADE
+  const consumoPorCidade = {};
+  entregas.forEach(e => {
+    const cidade = e.equipamento?.cliente?.cidade || 'DESCONHECIDO';
+    const qtd = parseFloat(e.quantidade_definida) || 0;
+    consumoPorCidade[cidade] = (consumoPorCidade[cidade] || 0) + qtd;
+  });
+
+  const cidadesLabels = Object.keys(consumoPorCidade);
+  const cidadesData = Object.values(consumoPorCidade);
+  const cityColors = [goldColor, '#3b82f6', '#10b981', '#a78bfa', '#f59e0b', '#ec4899'];
+
+  const ctxCidades = document.getElementById('chartCidades')?.getContext('2d');
+  if (ctxCidades) {
+    window.chartCidadesInstance = new Chart(ctxCidades, {
+      type: 'doughnut',
+      data: {
+        labels: cidadesLabels,
+        datasets: [{
+          data: cidadesData,
+          backgroundColor: cityColors.slice(0, cidadesLabels.length),
+          borderWidth: isDark ? 2 : 1,
+          borderColor: isDark ? '#0e0e14' : '#fff'
+        }]
+      },
+      options: {
+        ...chartOptions,
+        cutout: '65%',
+        plugins: {
+          ...chartOptions.plugins,
+          legend: { ...chartOptions.plugins.legend, position: 'right' }
+        }
+      }
+    });
+  }
+
+  // 2. EVOLUÇÃO TEMPORAL
+  const evolucaoConsumo = {};
+  entregas.forEach(e => {
+    if (!e.data_registro) return;
+    const dataStr = new Date(e.data_registro).toLocaleDateString('pt-BR');
+    const qtd = parseFloat(e.quantidade_definida) || 0;
+    evolucaoConsumo[dataStr] = (evolucaoConsumo[dataStr] || 0) + qtd;
+  });
+
+  const datasOrdenadas = Object.keys(evolucaoConsumo).sort((a, b) => {
+    const partsA = a.split('/');
+    const partsB = b.split('/');
+    return new Date(partsA[2], partsA[1]-1, partsA[0]) - new Date(partsB[2], partsB[1]-1, partsB[0]);
+  });
+  const datasData = datasOrdenadas.map(d => evolucaoConsumo[d]);
+
+  const ctxEvolucao = document.getElementById('chartEvolucao')?.getContext('2d');
+  if (ctxEvolucao) {
+    const gradient = ctxEvolucao.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, goldColor + '44');
+    gradient.addColorStop(1, goldColor + '00');
+
+    window.chartEvolucaoInstance = new Chart(ctxEvolucao, {
+      type: 'line',
+      data: {
+        labels: datasOrdenadas,
+        datasets: [{
+          label: 'Resmas Entregues',
+          data: datasData,
+          borderColor: goldColor,
+          backgroundColor: gradient,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: goldColor,
+          pointBorderColor: isDark ? '#0e0e14' : '#fff',
+          pointHoverRadius: 6
+        }]
+      },
+      options: chartOptions
+    });
+  }
+
+  // 3. TOP CLIENTES
+  const consumoPorCliente = {};
+  entregas.forEach(e => {
+    const cliente = e.equipamento?.cliente?.nome || 'DESCONHECIDO';
+    const qtd = parseFloat(e.quantidade_definida) || 0;
+    consumoPorCliente[cliente] = (consumoPorCliente[cliente] || 0) + qtd;
+  });
+
+  const topClientesSorted = Object.entries(consumoPorCliente)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const topClientesLabels = topClientesSorted.map(item => item[0]);
+  const topClientesData = topClientesSorted.map(item => item[1]);
+
+  const ctxTopClientes = document.getElementById('chartTopClientes')?.getContext('2d');
+  if (ctxTopClientes) {
+    window.chartTopClientesInstance = new Chart(ctxTopClientes, {
+      type: 'bar',
+      data: {
+        labels: topClientesLabels.map(l => l.length > 22 ? l.substring(0, 19) + '...' : l),
+        datasets: [{
+          label: 'Total de Resmas',
+          data: topClientesData,
+          backgroundColor: goldColor + 'dd',
+          hoverBackgroundColor: goldColor,
+          borderRadius: 6,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        ...chartOptions,
+        indexAxis: 'y',
+        plugins: {
+          ...chartOptions.plugins,
+          legend: { display: false }
+        }
+      }
+    });
+  }
+
+  // 4. DISTRIBUIÇÃO POR STATUS
+  let confirmadosCount = 0;
+  let analisesCount = 0;
+  entregas.forEach(e => {
+    if (e.status === 'confirmado') confirmadosCount++;
+    else if (e.status === 'analise_aberta') analisesCount++;
+  });
+
+  const ctxStatus = document.getElementById('chartStatus')?.getContext('2d');
+  if (ctxStatus) {
+    window.chartStatusInstance = new Chart(ctxStatus, {
+      type: 'pie',
+      data: {
+        labels: ['Confirmadas', 'Em Aberto'],
+        datasets: [{
+          data: [confirmadosCount, analisesCount],
+          backgroundColor: ['#10b981', '#f59e0b'],
+          borderWidth: isDark ? 2 : 1,
+          borderColor: isDark ? '#0e0e14' : '#fff'
+        }]
+      },
+      options: {
+        ...chartOptions,
+        plugins: {
+          ...chartOptions.plugins,
+          legend: { ...chartOptions.plugins.legend, position: 'bottom' }
+        }
+      }
+    });
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -929,7 +1267,7 @@ async function carregarDashboard() {
   try {
     const [equips, entregasMes, analises, recentes] = await Promise.all([
       API.fetch(`/equipamentos?select=id${equipFilter()}&limit=5000`),
-      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=5000`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,data_registro,status,equipamento:equipamentos!inner(cliente:clientes!inner(nome,cidade))&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
       API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
     ]);
@@ -943,6 +1281,9 @@ async function carregarDashboard() {
     document.getElementById('kpiResmas').innerText    = entregasMes
       .reduce((s, e) => s + (parseFloat(e.quantidade_definida) || 0), 0).toFixed(0);
     document.getElementById('kpiAnalises').innerText  = analises.length;
+
+    window.ultimoDashboardData = entregasMes;
+    renderizarGraficos(entregasMes);
 
     const tbody = document.getElementById('dashTbody');
     tbody.innerHTML = recentes.length === 0
@@ -1001,6 +1342,7 @@ function updateLegendUI() {
       if (badge.classList.contains('tag-acima-media')) isActive = fAcima;
       else if (badge.classList.contains('tag-superior-ultima')) isActive = fSup;
       else if (badge.classList.contains('tag-entregue')) isActive = activeLegendFilters.has('entregue');
+      else if (badge.classList.contains('tag-analise-aberta')) isActive = activeLegendFilters.has('analise_aberta');
       else if (badge.classList.contains('tag-portal')) isActive = activeLegendFilters.has('portal');
       else if (badge.classList.contains('tag-antigo')) isActive = activeLegendFilters.has('antigo');
       
@@ -1026,12 +1368,17 @@ async function carregarEntregas() {
   const fSerie = document.getElementById('admFiltroSerie').value.trim().toLowerCase();
   const fOs = document.getElementById('admFiltroOs').value.trim().toLowerCase();
   const fOrdem = document.getElementById('admFiltroOrdem').value;
+  const fStatus = document.getElementById('admFiltroStatus').value;
   const fAcimaMedia = document.getElementById('admFiltroAcimaMedia').checked;
   const fJustificados = document.getElementById('admFiltroJustificados').checked;
   const fSuperiorUltima = document.getElementById('admFiltroSuperiorUltima').checked;
 
-  let params = `status=in.(confirmado,analise_aberta)${cidadeFilter()}&limit=1000`;
-  params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`;
+  let statusParam = 'in.(confirmado,analise_aberta)';
+  if (fStatus === 'confirmado') statusParam = 'eq.confirmado';
+  if (fStatus === 'analise_aberta') statusParam = 'eq.analise_aberta';
+
+  let params = `status=${statusParam}${cidadeFilter()}&limit=1000`;
+  params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,contador_atual,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`;
   
   if (di) params += `&data_registro=gte.${di}`;
   if (df) params += `&data_registro=lte.${df}T23:59:59`;
@@ -1065,12 +1412,15 @@ async function carregarEntregas() {
         data = data.filter(e => e.observacao && e.observacao.includes('[SUPERIOR A ULTIMA]'));
     }
 
-    // Filtros adicionais da legenda (Entregue / Portal / Antigo)
+    // Filtros adicionais da legenda (Entregue / Analise Aberta / Portal / Antigo)
     if (activeLegendFilters.size > 0) {
         data = data.filter(e => {
             let matchesAll = true;
             if (activeLegendFilters.has('entregue')) {
                 if (e.status !== 'confirmado') matchesAll = false;
+            }
+            if (activeLegendFilters.has('analise_aberta')) {
+                if (e.status !== 'analise_aberta') matchesAll = false;
             }
             if (activeLegendFilters.has('portal')) {
                 if (e.criado_por !== 'Portal') matchesAll = false;
@@ -1098,7 +1448,7 @@ async function carregarEntregas() {
 
     tbody.style.opacity = '1';
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="11" class="text-center">Nenhum registro encontrado com estes filtros.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="13" class="text-center">Nenhum registro encontrado com estes filtros.</td></tr>';
       if (typeof lucide !== 'undefined') lucide.createIcons({ root: tbody });
       return;
     }
@@ -1120,6 +1470,8 @@ async function carregarEntregas() {
       let tags = '';
       if (e.status === 'confirmado') {
         tags += `<span class="badge-tag tag-entregue" title="Entregue"><i data-lucide="package-check"></i></span>`;
+      } else if (e.status === 'analise_aberta') {
+        tags += `<span class="badge-tag tag-analise-aberta" title="Análise Aberta"><i data-lucide="activity"></i></span>`;
       }
       if (isExcecao || (parseFloat(e.quantidade_definida) || 0) > (parseFloat(e.media_consumo_mensal) || 0)) {
         tags += `<span class="badge-tag tag-acima-media" title="Acima da Média / Exceção"><i data-lucide="trending-up"></i></span>`;
@@ -1127,7 +1479,9 @@ async function carregarEntregas() {
       if (isSuperiorUltima) {
         tags += `<span class="badge-tag tag-superior-ultima" title="Superior à Última Entrega"><i data-lucide="chevrons-up"></i></span>`;
       }
-      if (e.criado_por === 'Portal') {
+      if (e.criado_por && e.criado_por !== 'Portal' && e.criado_por !== 'Sistema Original') {
+        tags += `<span class="badge-tag tag-portal" title="Técnico: ${esc(e.criado_por)}"><i data-lucide="user"></i></span>`;
+      } else if (e.criado_por === 'Portal') {
         tags += `<span class="badge-tag tag-portal" title="Técnicos"><i data-lucide="globe"></i></span>`;
       } else {
         tags += `<span class="badge-tag tag-antigo" title="Sistema Original"><i data-lucide="archive"></i></span>`;
@@ -1139,20 +1493,62 @@ async function carregarEntregas() {
         displayId = displayId.substring(0, 6).toUpperCase();
       }
       
+      // Detalhes da Auditoria
+      let auditoriaHtml = '';
+      if (e.status === 'analise_aberta') {
+        const base = parseInt(e.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0;
+        const limite = base + (parseFloat(e.quantidade_definida) || 0) * 500;
+        const dias = Math.round((Date.now() - new Date(e.data_registro).getTime()) / 86400000);
+        const diasCls = dias > 7 ? 'dias-crit' : dias > 3 ? 'dias-warn' : 'dias-ok';
+        
+        auditoriaHtml = `Base: <strong>${base.toLocaleString('pt-BR')}</strong><br>
+                        Limite: <strong>${limite.toLocaleString('pt-BR')}</strong> 
+                        <span class="${diasCls}">(${dias}d)</span>`;
+      } else {
+        let baseText = '—';
+        let limiteText = '—';
+        if (e.contador_atual !== null && e.contador_atual !== undefined) {
+          const contVal = parseInt(e.contador_atual) || 0;
+          baseText = contVal.toLocaleString('pt-BR');
+          const limVal = contVal + (parseFloat(e.quantidade_definida) || 0) * 500;
+          limiteText = limVal.toLocaleString('pt-BR');
+        } else {
+          // Tentar extrair da observação caso não haja na coluna
+          const baseMatch = parseInt(e.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0;
+          if (baseMatch > 0) {
+            baseText = baseMatch.toLocaleString('pt-BR');
+            const limVal = baseMatch + (parseFloat(e.quantidade_definida) || 0) * 500;
+            limiteText = limVal.toLocaleString('pt-BR');
+          }
+        }
+        auditoriaHtml = `Contador: <strong>${baseText}</strong><br>
+                        Limite: <strong>${limiteText}</strong>`;
+      }
+      
       return `
       <tr>
         <td class="text-center" style="color:var(--text-dim);font-size:0.75rem;font-family:monospace;">#${displayId}</td>
         <td>${fmtData(e.data_registro)}</td>
         <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
-        <td>${esc(e.equipamento?.cliente?.nome || '—')}</td>
-        <td>${esc(e.equipamento?.secretaria || '—')}</td>
+        <td>${esc(e.equipamento?.cliente?.nome || '—')}<br><small class="text-dim" style="font-size:0.75rem;">${esc(e.equipamento?.secretaria || 'OUTROS')}</small></td>
         <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
         <td class="text-center">${esc(e.media_consumo_mensal ? parseFloat(e.media_consumo_mensal).toFixed(1) : '—')}</td>
+        <td style="font-size:0.8rem; line-height:1.4;">${auditoriaHtml}</td>
         <td><div class="tags-container">${tags}</div></td>
         <td>${esc(e.numero_os || '—')}</td>
         <td style="max-width:160px;font-size:0.75rem;color:var(--text-dim)">${esc(obsText || '—')}</td>
         <td>${esc(e.criado_por || '—')}</td>
         <td>${statusBadge(e.status)}</td>
+        <td class="text-center">
+          <div class="action-btns">
+            <button class="btn-edit-icon" onclick="prepararEdicaoHistorico('${e.id}')" title="Editar Registro">
+              <i data-lucide="edit"></i>
+            </button>
+            <button class="btn-delete-icon" onclick="excluirRegistroHistorico('${e.id}')" title="Excluir Registro">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </div>
+        </td>
       </tr>`;
     }).join('');
       
@@ -1160,52 +1556,11 @@ async function carregarEntregas() {
   } catch(err) {
     const tbody = document.getElementById('entregasTbody');
     tbody.style.opacity = '1';
-    tbody.innerHTML = `<tr><td colspan="11" class="text-center" style="color:var(--danger)">Erro: ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" class="text-center" style="color:var(--danger)">Erro: ${err.message}</td></tr>`;
   }
 }
 
-// ════════════════════════════════════════════════════════
-// ANÁLISES ABERTAS
-// ════════════════════════════════════════════════════════
-async function carregarAnalises() {
-  const params = `status=eq.analise_aberta${cidadeFilter()}&order=data_registro.asc`
-    + `&select=*,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))`;
 
-  const tbody = document.getElementById('analisesTabody');
-  tbody.style.opacity = '0.5';
-  try {
-    const data  = await API.fetch(`/balanceamento_entregas?${params}`);
-    tbody.style.opacity = '1';
-    if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="11" class="text-center">Nenhuma análise em aberto.</td></tr>';
-      return;
-    }
-    const agora = Date.now();
-    tbody.innerHTML = data.map(e => {
-      const base   = parseInt(e.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0;
-      const limite = base + (e.quantidade_definida || 0) * 500;
-      const dias   = Math.round((agora - new Date(e.data_registro).getTime()) / 86400000);
-      const diasCls = dias > 7 ? 'dias-crit' : dias > 3 ? 'dias-warn' : 'dias-ok';
-      return `
-        <tr>
-          <td>${fmtData(e.data_registro)}</td>
-          <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
-          <td>${esc(e.equipamento?.cliente?.nome || '—')}</td>
-          <td>${esc(e.equipamento?.secretaria || '—')}</td>
-          <td class="text-center">${base.toLocaleString('pt-BR')}</td>
-          <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
-          <td class="text-center gold-text"><strong>${limite.toLocaleString('pt-BR')}</strong></td>
-          <td>${esc(e.numero_os || '—')}</td>
-          <td class="text-center ${diasCls}">${dias}d</td>
-        </tr>`;
-    }).join('');
-    if (typeof lucide !== 'undefined') lucide.createIcons({ root: tbody });
-  } catch(err) {
-    const tbody = document.getElementById('analisesTabody');
-    tbody.style.opacity = '1';
-    tbody.innerHTML = `<tr><td colspan="11" class="text-center" style="color:var(--danger)">Erro: ${err.message}</td></tr>`;
-  }
-}
 
 // ════════════════════════════════════════════════════════
 // TEMA
@@ -1217,7 +1572,15 @@ function initTheme() {
   if (btn) btn.innerHTML = saved === 'dark'
     ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
   const savedColor = localStorage.getItem('accentColor');
-  if (savedColor) document.documentElement.style.setProperty('--gold', savedColor);
+  if (savedColor) {
+    document.documentElement.style.setProperty('--gold', savedColor);
+    // Mark active dot on load
+    document.querySelectorAll('.color-dot').forEach(d => {
+      const onclickAttr = d.getAttribute('onclick') || '';
+      if (onclickAttr.includes(savedColor)) d.classList.add('active');
+      else d.classList.remove('active');
+    });
+  }
 
   document.getElementById('themeToggle')?.addEventListener('click', () => {
     const cur  = document.documentElement.getAttribute('data-theme');
@@ -1227,6 +1590,9 @@ function initTheme() {
     document.getElementById('themeToggle').innerHTML = next === 'dark'
       ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
     safeCreateIcons();
+    if (window.ultimoDashboardData) {
+      renderizarGraficos(window.ultimoDashboardData);
+    }
   });
 }
 
@@ -1234,7 +1600,19 @@ function changeColor(hex) {
   document.documentElement.style.setProperty('--gold', hex);
   localStorage.setItem('accentColor', hex);
   document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-  event.target.classList.add('active');
+  const ev = window.event;
+  if (ev && ev.target) {
+    ev.target.classList.add('active');
+  } else {
+    // Fallback search
+    document.querySelectorAll('.color-dot').forEach(d => {
+      const onclickAttr = d.getAttribute('onclick') || '';
+      if (onclickAttr.includes(hex)) d.classList.add('active');
+    });
+  }
+  if (window.ultimoDashboardData) {
+    renderizarGraficos(window.ultimoDashboardData);
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -1761,6 +2139,76 @@ async function confirmarDbAuth() {
     }
   }
 }
+
+// ════════════════════════════════════════════════════════
+// GESTÃO DE HISTÓRICO (EDITAR E EXCLUIR)
+// ════════════════════════════════════════════════════════
+async function excluirRegistroHistorico(id) {
+  if (adminState.role !== 'cto' && adminState.role !== 'gestor') {
+    return alert("Você não tem permissão para excluir registros.");
+  }
+  if (confirm("Tem certeza que deseja excluir este registro de histórico permanentemente?")) {
+    try {
+      await API.fetch(`/balanceamento_entregas?id=eq.${id}`, { method: 'DELETE' });
+      alert("Registro excluído com sucesso!");
+      carregarEntregas();
+      carregarDashboard();
+    } catch (e) {
+      console.error(e);
+      alert("Erro ao excluir o registro.");
+    }
+  }
+}
+
+async function prepararEdicaoHistorico(id) {
+  if (adminState.role !== 'cto' && adminState.role !== 'gestor') {
+    return alert("Você não tem permissão para editar registros.");
+  }
+  try {
+    const data = await API.fetch(`/balanceamento_entregas?id=eq.${id}&select=*,equipamento:equipamentos(serie),cliente:clientes(nome)`);
+    if (data.length === 0) return;
+    const item = data[0];
+
+    document.getElementById('editHistId').value = item.id;
+    document.getElementById('editHistEquip').innerText = `${item.equipamento?.serie || '—'} - ${item.cliente?.nome || '—'}`;
+    document.getElementById('editHistQtd').value = item.quantidade_definida;
+    document.getElementById('editHistOs').value = item.numero_os || '';
+    document.getElementById('editHistStatus').value = item.status;
+
+    document.getElementById('modalEdicaoHistorico').classList.remove('hidden');
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao carregar dados do registro para edição.");
+  }
+}
+
+async function salvarEdicaoHistorico() {
+  const id = document.getElementById('editHistId').value;
+  const payload = {
+    quantidade_definida: parseFloat(document.getElementById('editHistQtd').value),
+    numero_os: document.getElementById('editHistOs').value,
+    status: document.getElementById('editHistStatus').value
+  };
+
+  try {
+    await API.fetch(`/balanceamento_entregas?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+    alert("Registro atualizado com sucesso!");
+    fecharModalEdicaoHistorico();
+    carregarEntregas();
+    carregarDashboard();
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao salvar alterações do registro.");
+  }
+}
+
+function fecharModalEdicaoHistorico() {
+  document.getElementById('modalEdicaoHistorico').classList.add('hidden');
+}
+
 
 </script>
 </body>

@@ -26,6 +26,30 @@ const escAttr = esc;
 
 let currentUser = null;
 
+function obterUsuarioAtual() {
+    if (currentUser && currentUser.label) {
+        return currentUser.label;
+    }
+    try {
+        const rdyUserStr = localStorage.getItem('rdyUser');
+        if (rdyUserStr) {
+            const parsed = JSON.parse(rdyUserStr);
+            if (parsed && parsed.label) return parsed.label;
+            if (parsed && parsed.username) return parsed.username;
+        }
+    } catch (e) {}
+    try {
+        const admUserStr = localStorage.getItem('adm_user');
+        if (admUserStr) {
+            const parsed = JSON.parse(admUserStr);
+            if (parsed && parsed.label) return parsed.label;
+            if (parsed && parsed.username) return parsed.username;
+        }
+    } catch (e) {}
+    return null;
+}
+
+
 function initLogin() {
     const saved = localStorage.getItem('rdyUser');
     if (saved) {
@@ -978,7 +1002,7 @@ async function salvarBalanceamento() {
             contador_atual: cont,
             observacao: finalObs,
             status: 'confirmado',
-            criado_por: isSistemaOriginal ? 'Sistema Original' : 'Portal'
+            criado_por: obterUsuarioAtual() || (isSistemaOriginal ? 'Sistema Original' : 'Portal')
         });
 
         if (cont !== null && !isNaN(cont)) {
@@ -1169,7 +1193,7 @@ async function salvarAnaliseAberta() {
             contador_atual: numeradorBase,
             observacao: isSuperiorUltima ? `[SUPERIOR A ULTIMA] ANALISE_BASE:${numeradorBase}` : `ANALISE_BASE:${numeradorBase}`,
             status: 'analise_aberta',
-            criado_por: 'Portal'
+            criado_por: obterUsuarioAtual() || 'Portal'
         });
         alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
         window.location.reload();
@@ -1338,7 +1362,7 @@ async function confirmarFechamentoAnalise() {
             contador_atual: novoContador,
             observacao: (isSuperiorUltima ? `[SUPERIOR A ULTIMA] ` : '') + (isEntregaAMais ? `[ENTREGA A MAIS] ` : '') + `ANALISE_BASE:${novoContador}`,
             status: 'analise_aberta',
-            criado_por: 'Portal'
+            criado_por: obterUsuarioAtual() || 'Portal'
         });
 
         const saldoAbs = Math.abs(pagsRestantes).toLocaleString('pt-BR');
@@ -1794,7 +1818,7 @@ function showAdmin() {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260616';
+                window.location.href = 'admin.html?v=20260624';
             }
             return;
         }
