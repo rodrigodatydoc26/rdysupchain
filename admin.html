@@ -1248,6 +1248,14 @@ function statusBadge(s) {
   return `<span class="status-badge ${cls[s]||''}">${esc(label[s]||s)}</span>`;
 }
 
+function fmtTecnico(criado_por) {
+  if (!criado_por || criado_por === 'Portal')
+    return `<span style="color:var(--text-dim);font-size:0.8rem;">Portal</span>`;
+  if (criado_por === 'Sistema Original')
+    return `<span style="color:var(--text-dim);font-size:0.8rem;">Sist. Original</span>`;
+  return `<strong style="color:var(--accent)">${esc(criado_por)}</strong>`;
+}
+
 // ════════════════════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════════════════════
@@ -1297,7 +1305,7 @@ async function carregarDashboard() {
             <td>${esc(e.equipamento?.secretaria || '—')}</td>
             <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
             <td>${esc(e.numero_os || '—')}</td>
-            <td>${esc(e.criado_por || '—')}</td>
+            <td>${fmtTecnico(e.criado_por)}</td>
             <td>${statusBadge(e.status)}</td>
           </tr>`).join('');
           
@@ -1538,7 +1546,7 @@ async function carregarEntregas() {
         <td><div class="tags-container">${tags}</div></td>
         <td>${esc(e.numero_os || '—')}</td>
         <td style="max-width:160px;font-size:0.75rem;color:var(--text-dim)">${esc(obsText || '—')}</td>
-        <td>${esc(e.criado_por || '—')}</td>
+        <td>${fmtTecnico(e.criado_por)}</td>
         <td>${statusBadge(e.status)}</td>
         <td class="text-center">
           <div class="action-btns">
