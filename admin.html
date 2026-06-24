@@ -801,8 +801,8 @@
 // ════════════════════════════════════════════════════════
 // CONFIG
 // ════════════════════════════════════════════════════════
-const SUPABASE_URL = 'https://jvwrbrypyrwnaaqijbqm.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2d3JicnlweXJ3bmFhcWlqYnFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NjQ3NTcsImV4cCI6MjA5MTM0MDc1N30.qNQw3VOLRVFxuXM7fESkMwPlvc6Hg5qGTVlBepzU85o';
+const SUPABASE_URL = 'https://iedkbtceqgrawgubxslh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllZGtidGNlcWdyYXdndWJ4c2xoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjgwNjYsImV4cCI6MjA5MzE0NDA2Nn0.O29RYcYN2NOAz8pZUCa0ntBHXDEFRLmbeojpwdAArBo';
 
 // ════════════════════════════════════════════════════════
 // SEGURANÇA — Previne XSS
@@ -1269,7 +1269,7 @@ async function carregarDashboard() {
       API.fetch(`/equipamentos?select=id${equipFilter()}&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,data_registro,status,equipamento:equipamentos!inner(cliente:clientes!inner(nome,cidade))&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
-      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,criado_por,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
     ]);
 
     const label = (di || df || fCidade) ? "Filtradas" : "Este mês";
