@@ -916,19 +916,23 @@ async function salvarBalanceamento() {
     document.getElementById('inputOs').value = os;
 
     const contVal = document.getElementById('inputContador').value.trim();
-    if (!isSistemaOriginal && (contVal === '' || isNaN(parseInt(contVal)))) {
-        return alert("Por favor, insira o Contador/Numerador Atual!");
-    }
-    const cont = contVal !== '' ? (parseInt(contVal) || 0) : null;
 
-    // Validar se o contador atual é menor que o anterior
     const entregas = state.entregas || [];
     const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
     const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
         ? parseInt(ultimaEntrega.contador_atual)
         : (state.equipamento?.ultimo_contador || 0);
 
-    if (!isSistemaOriginal && cont !== null && cont < ultimoContador) {
+    // Primeira entrega do equipamento: numerador é opcional
+    const isPrimeiraEntrega = entregas.length === 0 && !ultimoContador;
+
+    if (!isSistemaOriginal && !isPrimeiraEntrega && (contVal === '' || isNaN(parseInt(contVal)))) {
+        return alert("Por favor, insira o Contador/Numerador Atual!");
+    }
+    const cont = contVal !== '' ? (parseInt(contVal) || 0) : null;
+
+    // Validar se o contador atual é menor que o anterior (só aplica se houver referência anterior)
+    if (!isSistemaOriginal && !isPrimeiraEntrega && cont !== null && ultimoContador > 0 && cont < ultimoContador) {
         return alert(`O contador atual (${cont.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${ultimoContador.toLocaleString('pt-BR')})!`);
     }
 
