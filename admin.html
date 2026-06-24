@@ -373,6 +373,7 @@
     <nav class="nav-tabs">
       <button class="tab-btn active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Visão Geral</button>
       <button class="tab-btn" data-tab="entregas"><i data-lucide="history"></i> Histórico & Auditorias</button>
+      <button class="tab-btn hidden" data-tab="cadastro" id="btnTabCadastro"><i data-lucide="plus-circle"></i> Cadastro</button>
       <button class="tab-btn hidden" data-tab="governanca" id="btnTabGovernanca"><i data-lucide="users"></i> Governança</button>
       <button class="tab-btn hidden" data-tab="bancodados" id="btnTabBancoDados"><i data-lucide="database"></i> Banco de Dados</button>
     </nav>
@@ -632,6 +633,94 @@
     </section>
 
     <!-- ══ TAB: BANCO DE DADOS ══ -->
+    <!-- ══ TAB: CADASTRO ══ -->
+    <section id="tab-cadastro" class="tab-content">
+      <div class="search-card" style="max-width:680px;margin:0 auto;">
+        <div class="section-hdr">
+          <h3><i data-lucide="plus-circle"></i> Cadastrar Equipamento</h3>
+        </div>
+
+        <!-- NÍVEL 1: CLIENTE / CIDADE -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">1 · Cliente / Cidade</div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Cidade *</label>
+              <input type="text" id="cadCidade" list="cadCidadeList" class="input-text" placeholder="Ex: INDAIATUBA" oninput="cadCidadeChanged()" autocomplete="off">
+              <datalist id="cadCidadeList"></datalist>
+            </div>
+            <div class="form-group">
+              <label>Cliente / Local *</label>
+              <select id="cadClienteSelect" class="input-text" style="display:none;" onchange="cadClienteSelectChanged()">
+                <option value="">Selecione...</option>
+              </select>
+              <input type="text" id="cadClienteNovo" class="input-text" placeholder="Nome do cliente/local" style="display:none;">
+              <div id="cadClienteOpcoes" style="display:flex;gap:8px;margin-top:6px;">
+                <button type="button" class="btn-outline" style="flex:1;font-size:0.75rem;" onclick="cadModoCliente('select')" id="btnCadClienteExist">Existente</button>
+                <button type="button" class="btn-outline" style="flex:1;font-size:0.75rem;" onclick="cadModoCliente('novo')" id="btnCadClienteNovo">+ Novo</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label>Sub-Local <span style="color:var(--text-dim);font-weight:400;">(opcional — ex: SECRETARIA DE SAÚDE)</span></label>
+            <input type="text" id="cadSubNome" class="input-text" placeholder="Ex: ESCOLA MUNICIPAL X, SECRETARIA DE SAÚDE">
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px;">
+
+        <!-- NÍVEL 2: EQUIPAMENTO -->
+        <div>
+          <div style="font-size:0.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">2 · Equipamento</div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Modelo</label>
+              <input type="text" id="cadModelo" class="input-text" placeholder="Ex: Kyocera TASKalfa 3212i">
+            </div>
+            <div class="form-group">
+              <label>Série *</label>
+              <input type="text" id="cadSerie" class="input-text" placeholder="Ex: VBQ1234567">
+            </div>
+            <div class="form-group">
+              <label>Patrimônio</label>
+              <input type="text" id="cadPatrimonio" class="input-text" placeholder="Ex: PAT-0042">
+            </div>
+            <div class="form-group">
+              <label>Numerador Atual</label>
+              <input type="number" id="cadNumerador" class="input-text" placeholder="Ex: 126414" min="0">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;display:flex;gap:12px;justify-content:flex-end;">
+          <button type="button" class="btn-outline" onclick="cadLimpar()">Limpar</button>
+          <button type="button" class="btn-primary" onclick="cadSalvar()"><i data-lucide="save"></i> Salvar Equipamento</button>
+        </div>
+
+        <div id="cadMsgSucesso" style="display:none;margin-top:16px;" class="analise-info-row highlight-row">
+          <strong>Equipamento cadastrado com sucesso!</strong><br>
+          <span id="cadMsgDetalhe" style="font-size:0.85rem;"></span>
+        </div>
+        <div id="cadMsgErro" style="display:none;margin-top:16px;background:var(--danger-bg,#fff0f0);border:1px solid var(--danger,#e53);border-radius:8px;padding:12px 16px;color:var(--danger,#c00);font-size:0.85rem;"></div>
+      </div>
+
+      <!-- LISTA DE EQUIPAMENTOS CADASTRADOS RECENTEMENTE -->
+      <div class="search-card" style="max-width:680px;margin:16px auto 0;">
+        <div class="section-hdr">
+          <h3><i data-lucide="list"></i> Últimos Equipamentos Cadastrados</h3>
+        </div>
+        <table class="data-table" id="cadEquipListTable">
+          <thead><tr>
+            <th>Série</th><th>Patrimônio</th><th>Modelo</th>
+            <th>Cliente / Local</th><th>Cidade</th><th>Numerador</th>
+          </tr></thead>
+          <tbody id="cadEquipListBody">
+            <tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section id="tab-bancodados" class="tab-content">
       <div class="search-card">
         <div class="section-hdr">
@@ -972,8 +1061,14 @@ async function entrarAdmin(user, cfg) {
   adminState.role   = cfg.role;
 
   // Show "Governança" and "Banco de Dados" tabs only if user is CTO
+  const btnCad = document.getElementById('btnTabCadastro');
   const btnGov = document.getElementById('btnTabGovernanca');
   const btnDb  = document.getElementById('btnTabBancoDados');
+  if (cfg.role === 'cto' || cfg.role === 'gestor') {
+    btnCad.classList.remove('hidden');
+  } else {
+    btnCad.classList.add('hidden');
+  }
   if (cfg.role === 'cto') {
     btnGov.classList.remove('hidden');
     btnDb.classList.remove('hidden');
@@ -1017,8 +1112,179 @@ function initAdminTabs() {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabId}`));
       if (tabId === 'entregas') carregarEntregas();
       if (tabId === 'governanca') carregarGovernanca();
+      if (tabId === 'cadastro') cadInicializar();
     });
   });
+}
+
+// ════════════════════════════════════════════════════════
+// CADASTRO DE EQUIPAMENTOS
+// ════════════════════════════════════════════════════════
+let cadClienteMode = 'select'; // 'select' | 'novo'
+
+async function cadInicializar() {
+  // Carregar cidades no datalist
+  try {
+    const cidades = await API.fetch('/clientes?select=cidade&order=cidade.asc');
+    const dl = document.getElementById('cadCidadeList');
+    const unicas = [...new Set(cidades.map(c => c.cidade).filter(Boolean))];
+    dl.innerHTML = unicas.map(c => `<option value="${esc(c)}">`).join('');
+  } catch(e) {}
+
+  cadModoCliente('select');
+  cadCarregarListaRecente();
+}
+
+async function cadCidadeChanged() {
+  const cidade = document.getElementById('cadCidade').value.trim();
+  if (!cidade) {
+    document.getElementById('cadClienteSelect').innerHTML = '<option value="">Selecione...</option>';
+    return;
+  }
+  try {
+    const lista = await API.fetch(`/clientes?cidade=ilike.*${encodeURIComponent(cidade)}*&select=id,nome,sub_nome&order=nome.asc`);
+    const sel = document.getElementById('cadClienteSelect');
+    sel.innerHTML = '<option value="">Selecione um cliente...</option>' +
+      lista.map(c => `<option value="${esc(c.id)}">${esc(c.nome)}${c.sub_nome ? ' · ' + c.sub_nome : ''}</option>`).join('');
+  } catch(e) {}
+}
+
+function cadClienteSelectChanged() {
+  const sel = document.getElementById('cadClienteSelect');
+  const opt = sel.options[sel.selectedIndex];
+  // Preenche sub-nome se disponível no texto da opção
+  document.getElementById('cadSubNome').value = '';
+}
+
+function cadModoCliente(modo) {
+  cadClienteMode = modo;
+  const sel  = document.getElementById('cadClienteSelect');
+  const inp  = document.getElementById('cadClienteNovo');
+  const btnE = document.getElementById('btnCadClienteExist');
+  const btnN = document.getElementById('btnCadClienteNovo');
+  if (modo === 'select') {
+    sel.style.display = 'block';
+    inp.style.display = 'none';
+    btnE.classList.add('active');
+    btnN.classList.remove('active');
+  } else {
+    sel.style.display = 'none';
+    inp.style.display = 'block';
+    btnE.classList.remove('active');
+    btnN.classList.add('active');
+    inp.focus();
+  }
+}
+
+async function cadSalvar() {
+  const cadMsgSucesso = document.getElementById('cadMsgSucesso');
+  const cadMsgErro    = document.getElementById('cadMsgErro');
+  cadMsgSucesso.style.display = 'none';
+  cadMsgErro.style.display    = 'none';
+
+  const cidade   = document.getElementById('cadCidade').value.trim().toUpperCase();
+  const subNome  = document.getElementById('cadSubNome').value.trim();
+  const modelo   = document.getElementById('cadModelo').value.trim();
+  const serie    = document.getElementById('cadSerie').value.trim().toUpperCase();
+  const patrim   = document.getElementById('cadPatrimonio').value.trim();
+  const numVal   = document.getElementById('cadNumerador').value.trim();
+  const numerador = numVal !== '' ? parseInt(numVal) : null;
+
+  if (!cidade) return cadErro('Informe a cidade.');
+  if (!serie)  return cadErro('Informe o número de série.');
+
+  // Resolver cliente
+  let clienteId = null;
+  if (cadClienteMode === 'select') {
+    clienteId = document.getElementById('cadClienteSelect').value;
+    if (!clienteId) return cadErro('Selecione um cliente ou cadastre um novo.');
+  } else {
+    const novoNome = document.getElementById('cadClienteNovo').value.trim();
+    if (!novoNome) return cadErro('Digite o nome do cliente/local.');
+    try {
+      const res = await API.post('/clientes', { nome: novoNome, cidade, sub_nome: subNome || null });
+      clienteId = res[0].id;
+    } catch(err) {
+      return cadErro('Erro ao criar cliente: ' + err.message);
+    }
+  }
+
+  // Atualizar sub_nome no cliente existente (se informado)
+  if (cadClienteMode === 'select' && subNome) {
+    try {
+      const selId = document.getElementById('cadClienteSelect').value;
+      await API.patch(`/clientes?id=eq.${selId}`, { sub_nome: subNome });
+    } catch(e) {}
+  }
+
+  // Salvar equipamento
+  try {
+    const payload = {
+      cliente_id:      clienteId,
+      serie,
+      patrimonio:      patrim  || null,
+      modelo:          modelo  || null,
+      current_counter: numerador
+    };
+    await API.post('/equipamentos', payload);
+
+    // Gravar contador inicial em ctrl_os se numerador informado
+    if (numerador !== null && numerador > 0) {
+      try {
+        const equips = await API.fetch(`/equipamentos?serie=eq.${encodeURIComponent(serie)}&select=id`);
+        if (equips[0]) {
+          await API.post('/ctrl_os', {
+            equipment_id:    equips[0].id,
+            os_number:       '',
+            counter_reading: numerador,
+            os_date:         new Date().toISOString().slice(0, 10)
+          });
+        }
+      } catch(e) {}
+    }
+
+    document.getElementById('cadMsgDetalhe').textContent = `Série: ${serie} · Cliente: ${cidade}`;
+    cadMsgSucesso.style.display = 'block';
+    cadLimpar();
+    cadCarregarListaRecente();
+  } catch(err) {
+    cadErro('Erro ao salvar equipamento: ' + err.message);
+  }
+}
+
+function cadErro(msg) {
+  const el = document.getElementById('cadMsgErro');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function cadLimpar() {
+  ['cadCidade','cadClienteNovo','cadSubNome','cadModelo','cadSerie','cadPatrimonio','cadNumerador']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('cadClienteSelect').innerHTML = '<option value="">Selecione...</option>';
+  cadModoCliente('select');
+  document.getElementById('cadMsgSucesso').style.display = 'none';
+  document.getElementById('cadMsgErro').style.display    = 'none';
+}
+
+async function cadCarregarListaRecente() {
+  const tbody = document.getElementById('cadEquipListBody');
+  try {
+    const rows = await API.fetch('/equipamentos?select=serie,patrimonio,modelo,current_counter,cliente:clientes(nome,cidade)&order=created_at.desc&limit=20');
+    tbody.innerHTML = rows.length === 0
+      ? '<tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Nenhum equipamento cadastrado.</td></tr>'
+      : rows.map(r => `<tr>
+          <td><strong>${esc(r.serie)}</strong></td>
+          <td>${esc(r.patrimonio || '—')}</td>
+          <td>${esc(r.modelo || '—')}</td>
+          <td>${esc(r.cliente?.nome || '—')}</td>
+          <td>${esc(r.cliente?.cidade || '—')}</td>
+          <td class="text-center">${r.current_counter ? r.current_counter.toLocaleString('pt-BR') : '—'}</td>
+        </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Erro ao carregar.</td></tr>';
+  }
+  safeCreateIcons();
 }
 
 // ════════════════════════════════════════════════════════
