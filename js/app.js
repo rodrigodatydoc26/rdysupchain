@@ -89,13 +89,13 @@ function initLogin() {
                         .then(result => {
                             const found = result[0];
                             if (found) {
-                                const changed = found.role !== parsed.role || 
-                                                found.cidade !== parsed.cidade || 
-                                                found.label !== parsed.label ||
-                                                found.password !== parsed.password;
+                                const changed = found.role !== parsed.role ||
+                                                found.cidade !== parsed.cidade ||
+                                                found.label !== parsed.label;
                                 if (changed) {
-                                    currentUser = found;
-                                    localStorage.setItem('rdyUser', JSON.stringify(found));
+                                    const { password: _pw, ...foundSafe } = found;
+                                    currentUser = foundSafe;
+                                    localStorage.setItem('rdyUser', JSON.stringify(foundSafe));
                                     const { role } = currentUser;
                                     if (role === 'cto') {
                                         showAdmin();
@@ -164,8 +164,9 @@ async function doLogin() {
         localStorage.removeItem('loginLockUntil');
         errEl.textContent = 'Usuário ou senha incorretos.';
         errEl.classList.add('hidden');
-        currentUser = found;
-        localStorage.setItem('rdyUser', JSON.stringify(currentUser));
+        const { password: _pw, ...userSafe } = found;
+        currentUser = userSafe;
+        localStorage.setItem('rdyUser', JSON.stringify(userSafe));
         showApp();
     } catch(err) {
         console.error("Login error:", err);

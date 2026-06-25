@@ -1,11 +1,12 @@
 <?php
 header('Content-Type: application/json');
+require_once __DIR__ . '/_security.php';
 
 $supabaseUrl = getenv('SUPABASE_URL') ?: 'https://iedkbtceqgrawgubxslh.supabase.co';
 $supabaseKey = getenv('SUPABASE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllZGtidGNlcWdyYXdndWJ4c2xoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NjgwNjYsImV4cCI6MjA5MzE0NDA2Nn0.O29RYcYN2NOAz8pZUCa0ntBHXDEFRLmbeojpwdAArBo';
 
-$q = $_GET['q'] ?? '';
-$type = $_GET['type'] ?? 'single';
+$q    = sanitizeSearch($_GET['q'] ?? '', 80);
+$type = in_array($_GET['type'] ?? '', ['single', 'list']) ? $_GET['type'] : 'single';
 
 if (strlen($q) < 3) {
     echo json_encode([]);
@@ -46,9 +47,9 @@ curl_close($ch);
 $resData = json_decode($response, true);
 
 if (is_array($resData) && count($resData) > 0) {
-    $data = is_array($resData) ? $resData[0] : null;
+    $data = $resData[0];
 
-    if ($data) {
+    if ($data && validateUuid($data['id'] ?? '')) {
         // Buscar último contador em ctrl_os
         $urlOs = $supabaseUrl . '/rest/v1/ctrl_os'
                . '?equipment_id=eq.' . urlencode($data['id'])
@@ -66,7 +67,7 @@ if (is_array($resData) && count($resData) > 0) {
         curl_close($chOs);
 
         $dataOs = json_decode($resOs, true);
-        if (is_array($dataOs) && isset($dataOs[0]) && is_array($dataOs[0]) && array_key_exists('counter_reading', $dataOs[0])) {
+        if (is_array($dataOs) && isset($dataOs[0]) && array_key_exists('counter_reading', $dataOs[0])) {
             $data['ultimo_contador'] = $dataOs[0]['counter_reading'];
             $data['data_ultimo_contador'] = $dataOs[0]['os_date'];
         } else {
@@ -79,5 +80,3 @@ if (is_array($resData) && count($resData) > 0) {
 } else {
     echo json_encode(['error' => 'Equipamento não encontrado']);
 }
-
-?>
