@@ -5,3 +5,6 @@ node_modules/
 .env.local
 .vercel/
 .claude/
+scratch/
+scripts/migrar_banco_antigo_para_novo.js
+fix_brbsq.html
