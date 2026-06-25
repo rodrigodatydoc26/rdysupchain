@@ -27,23 +27,21 @@ const escAttr = esc;
 let currentUser = null;
 
 function obterUsuarioAtual() {
-    if (currentUser && currentUser.label) {
-        return currentUser.label;
+    if (currentUser) {
+        return currentUser.label || currentUser.username;
     }
     try {
         const rdyUserStr = localStorage.getItem('rdyUser');
         if (rdyUserStr) {
             const parsed = JSON.parse(rdyUserStr);
-            if (parsed && parsed.label) return parsed.label;
-            if (parsed && parsed.username) return parsed.username;
+            if (parsed) return parsed.label || parsed.username;
         }
     } catch (e) {}
     try {
         const admUserStr = localStorage.getItem('adm_user');
         if (admUserStr) {
             const parsed = JSON.parse(admUserStr);
-            if (parsed && parsed.label) return parsed.label;
-            if (parsed && parsed.username) return parsed.username;
+            if (parsed) return parsed.label || parsed.username;
         }
     } catch (e) {}
     return null;

@@ -565,7 +565,7 @@
           <table class="data-table" id="entregasTable">
             <thead>
               <tr>
-                <th width="80" class="text-center">ID / Ato</th>
+                <th width="80" class="text-center">Hora</th>
                 <th>Data</th><th>Série</th><th>Cliente / Setor</th>
                 <th class="text-center">Resmas</th><th class="text-center">Média/mês</th>
                 <th class="text-center">Auditoria (Base / Limite / Tempo)</th>
@@ -1508,6 +1508,14 @@ function fmtData(iso) {
   return iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
 }
 
+function fmtHora(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
 function statusBadge(s) {
   const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-pendente' };
   const label = { confirmado:'Confirmado', pendente:'Pendente', entregue:'Entregue', analise_aberta:'Análise Aberta' };
@@ -1802,7 +1810,7 @@ async function carregarEntregas() {
       
       return `
       <tr>
-        <td class="text-center" style="color:var(--text-dim);font-size:0.75rem;font-family:monospace;">#${displayId}</td>
+        <td class="text-center" style="color:var(--text-dim);font-size:0.8rem;font-weight:600;">${fmtHora(e.data_registro)}</td>
         <td>${fmtData(e.data_registro)}</td>
         <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
         <td>${esc(e.equipamento?.cliente?.nome || '—')}<br><small class="text-dim" style="font-size:0.75rem;">${esc(e.equipamento?.secretaria || 'OUTROS')}</small></td>
