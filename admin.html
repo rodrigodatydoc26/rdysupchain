@@ -261,6 +261,7 @@
     }
 
     /* ── DASHBOARD v2 ── */
+    .kpi-grid-5 { grid-template-columns: repeat(5, 1fr); }
     .kpi-grid-6 { grid-template-columns: repeat(6, 1fr); }
     .kpi-grid-7 { grid-template-columns: repeat(7, 1fr); }
     .kpi-icon { color: var(--gold); opacity: 0.7; display: flex; align-items: center; }
@@ -302,11 +303,13 @@
       .kpi-grid-7         { grid-template-columns: repeat(4, 1fr); }
     }
     @media (max-width: 1100px) {
-      .kpi-grid-6         { grid-template-columns: repeat(3, 1fr); }
+      .kpi-grid-5,
+      .kpi-grid-6,
       .kpi-grid-7         { grid-template-columns: repeat(3, 1fr); }
       .dash-charts-3col   { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 768px) {
+      .kpi-grid-5,
       .kpi-grid-6,
       .kpi-grid-7         { grid-template-columns: repeat(2, 1fr); }
       .dash-charts-3col,
@@ -316,6 +319,7 @@
       .period-shortcuts   { width: 100%; }
     }
     @media (max-width: 480px) {
+      .kpi-grid-5,
       .kpi-grid-6,
       .kpi-grid-7 { grid-template-columns: 1fr 1fr; }
     }
@@ -523,12 +527,7 @@
     <section id="tab-dashboard" class="tab-content active">
 
       <!-- KPIs -->
-      <div class="kpi-grid kpi-grid-6">
-        <div class="kpi-card">
-          <span class="kpi-icon"><i data-lucide="printer"></i></span>
-          <span class="kpi-label">Equipamentos</span>
-          <span class="kpi-value" id="kpiEquip">—</span>
-        </div>
+      <div class="kpi-grid kpi-grid-5">
         <div class="kpi-card">
           <span class="kpi-icon"><i data-lucide="package"></i></span>
           <span class="kpi-label" id="lblKpiEntregas">Entregas</span>
