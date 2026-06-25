@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260635';
+      window.location.href = 'index.html?v=20260636';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260635">
+  <link rel="stylesheet" href="css/style.css?v=20260636">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin></script>
   <style>
@@ -2838,6 +2838,27 @@ function fecharModalEdicaoHistorico() {
   document.getElementById('modalEdicaoHistorico').classList.add('hidden');
 }
 
+// Registro e atualização forçada do Service Worker para evitar cache antigo
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+    // Checa por atualizações a cada 30 segundos
+    setInterval(() => reg.update(), 30000);
+  }).catch(() => {});
+
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.type === 'SW_UPDATED') {
+      window.location.reload(true);
+    }
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      window.location.reload(true);
+      refreshing = true;
+    }
+  });
+}
 
 </script>
 </body>
