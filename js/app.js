@@ -21,8 +21,14 @@ function esc(str) {
 }
 const escAttr = esc;
 
-// ── AUTH — perfis de acesso ─────────────────────────────
-// USERS removido - agora utilizando Supabase (tabela balanceamento_usuarios)
+function getLocalOffsetString() {
+    const offset = new Date().getTimezoneOffset();
+    const absOffset = Math.abs(offset);
+    const h = String(Math.floor(absOffset / 60)).padStart(2, '0');
+    const m = String(absOffset % 60).padStart(2, '0');
+    const sign = offset <= 0 ? '+' : '-';
+    return `${sign}${h}:${m}`;
+}
 
 let currentUser = null;
 
@@ -1032,7 +1038,7 @@ async function salvarBalanceamento() {
             contador_atual: cont,
             observacao: finalObs,
             status: 'confirmado',
-            data_registro: new Date().toISOString().slice(0, 10),
+            data_registro: new Date().toISOString(),
             criado_por: obterUsuarioAtual() || (isSistemaOriginal ? 'Sistema Original' : 'Portal')
         });
 
@@ -1225,7 +1231,7 @@ async function salvarAnaliseAberta() {
             contador_atual: numeradorBase,
             observacao: isSuperiorUltima ? `[SUPERIOR A ULTIMA] ANALISE_BASE:${numeradorBase}` : `ANALISE_BASE:${numeradorBase}`,
             status: 'analise_aberta',
-            data_registro: new Date().toISOString().slice(0, 10),
+            data_registro: new Date().toISOString(),
             criado_por: obterUsuarioAtual() || 'Portal'
         });
         alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
@@ -1396,7 +1402,7 @@ async function confirmarFechamentoAnalise() {
             contador_atual: novoContador,
             observacao: (isSuperiorUltima ? `[SUPERIOR A ULTIMA] ` : '') + (isEntregaAMais ? `[ENTREGA A MAIS] ` : '') + `ANALISE_BASE:${novoContador}`,
             status: 'analise_aberta',
-            data_registro: new Date().toISOString().slice(0, 10),
+            data_registro: new Date().toISOString(),
             criado_por: obterUsuarioAtual() || 'Portal'
         });
 
@@ -1631,8 +1637,9 @@ async function carregarHistorico() {
 
     const joinCliente = (cidade || clienteInput) ? '!inner' : '';
     const addFilters  = (base) => {
-        if (dataInicio)   base += `&data_registro=gte.${dataInicio}`;
-        if (dataFim)      base += `&data_registro=lte.${dataFim}T23:59:59`;
+        const tz = getLocalOffsetString();
+        if (dataInicio)   base += `&data_registro=gte.${dataInicio}T00:00:00${tz}`;
+        if (dataFim)      base += `&data_registro=lte.${dataFim}T23:59:59${tz}`;
         if (serie)        base += `&equipamento.or=(serie.ilike.*${encodeURIComponent(serie)}*,patrimonio.ilike.*${encodeURIComponent(serie)}*)`;
         if (cidade)       base += `&cliente.cidade=eq.${encodeURIComponent(cidade)}`;
         if (clienteInput) base += `&cliente.nome=ilike.*${encodeURIComponent(clienteInput)}*`;
@@ -1853,7 +1860,7 @@ function showAdmin() {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260629';
+                window.location.href = 'admin.html?v=20260630';
             }
             return;
         }
@@ -2005,8 +2012,9 @@ async function admCarregarEntregas() {
     const di = document.getElementById('admDataInicio').value;
     const df = document.getElementById('admDataFim').value;
     let params = 'status=in.(confirmado,analise_aberta)' + admCidadeFilter() + '&order=data_registro.desc&limit=300&select=data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,equipamento:equipamentos(serie,secretaria,cliente:clientes(nome))';
-    if (di) params += '&data_registro=gte.' + di;
-    if (df) params += '&data_registro=lte.' + df + 'T23:59:59';
+    const tz = getLocalOffsetString();
+    if (di) params += '&data_registro=gte.' + di + 'T00:00:00' + tz;
+    if (df) params += '&data_registro=lte.' + df + 'T23:59:59' + tz;
     document.getElementById('admEntregasTbody').innerHTML = '<tr><td colspan="9" class="text-center">Carregando...</td></tr>';
     try {
         const data = await API.fetch('/balanceamento_entregas?' + params);

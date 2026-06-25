@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260629';
+      window.location.href = 'index.html?v=20260630';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260629">
+  <link rel="stylesheet" href="css/style.css?v=20260630">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -383,86 +383,149 @@
 
     <!-- ══ TAB: VISÃO GERAL ══ -->
     <section id="tab-dashboard" class="tab-content active">
-      <div class="kpi-grid">
+
+      <!-- KPIs -->
+      <div class="kpi-grid kpi-grid-6">
         <div class="kpi-card">
+          <span class="kpi-icon"><i data-lucide="printer"></i></span>
           <span class="kpi-label">Equipamentos</span>
           <span class="kpi-value" id="kpiEquip">—</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label" id="lblKpiEntregas">Entregas este mês</span>
+          <span class="kpi-icon"><i data-lucide="package"></i></span>
+          <span class="kpi-label" id="lblKpiEntregas">Entregas</span>
           <span class="kpi-value gold-text" id="kpiEntregas">—</span>
+          <span class="kpi-trend" id="kpiEntregasTrend"></span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label" id="lblKpiResmas">Resmas este mês</span>
+          <span class="kpi-icon"><i data-lucide="layers"></i></span>
+          <span class="kpi-label" id="lblKpiResmas">Resmas</span>
           <span class="kpi-value gold-text" id="kpiResmas">—</span>
+          <span class="kpi-trend" id="kpiResmasTrend"></span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-icon"><i data-lucide="bar-chart-2"></i></span>
+          <span class="kpi-label">Média Resmas/Entrega</span>
+          <span class="kpi-value" id="kpiMedia">—</span>
         </div>
         <div class="kpi-card kpi-alerta">
-          <span class="kpi-label">Análises abertas</span>
+          <span class="kpi-icon"><i data-lucide="alert-triangle"></i></span>
+          <span class="kpi-label">Análises Abertas</span>
           <span class="kpi-value" id="kpiAnalises">—</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-icon"><i data-lucide="trending-up"></i></span>
+          <span class="kpi-label">Acima da Média</span>
+          <span class="kpi-value" id="kpiAcimaMedia">—</span>
+          <span class="kpi-sub" id="kpiAcimaMediaPct"></span>
         </div>
       </div>
 
-      <div class="admin-filters-grid">
-        <div class="filter-row-top">
+      <!-- Filtros -->
+      <div class="dash-filters-bar">
+        <div class="period-shortcuts">
+          <button class="period-btn" onclick="dashPeriodo('hoje')">Hoje</button>
+          <button class="period-btn" onclick="dashPeriodo('semana')">Semana</button>
+          <button class="period-btn active" id="periodBtnMes" onclick="dashPeriodo('mes')">Mês</button>
+          <button class="period-btn" onclick="dashPeriodo('trimestre')">Trimestre</button>
+          <button class="period-btn" onclick="dashPeriodo('ano')">Ano</button>
+        </div>
+        <div class="dash-filter-inputs">
           <div class="date-range-group">
             <input type="date" id="dashDataInicio" title="Data Inicial">
             <span>ATÉ</span>
             <input type="date" id="dashDataFim" title="Data Final">
           </div>
-          <div class="filter-input-group">
-            <input type="text" id="dashFiltroCidade" placeholder="Filtrar por Cidade..." title="Cidade">
-          </div>
-          <button class="btn-filter-premium" onclick="carregarDashboard()" title="Aplicar Filtros">
-            <i data-lucide="filter"></i> Buscar
+          <select id="dashFiltroTecnico" class="input-text dash-select" title="Técnico">
+            <option value="">Todos os Técnicos</option>
+          </select>
+          <select id="dashFiltroCidade" class="input-text dash-select" title="Cidade">
+            <option value="">Todas as Cidades</option>
+          </select>
+          <button class="btn-filter-premium" onclick="carregarDashboard()">
+            <i data-lucide="filter"></i> Aplicar
           </button>
         </div>
       </div>
 
-      <!-- ── DASHBOARD CHARTS ── -->
-      <div class="dashboard-charts-grid">
+      <!-- Evolução (chart largo) -->
+      <div class="chart-card chart-card-wide">
+        <div class="chart-card-header">
+          <h4><i data-lucide="trending-up"></i> Evolução de Resmas Entregues</h4>
+          <span class="chart-subtitle" id="dashEvolucaoSubtitle"></span>
+        </div>
+        <div class="chart-container chart-container-lg">
+          <canvas id="chartEvolucao"></canvas>
+        </div>
+      </div>
+
+      <!-- 3 charts -->
+      <div class="dashboard-charts-grid dash-charts-3col">
         <div class="chart-card">
-          <h4><i data-lucide="bar-chart-3"></i> Consumo de Resmas por Cidade</h4>
+          <div class="chart-card-header">
+            <h4><i data-lucide="map-pin"></i> Resmas por Cidade</h4>
+          </div>
           <div class="chart-container">
             <canvas id="chartCidades"></canvas>
           </div>
         </div>
         <div class="chart-card">
-          <h4><i data-lucide="trending-up"></i> Evolução Temporal de Entregas</h4>
+          <div class="chart-card-header">
+            <h4><i data-lucide="user-check"></i> Resmas por Técnico</h4>
+          </div>
           <div class="chart-container">
-            <canvas id="chartEvolucao"></canvas>
+            <canvas id="chartTecnicos"></canvas>
           </div>
         </div>
         <div class="chart-card">
-          <h4><i data-lucide="award"></i> Top Clientes Consumidores</h4>
-          <div class="chart-container">
-            <canvas id="chartTopClientes"></canvas>
+          <div class="chart-card-header">
+            <h4><i data-lucide="pie-chart"></i> Status das Entregas</h4>
           </div>
-        </div>
-        <div class="chart-card">
-          <h4><i data-lucide="pie-chart"></i> Distribuição por Status</h4>
           <div class="chart-container">
             <canvas id="chartStatus"></canvas>
           </div>
         </div>
       </div>
 
+      <!-- 2 charts -->
+      <div class="dashboard-charts-grid dash-charts-2col">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h4><i data-lucide="award"></i> Top 8 Clientes Consumidores</h4>
+          </div>
+          <div class="chart-container chart-container-md">
+            <canvas id="chartTopClientes"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h4><i data-lucide="bar-chart"></i> Volume por Faixa de Resmas</h4>
+            <span class="chart-subtitle">Distribuição de entregas</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="chartVolume"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela últimas 20 -->
       <div class="search-card">
         <div class="section-hdr">
-          <h3><i data-lucide="clock"></i> Últimas Entregas</h3>
-          <button class="btn-outline" onclick="carregarDashboard()">
-            <i data-lucide="refresh-cw"></i> Atualizar
+          <h3><i data-lucide="clock"></i> Últimas 20 Entregas</h3>
+          <button class="btn-outline btn-excel" onclick="exportarExcel('dashTable','Dashboard_Entregas')">
+            <i data-lucide="file-spreadsheet"></i> Excel
           </button>
         </div>
         <div class="table-responsive">
-          <table class="data-table">
+          <table class="data-table" id="dashTable">
             <thead>
               <tr>
-                <th>Data</th><th>Série</th><th>Cliente</th><th>Setor</th>
-                <th class="text-center">Resmas</th><th>O.S.</th><th>Técnico</th><th>Status</th>
+                <th>Data</th><th>Série</th><th>Cliente</th><th>Cidade</th>
+                <th class="text-center">Resmas</th><th>Técnico</th><th>Status</th>
               </tr>
             </thead>
             <tbody id="dashTbody">
-              <tr><td colspan="8" class="text-center">Carregando...</td></tr>
+              <tr><td colspan="7" class="text-center">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1510,6 +1573,15 @@ function equipFilter(sep = '&') {
   return `${sep}cliente.cidade=eq.${encodeURIComponent(adminState.cidade)}`;
 }
 
+function getLocalOffsetString() {
+  const offset = new Date().getTimezoneOffset();
+  const absOffset = Math.abs(offset);
+  const h = String(Math.floor(absOffset / 60)).padStart(2, '0');
+  const m = String(absOffset % 60).padStart(2, '0');
+  const sign = offset <= 0 ? '+' : '-';
+  return `${sign}${h}:${m}`;
+}
+
 function fmtData(iso) {
   return iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
 }
@@ -1547,8 +1619,9 @@ async function carregarDashboard() {
   const defaultInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
   const queryDi = di || defaultInicio;
   
-  let qDataEntregas = `&data_registro=gte.${queryDi}`;
-  if (df) qDataEntregas += `&data_registro=lte.${df}T23:59:59`;
+  const tz = getLocalOffsetString();
+  let qDataEntregas = `&data_registro=gte.${queryDi}T00:00:00${tz}`;
+  if (df) qDataEntregas += `&data_registro=lte.${df}T23:59:59${tz}`;
 
   let qCidade = '';
   if (fCidade) qCidade = `&equipamento.cliente.cidade=ilike.*${encodeURIComponent(fCidade)}*`;
@@ -1669,8 +1742,9 @@ async function carregarEntregas() {
   let params = `status=${statusParam}${cidadeFilter()}&limit=1000`;
   params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,contador_atual,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`;
   
-  if (di) params += `&data_registro=gte.${di}`;
-  if (df) params += `&data_registro=lte.${df}T23:59:59`;
+  const tz = getLocalOffsetString();
+  if (di) params += `&data_registro=gte.${di}T00:00:00${tz}`;
+  if (df) params += `&data_registro=lte.${df}T23:59:59${tz}`;
   if (fSerie) params += `&equipamento.serie=ilike.*${encodeURIComponent(fSerie)}*`;
   if (fCidade) params += `&equipamento.cliente.cidade=ilike.*${encodeURIComponent(fCidade)}*`;
   if (fOs) params += `&numero_os=ilike.*${encodeURIComponent(fOs)}*`;
