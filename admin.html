@@ -308,6 +308,9 @@
     #formEditHistorico .input-text {
       width: 100%;
     }
+    .form-grid-cadastro {
+      gap: 12px;
+    }
   </style>
 
 
@@ -643,7 +646,7 @@
         <!-- NÍVEL 1: CLIENTE / CIDADE -->
         <div style="margin-bottom:24px;">
           <div style="font-size:0.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">1 · Cliente / Cidade</div>
-          <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid form-grid-cadastro">
             <div class="form-group">
               <label>Cidade *</label>
               <input type="text" id="cadCidade" list="cadCidadeList" class="input-text" placeholder="Ex: INDAIATUBA" oninput="cadCidadeChanged()" autocomplete="off">
@@ -672,7 +675,7 @@
         <!-- NÍVEL 2: EQUIPAMENTO -->
         <div>
           <div style="font-size:0.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">2 · Equipamento</div>
-          <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-grid form-grid-cadastro">
             <div class="form-group">
               <label>Modelo</label>
               <input type="text" id="cadModelo" class="input-text" placeholder="Ex: Kyocera TASKalfa 3212i">
@@ -918,7 +921,7 @@ function safeCreateIcons() {
 
 // ADMIN_USERS removido - agora utilizando Supabase (tabela balanceamento_usuarios)
 
-let adminState = { user: null, cidade: null, role: null, clienteIds: null };
+let adminState = { user: null, cidade: null, role: null };
 
 // ════════════════════════════════════════════════════════
 // API
@@ -1082,16 +1085,7 @@ async function entrarAdmin(user, cfg) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminApp').style.display = 'block';
 
-  if (cfg.cidade) {
-    try {
-      const clientes = await API.fetch(`/clientes?cidade=ilike.*${encodeURIComponent(cfg.cidade)}*&select=id`);
-      adminState.clienteIds = clientes.map(c => c.id);
-    } catch(e) {
-      adminState.clienteIds = [];
-    }
-  } else {
-    adminState.clienteIds = null; // CTO: sem filtro
-  }
+  adminState.cidade = cfg.cidade || null; // null = CTO, ver tudo
 
   safeCreateIcons();
   if (!window.adminTabsInitialized) {
@@ -1490,18 +1484,16 @@ function renderizarGraficos(entregas) {
 // ════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════
+// Filtra balanceamento_entregas pela cidade do técnico via join
 function cidadeFilter(sep = '&') {
-  if (adminState.clienteIds === null) return '';
-  if (adminState.clienteIds.length === 0)
-    return `${sep}cliente_id=eq.00000000-0000-0000-0000-000000000000`;
-  return `${sep}cliente_id=in.(${adminState.clienteIds.join(',')})`;
+  if (!adminState.cidade) return '';
+  return `${sep}equipamento.cliente.cidade=eq.${encodeURIComponent(adminState.cidade)}`;
 }
 
+// Filtra equipamentos pela cidade do técnico via join
 function equipFilter(sep = '&') {
-  if (adminState.clienteIds === null) return '';
-  if (adminState.clienteIds.length === 0)
-    return `${sep}cliente_id=eq.00000000-0000-0000-0000-000000000000`;
-  return `${sep}cliente_id=in.(${adminState.clienteIds.join(',')})`;
+  if (!adminState.cidade) return '';
+  return `${sep}cliente.cidade=eq.${encodeURIComponent(adminState.cidade)}`;
 }
 
 function fmtData(iso) {
