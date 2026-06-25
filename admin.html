@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260632';
+      window.location.href = 'index.html?v=20260633';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260632">
+  <link rel="stylesheet" href="css/style.css?v=20260633">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -262,6 +262,7 @@
 
     /* ── DASHBOARD v2 ── */
     .kpi-grid-6 { grid-template-columns: repeat(6, 1fr); }
+    .kpi-grid-7 { grid-template-columns: repeat(7, 1fr); }
     .kpi-icon { color: var(--gold); opacity: 0.7; display: flex; align-items: center; }
     .kpi-icon i { width: 18px; height: 18px; }
     .kpi-trend { font-size: 0.7rem; font-weight: 700; color: var(--text-dim); }
@@ -364,6 +365,86 @@
     }
     .form-grid-cadastro {
       gap: 12px;
+    }
+    /* ── CADASTRO INLINE REPLACEMENT CLASSES ── */
+    .auditoria-subtext {
+      font-size: 0.75rem;
+      font-weight: normal;
+      opacity: 0.75;
+    }
+    .cadastro-card-container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .mb-24 {
+      margin-bottom: 24px;
+    }
+    .cadastro-step-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+    .flex-gap-8 {
+      display: flex;
+      gap: 8px;
+    }
+    .mt-6 {
+      margin-top: 6px;
+    }
+    .flex-1 {
+      flex: 1;
+    }
+    .fs-075 {
+      font-size: 0.75rem;
+    }
+    .mt-8 {
+      margin-top: 8px;
+    }
+    .text-dim-normal {
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+    .hr-cadastro {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 0 20px;
+    }
+    .mt-24 {
+      margin-top: 24px;
+    }
+    .flex-gap-12 {
+      display: flex;
+      gap: 12px;
+    }
+    .justify-end {
+      justify-content: flex-end;
+    }
+    .mt-16 {
+      margin-top: 16px;
+    }
+    .fs-085 {
+      font-size: 0.85rem;
+    }
+    .cad-msg-erro-card {
+      background: var(--danger-bg,#fff0f0);
+      border: 1px solid var(--danger,#e53);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--danger,#c00);
+      font-size: 0.85rem;
+    }
+    .cadastro-card-recent {
+      max-width: 680px;
+      margin: 16px auto 0;
+    }
+    .text-dim-color {
+      color: var(--text-dim);
+    }
+    .initial-hidden {
+      display: none;
     }
   </style>
 
@@ -667,7 +748,7 @@
                 <th>Cliente / Setor</th>
                 <th width="80" class="text-center">Resmas</th>
                 <th width="90" class="text-center">Média/mês</th>
-                <th width="180" class="text-center">Auditoria<br><span style="font-size:0.75rem;font-weight:normal;opacity:0.75;">(Base / Limite / Tempo)</span></th>
+                <th width="180" class="text-center">Auditoria<br><span class="auditoria-subtext">(Base / Limite / Tempo)</span></th>
                 <th width="80">Sinais</th>
                 <th width="90">O.S.</th>
                 <th>Observação</th>
@@ -740,14 +821,14 @@
     <!-- ══ TAB: BANCO DE DADOS ══ -->
     <!-- ══ TAB: CADASTRO ══ -->
     <section id="tab-cadastro" class="tab-content">
-      <div class="search-card" style="max-width:680px;margin:0 auto;">
+      <div class="search-card cadastro-card-container">
         <div class="section-hdr">
           <h3><i data-lucide="plus-circle"></i> Cadastrar Equipamento</h3>
         </div>
 
         <!-- NÍVEL 1: CLIENTE / CIDADE -->
-        <div style="margin-bottom:24px;">
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">1 · Cliente / Cidade</div>
+        <div class="mb-24">
+          <div class="cadastro-step-title">1 · Cliente / Cidade</div>
           <div class="form-grid form-grid-cadastro">
             <div class="form-group">
               <label>Cidade *</label>
@@ -756,27 +837,27 @@
             </div>
             <div class="form-group">
               <label>Cliente / Local *</label>
-              <select id="cadClienteSelect" class="input-text" style="display:none;" onchange="cadClienteSelectChanged()">
+              <select id="cadClienteSelect" class="input-text initial-hidden" onchange="cadClienteSelectChanged()">
                 <option value="">Selecione...</option>
               </select>
-              <input type="text" id="cadClienteNovo" class="input-text" placeholder="Nome do cliente/local" style="display:none;">
-              <div id="cadClienteOpcoes" style="display:flex;gap:8px;margin-top:6px;">
-                <button type="button" class="btn-outline" style="flex:1;font-size:0.75rem;" onclick="cadModoCliente('select')" id="btnCadClienteExist">Existente</button>
-                <button type="button" class="btn-outline" style="flex:1;font-size:0.75rem;" onclick="cadModoCliente('novo')" id="btnCadClienteNovo">+ Novo</button>
+              <input type="text" id="cadClienteNovo" class="input-text initial-hidden" placeholder="Nome do cliente/local">
+              <div id="cadClienteOpcoes" class="flex-gap-8 mt-6">
+                <button type="button" class="btn-outline flex-1 fs-075" onclick="cadModoCliente('select')" id="btnCadClienteExist">Existente</button>
+                <button type="button" class="btn-outline flex-1 fs-075" onclick="cadModoCliente('novo')" id="btnCadClienteNovo">+ Novo</button>
               </div>
             </div>
           </div>
-          <div class="form-group" style="margin-top:8px;">
-            <label>Sub-Local <span style="color:var(--text-dim);font-weight:400;">(opcional — ex: SECRETARIA DE SAÚDE)</span></label>
+          <div class="form-group mt-8">
+            <label>Sub-Local <span class="text-dim-normal">(opcional — ex: SECRETARIA DE SAÚDE)</span></label>
             <input type="text" id="cadSubNome" class="input-text" placeholder="Ex: ESCOLA MUNICIPAL X, SECRETARIA DE SAÚDE">
           </div>
         </div>
 
-        <hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px;">
+        <hr class="hr-cadastro">
 
         <!-- NÍVEL 2: EQUIPAMENTO -->
         <div>
-          <div style="font-size:0.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">2 · Equipamento</div>
+          <div class="cadastro-step-title">2 · Equipamento</div>
           <div class="form-grid form-grid-cadastro">
             <div class="form-group">
               <label>Modelo</label>
@@ -797,20 +878,20 @@
           </div>
         </div>
 
-        <div style="margin-top:24px;display:flex;gap:12px;justify-content:flex-end;">
+        <div class="mt-24 flex-gap-12 justify-end">
           <button type="button" class="btn-outline" onclick="cadLimpar()">Limpar</button>
           <button type="button" class="btn-primary" onclick="cadSalvar()"><i data-lucide="save"></i> Salvar Equipamento</button>
         </div>
 
-        <div id="cadMsgSucesso" style="display:none;margin-top:16px;" class="analise-info-row highlight-row">
+        <div id="cadMsgSucesso" class="analise-info-row highlight-row mt-16 initial-hidden">
           <strong>Equipamento cadastrado com sucesso!</strong><br>
-          <span id="cadMsgDetalhe" style="font-size:0.85rem;"></span>
+          <span id="cadMsgDetalhe" class="fs-085"></span>
         </div>
-        <div id="cadMsgErro" style="display:none;margin-top:16px;background:var(--danger-bg,#fff0f0);border:1px solid var(--danger,#e53);border-radius:8px;padding:12px 16px;color:var(--danger,#c00);font-size:0.85rem;"></div>
+        <div id="cadMsgErro" class="cad-msg-erro-card mt-16 initial-hidden"></div>
       </div>
 
       <!-- LISTA DE EQUIPAMENTOS CADASTRADOS RECENTEMENTE -->
-      <div class="search-card" style="max-width:680px;margin:16px auto 0;">
+      <div class="search-card cadastro-card-recent">
         <div class="section-hdr">
           <h3><i data-lucide="list"></i> Últimos Equipamentos Cadastrados</h3>
         </div>
@@ -820,7 +901,7 @@
             <th>Cliente / Local</th><th>Cidade</th><th>Numerador</th>
           </tr></thead>
           <tbody id="cadEquipListBody">
-            <tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Carregando...</td></tr>
+            <tr><td colspan="6" class="text-center text-dim-color">Carregando...</td></tr>
           </tbody>
         </table>
       </div>
