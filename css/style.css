@@ -57,7 +57,8 @@ body {
 }
 
 .app-container {
-  max-width: 1600px;
+  max-width: 1800px;
+  width: 96%;
   margin: 0 auto;
   padding: 24px 40px;
 }

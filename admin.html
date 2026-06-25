@@ -462,7 +462,7 @@
               </tr>
             </thead>
             <tbody id="dashTbody">
-              <tr><td colspan="7" class="text-center">Carregando...</td></tr>
+              <tr><td colspan="8" class="text-center">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -565,13 +565,19 @@
           <table class="data-table" id="entregasTable">
             <thead>
               <tr>
-                <th width="80" class="text-center">Hora</th>
-                <th>Data</th><th>Série</th><th>Cliente / Setor</th>
-                <th class="text-center">Resmas</th><th class="text-center">Média/mês</th>
-                <th class="text-center">Auditoria (Base / Limite / Tempo)</th>
-                <th>Sinais</th>
-                <th>O.S.</th><th>Observação</th><th>Técnico</th><th>Status</th>
-                <th class="text-center" width="90">Ações</th>
+                <th width="70" class="text-center">Hora</th>
+                <th width="100">Data</th>
+                <th width="110">Série</th>
+                <th>Cliente / Setor</th>
+                <th width="80" class="text-center">Resmas</th>
+                <th width="90" class="text-center">Média/mês</th>
+                <th width="180" class="text-center">Auditoria<br><span style="font-size:0.75rem;font-weight:normal;opacity:0.75;">(Base / Limite / Tempo)</span></th>
+                <th width="80">Sinais</th>
+                <th width="90">O.S.</th>
+                <th>Observação</th>
+                <th width="120">Técnico</th>
+                <th width="120" class="text-center">Status</th>
+                <th width="90" class="text-center">Ações</th>
               </tr>
             </thead>
             <tbody id="entregasTbody">
@@ -1570,7 +1576,7 @@ async function carregarDashboard() {
 
     const tbody = document.getElementById('dashTbody');
     tbody.innerHTML = recentes.length === 0
-      ? '<tr><td colspan="7" class="text-center">Nenhuma entrega encontrada.</td></tr>'
+      ? '<tr><td colspan="8" class="text-center">Nenhuma entrega encontrada.</td></tr>'
       : recentes.map(e => `
           <tr>
             <td>${fmtData(e.data_registro)}</td>
