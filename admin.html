@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260631';
+      window.location.href = 'index.html?v=20260632';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260631">
+  <link rel="stylesheet" href="css/style.css?v=20260632">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -1415,7 +1415,11 @@ function renderizarGraficos(entregas) {
         padding:10, cornerRadius:8,
         callbacks: { label: ctx => ` ${ctx.formattedValue} resmas` }
       }
-    },
+    }
+  };
+
+  const baseCartesianOpts = {
+    ...baseOpts,
     scales: {
       x: { grid: { color:gridC }, ticks: { color:textDimColor, font: { family:'Outfit', size:10 } } },
       y: { grid: { color:gridC }, ticks: { color:textDimColor, font: { family:'Outfit', size:10 } } }
@@ -1447,7 +1451,7 @@ function renderizarGraficos(entregas) {
         pointBackgroundColor:goldColor, pointBorderColor:borderC,
         pointRadius: evoDates.length>30 ? 0 : 4, pointHoverRadius:7
       }]},
-      options: { ...baseOpts, plugins: { ...baseOpts.plugins, legend:{ display:false } } }
+      options: { ...baseCartesianOpts, plugins: { ...baseCartesianOpts.plugins, legend:{ display:false } } }
     });
   }
 
@@ -1491,9 +1495,9 @@ function renderizarGraficos(entregas) {
         label:'Resmas', data:tecEntries.map(x=>x[1]),
         backgroundColor:tecColors, borderRadius:6, borderWidth:0
       }]},
-      options: { ...baseOpts, indexAxis:'y',
-        plugins: { ...baseOpts.plugins, legend:{ display:false } },
-        scales: { ...baseOpts.scales, x:{ ...baseOpts.scales.x, beginAtZero:true } }
+      options: { ...baseCartesianOpts, indexAxis:'y',
+        plugins: { ...baseCartesianOpts.plugins, legend:{ display:false } },
+        scales: { ...baseCartesianOpts.scales, x:{ ...baseCartesianOpts.scales.x, beginAtZero:true } }
       }
     });
   }
@@ -1536,9 +1540,9 @@ function renderizarGraficos(entregas) {
                 label:'Resmas', data:topCli.map(x=>x[1]),
                 backgroundColor:goldColor+'cc', hoverBackgroundColor:goldColor, borderRadius:6, borderWidth:0
               }]},
-      options: { ...baseOpts, indexAxis:'y',
-        plugins: { ...baseOpts.plugins, legend:{ display:false } },
-        scales: { ...baseOpts.scales, x:{ ...baseOpts.scales.x, beginAtZero:true } }
+      options: { ...baseCartesianOpts, indexAxis:'y',
+        plugins: { ...baseCartesianOpts.plugins, legend:{ display:false } },
+        scales: { ...baseCartesianOpts.scales, x:{ ...baseCartesianOpts.scales.x, beginAtZero:true } }
       }
     });
   }
@@ -1565,11 +1569,11 @@ function renderizarGraficos(entregas) {
         label:'Entregas', data:faixaVals,
         backgroundColor:palette.map(c=>c+'bb'), hoverBackgroundColor:palette, borderRadius:6, borderWidth:0
       }]},
-      options: { ...baseOpts,
-        plugins: { ...baseOpts.plugins, legend:{ display:false },
-          tooltip:{ ...baseOpts.plugins.tooltip, callbacks:{ label:ctx => ` ${ctx.parsed.y} entregas` } } },
-        scales: { ...baseOpts.scales, y:{ ...baseOpts.scales.y, beginAtZero:true,
-          ticks:{ ...baseOpts.scales.y.ticks, precision:0 } } }
+      options: { ...baseCartesianOpts,
+        plugins: { ...baseCartesianOpts.plugins, legend:{ display:false },
+          tooltip:{ ...baseCartesianOpts.plugins.tooltip, callbacks:{ label:ctx => ` ${ctx.parsed.y} entregas` } } },
+        scales: { ...baseCartesianOpts.scales, y:{ ...baseCartesianOpts.scales.y, beginAtZero:true,
+          ticks:{ ...baseCartesianOpts.scales.y.ticks, precision:0 } } }
       }
     });
   }

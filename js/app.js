@@ -80,7 +80,8 @@ function obterUsuarioAtual() {
 }
 
 
-function initLogin() {
+async function initLogin() {
+    // 1. Sessão salva no localStorage (caminho rápido)
     const saved = localStorage.getItem('rdyUser');
     if (saved) {
         try {
@@ -89,7 +90,7 @@ function initLogin() {
                 currentUser = parsed;
                 showApp();
 
-                // Background refresh user profile to reflect database updates (e.g. role/city changes)
+                // Background refresh user profile to reflect database updates
                 if (navigator.onLine) {
                     API.fetch(`/balanceamento_usuarios?username=eq.${encodeURIComponent(parsed.username.toLowerCase())}&select=*`)
                         .then(result => {
@@ -116,11 +117,32 @@ function initLogin() {
                 return;
             }
         } catch (e) {}
-        // Sessão inválida — força novo login
         localStorage.removeItem('rdyUser');
         localStorage.removeItem('adm_user');
         localStorage.removeItem('adm_tk');
     }
+
+    // 2. Auto-login via parâmetro URL ?u=username (integração com portal)
+    // O portal passa o username do técnico na URL: .../index.html?u=david.jesus
+    try {
+        const autoU = new URLSearchParams(window.location.search).get('u');
+        if (autoU) {
+            const result = await API.fetch(
+                `/balanceamento_usuarios?username=eq.${encodeURIComponent(autoU.trim().toLowerCase())}&select=username,label,role,cidade`
+            );
+            const found = result?.[0];
+            // Só permite roles técnico/gestor — CTO requer login com senha
+            if (found && (found.role === 'tecnico' || found.role === 'gestor')) {
+                currentUser = { ...found };
+                localStorage.setItem('rdyUser', JSON.stringify(currentUser));
+                history.replaceState({}, '', window.location.pathname);
+                showApp();
+                return;
+            }
+        }
+    } catch (e) {}
+
+    // 3. Exibir tela de login
     const screen = document.getElementById('loginScreen');
     if (screen) screen.style.display = 'flex';
     const userIn = document.getElementById('loginUser');
@@ -1232,7 +1254,7 @@ async function salvarAnaliseAberta() {
             observacao: isSuperiorUltima ? `[SUPERIOR A ULTIMA] ANALISE_BASE:${numeradorBase}` : `ANALISE_BASE:${numeradorBase}`,
             status: 'analise_aberta',
             data_registro: new Date().toISOString(),
-            criado_por: obterUsuarioAtual() || 'Portal'
+            criado_por: obterUsuarioAtual() || (window !== window.top ? 'Sistema Original' : 'Portal')
         });
         alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
         window.location.reload();
@@ -1403,7 +1425,7 @@ async function confirmarFechamentoAnalise() {
             observacao: (isSuperiorUltima ? `[SUPERIOR A ULTIMA] ` : '') + (isEntregaAMais ? `[ENTREGA A MAIS] ` : '') + `ANALISE_BASE:${novoContador}`,
             status: 'analise_aberta',
             data_registro: new Date().toISOString(),
-            criado_por: obterUsuarioAtual() || 'Portal'
+            criado_por: obterUsuarioAtual() || (window !== window.top ? 'Sistema Original' : 'Portal')
         });
 
         const saldoAbs = Math.abs(pagsRestantes).toLocaleString('pt-BR');
@@ -1860,7 +1882,7 @@ function showAdmin() {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260631';
+                window.location.href = 'admin.html?v=20260632';
             }
             return;
         }
