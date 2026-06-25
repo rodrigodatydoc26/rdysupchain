@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260630';
+      window.location.href = 'index.html?v=20260631';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260630">
+  <link rel="stylesheet" href="css/style.css?v=20260631">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -562,28 +562,7 @@
         </div>
       </div>
 
-      <!-- Tabela últimas 20 -->
-      <div class="search-card">
-        <div class="section-hdr">
-          <h3><i data-lucide="clock"></i> Últimas 20 Entregas</h3>
-          <button class="btn-outline btn-excel" onclick="exportarExcel('dashTable','Dashboard_Entregas')">
-            <i data-lucide="file-spreadsheet"></i> Excel
-          </button>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="dashTable">
-            <thead>
-              <tr>
-                <th>Data</th><th>Série</th><th>Cliente</th><th>Cidade</th>
-                <th class="text-center">Resmas</th><th>Técnico</th><th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="dashTbody">
-              <tr><td colspan="7" class="text-center">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+
     </section>
 
     <!-- ══ TAB: ENTREGAS ══ -->
@@ -1707,11 +1686,10 @@ async function carregarDashboard() {
     : `&criado_por=eq.${encodeURIComponent(fTecnico)}`;
 
   try {
-    const [equips, entregasMes, analises, recentes] = await Promise.all([
+    const [equips, entregasMes, analises] = await Promise.all([
       API.fetch(`/equipamentos?select=id${adminState.cidade ? ',cliente:clientes(cidade)' : ''}${equipFilter()}&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qData}${cidadeFilter()}${qCidade}${qTecnico}&select=quantidade_definida,data_registro,status,criado_por,equipamento:equipamentos!inner(cliente:clientes!inner(nome,cidade))&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
-      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}${qTecnico}&order=data_registro.desc&limit=20&select=data_registro,quantidade_definida,status,criado_por,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))`),
     ]);
 
     // Popula selects (só na primeira carga ou quando vazio)
@@ -1765,21 +1743,6 @@ async function carregarDashboard() {
 
     window.ultimoDashboardData = entregasMes;
     renderizarGraficos(entregasMes);
-
-    // Tabela
-    const tbody = document.getElementById('dashTbody');
-    tbody.innerHTML = recentes.length === 0
-      ? '<tr><td colspan="7" class="text-center">Nenhuma entrega encontrada.</td></tr>'
-      : recentes.map(e => `
-          <tr>
-            <td>${fmtData(e.data_registro)}</td>
-            <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
-            <td>${esc(e.equipamento?.cliente?.nome || '—')}</td>
-            <td>${esc(e.equipamento?.cliente?.cidade || '—')}</td>
-            <td class="text-center"><strong>${esc(String(e.quantidade_definida||0))}</strong></td>
-            <td>${fmtTecnico(e.criado_por)}</td>
-            <td>${statusBadge(e.status)}</td>
-          </tr>`).join('');
 
     safeCreateIcons();
   } catch(err) {
