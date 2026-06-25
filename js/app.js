@@ -44,6 +44,32 @@ function obterUsuarioAtual() {
             if (parsed) return parsed.label || parsed.username;
         }
     } catch (e) {}
+
+    // Fallback if in iframe and storage is blocked/partitioned
+    try {
+        if (window !== window.parent) {
+            const parent = window.parent;
+            if (parent.currentUser) {
+                return parent.currentUser.label || parent.currentUser.username;
+            }
+            if (parent.localStorage) {
+                const parentRdyUser = parent.localStorage.getItem('rdyUser');
+                if (parentRdyUser) {
+                    const parsed = JSON.parse(parentRdyUser);
+                    if (parsed) return parsed.label || parsed.username;
+                }
+                const parentAdmUser = parent.localStorage.getItem('adm_user');
+                if (parentAdmUser) {
+                    const parsed = JSON.parse(parentAdmUser);
+                    if (parsed) return parsed.label || parsed.username;
+                }
+            }
+            if (parent.adminState && parent.adminState.user) {
+                return parent.adminState.user;
+            }
+        }
+    } catch (e) {}
+
     return null;
 }
 
@@ -1826,7 +1852,7 @@ function showAdmin() {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260624';
+                window.location.href = 'admin.html?v=20260629';
             }
             return;
         }
