@@ -958,6 +958,7 @@ const API = {
 // ════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   const hojeStr = new Date().toISOString().slice(0,10);
+  document.getElementById('admDataInicio').value = hojeStr;
   document.getElementById('admDataFim').value = hojeStr;
   safeCreateIcons();
   initTheme();

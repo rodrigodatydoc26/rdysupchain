@@ -1007,6 +1007,7 @@ async function salvarBalanceamento() {
             contador_atual: cont,
             observacao: finalObs,
             status: 'confirmado',
+            data_registro: new Date().toISOString().slice(0, 10),
             criado_por: obterUsuarioAtual() || (isSistemaOriginal ? 'Sistema Original' : 'Portal')
         });
 
@@ -1199,6 +1200,7 @@ async function salvarAnaliseAberta() {
             contador_atual: numeradorBase,
             observacao: isSuperiorUltima ? `[SUPERIOR A ULTIMA] ANALISE_BASE:${numeradorBase}` : `ANALISE_BASE:${numeradorBase}`,
             status: 'analise_aberta',
+            data_registro: new Date().toISOString().slice(0, 10),
             criado_por: obterUsuarioAtual() || 'Portal'
         });
         alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
@@ -1369,6 +1371,7 @@ async function confirmarFechamentoAnalise() {
             contador_atual: novoContador,
             observacao: (isSuperiorUltima ? `[SUPERIOR A ULTIMA] ` : '') + (isEntregaAMais ? `[ENTREGA A MAIS] ` : '') + `ANALISE_BASE:${novoContador}`,
             status: 'analise_aberta',
+            data_registro: new Date().toISOString().slice(0, 10),
             criado_por: obterUsuarioAtual() || 'Portal'
         });
 
