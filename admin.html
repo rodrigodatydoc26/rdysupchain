@@ -298,12 +298,17 @@
     .dash-charts-3col { grid-template-columns: repeat(3, 1fr); }
     .dash-charts-2col { grid-template-columns: repeat(2, 1fr); }
 
+    @media (max-width: 1300px) {
+      .kpi-grid-7         { grid-template-columns: repeat(4, 1fr); }
+    }
     @media (max-width: 1100px) {
       .kpi-grid-6         { grid-template-columns: repeat(3, 1fr); }
+      .kpi-grid-7         { grid-template-columns: repeat(3, 1fr); }
       .dash-charts-3col   { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 768px) {
-      .kpi-grid-6         { grid-template-columns: repeat(2, 1fr); }
+      .kpi-grid-6,
+      .kpi-grid-7         { grid-template-columns: repeat(2, 1fr); }
       .dash-charts-3col,
       .dash-charts-2col   { grid-template-columns: 1fr; }
       .dash-filters-bar   { flex-direction: column; align-items: stretch; }
@@ -311,7 +316,8 @@
       .period-shortcuts   { width: 100%; }
     }
     @media (max-width: 480px) {
-      .kpi-grid-6 { grid-template-columns: 1fr 1fr; }
+      .kpi-grid-6,
+      .kpi-grid-7 { grid-template-columns: 1fr 1fr; }
     }
 
     .tag-analise-aberta {
@@ -520,7 +526,7 @@
     <section id="tab-dashboard" class="tab-content active">
 
       <!-- KPIs -->
-      <div class="kpi-grid kpi-grid-6">
+      <div class="kpi-grid kpi-grid-7">
         <div class="kpi-card">
           <span class="kpi-icon"><i data-lucide="printer"></i></span>
           <span class="kpi-label">Equipamentos</span>
@@ -539,14 +545,20 @@
           <span class="kpi-trend" id="kpiResmasTrend"></span>
         </div>
         <div class="kpi-card">
+          <span class="kpi-icon"><i data-lucide="calendar-days"></i></span>
+          <span class="kpi-label">Média Diária</span>
+          <span class="kpi-value" id="kpiMediaDiaria">—</span>
+          <span class="kpi-sub" id="kpiMediaDiariaSub"></span>
+        </div>
+        <div class="kpi-card">
           <span class="kpi-icon"><i data-lucide="bar-chart-2"></i></span>
-          <span class="kpi-label">Média Resmas/Entrega</span>
+          <span class="kpi-label">Média/Entrega</span>
           <span class="kpi-value" id="kpiMedia">—</span>
         </div>
-        <div class="kpi-card kpi-alerta">
-          <span class="kpi-icon"><i data-lucide="alert-triangle"></i></span>
-          <span class="kpi-label">Análises Abertas</span>
-          <span class="kpi-value" id="kpiAnalises">—</span>
+        <div class="kpi-card">
+          <span class="kpi-icon"><i data-lucide="package-check"></i></span>
+          <span class="kpi-label">Entrega Realizada</span>
+          <span class="kpi-value gold-text" id="kpiAnalises">—</span>
         </div>
         <div class="kpi-card">
           <span class="kpi-icon"><i data-lucide="trending-up"></i></span>
@@ -626,7 +638,8 @@
       <div class="dashboard-charts-grid dash-charts-2col">
         <div class="chart-card">
           <div class="chart-card-header">
-            <h4><i data-lucide="award"></i> Top 8 Clientes Consumidores</h4>
+            <h4><i data-lucide="award"></i> Top 10 Equipamentos Consumidores</h4>
+            <span class="chart-subtitle">clique para detalhar</span>
           </div>
           <div class="chart-container chart-container-md">
             <canvas id="chartTopClientes"></canvas>
@@ -1028,6 +1041,29 @@
             <button type="submit" class="btn-primary btn-danger-solid">Confirmar Exclusão</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ENTREGAS DO EQUIPAMENTO -->
+  <div id="modalEquipEntregas" class="modal-overlay hidden" onclick="if(event.target===this)fecharModalEquipEntregas()">
+    <div class="modal-content" style="max-width:720px;width:95%">
+      <div class="modal-header">
+        <h3><i data-lucide="printer"></i> <span id="modalEquipTitle">Entregas</span></h3>
+        <button class="btn-close" onclick="fecharModalEquipEntregas()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p id="modalEquipSub" style="font-size:0.8rem;color:var(--text-dim);margin-bottom:14px"></p>
+        <div style="overflow-x:auto;max-height:420px;overflow-y:auto">
+          <table class="hist-table" style="width:100%">
+            <thead>
+              <tr>
+                <th>Data</th><th>Resmas</th><th>Técnico</th><th>Status</th><th>O.S.</th><th>Observação</th>
+              </tr>
+            </thead>
+            <tbody id="modalEquipTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -1605,25 +1641,39 @@ function renderizarGraficos(entregas) {
   }
 
   // ── 5. TOP 8 CLIENTES (horizontal bar) ──
-  const cliMap = {};
+  // ── 5. TOP 10 EQUIPAMENTOS ──
+  const serieMap = {};
   entregas.forEach(e => {
-    const c = e.equipamento?.cliente?.nome || 'Desconhecido';
-    cliMap[c] = (cliMap[c]||0) + (parseFloat(e.quantidade_definida)||0);
+    const s = e.equipamento?.serie || 'Desconhecido';
+    if (!serieMap[s]) serieMap[s] = { total: 0, cliente: e.equipamento?.cliente?.nome || '', cidade: e.equipamento?.cliente?.cidade || '' };
+    serieMap[s].total += (parseFloat(e.quantidade_definida)||0);
   });
-  const topCli = Object.entries(cliMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const topSeries = Object.entries(serieMap).sort((a,b)=>b[1].total-a[1].total).slice(0,10);
 
   const ctxCli = document.getElementById('chartTopClientes')?.getContext('2d');
   if (ctxCli) {
     window.chartTopClientesInstance = new Chart(ctxCli, {
       type:'bar',
-      data: { labels:topCli.map(x => x[0].length>25 ? x[0].slice(0,22)+'…' : x[0]),
+      data: { labels: topSeries.map(x => x[0]),
               datasets:[{
-                label:'Resmas', data:topCli.map(x=>x[1]),
+                label:'Resmas', data: topSeries.map(x=>x[1].total),
                 backgroundColor:goldColor+'cc', hoverBackgroundColor:goldColor, borderRadius:6, borderWidth:0
               }]},
       options: { ...baseCartesianOpts, indexAxis:'y',
-        plugins: { ...baseCartesianOpts.plugins, legend:{ display:false } },
-        scales: { ...baseCartesianOpts.scales, x:{ ...baseCartesianOpts.scales.x, beginAtZero:true } }
+        plugins: { ...baseCartesianOpts.plugins, legend:{ display:false },
+          tooltip: { callbacks: { afterLabel: ctx => {
+            const entry = topSeries[ctx.dataIndex];
+            return entry ? `${entry[1].cliente}` : '';
+          }}}
+        },
+        scales: { ...baseCartesianOpts.scales, x:{ ...baseCartesianOpts.scales.x, beginAtZero:true } },
+        onClick: (evt, elements) => {
+          if (elements.length > 0) {
+            const serie = topSeries[elements[0].index]?.[0];
+            if (serie) abrirModalEquipamento(serie);
+          }
+        },
+        onHover: (evt) => { evt.native.target.style.cursor = evt.chart.getElementsAtEventForMode(evt.native,'nearest',{intersect:true},true).length ? 'pointer' : 'default'; }
       }
     });
   }
@@ -1813,6 +1863,11 @@ async function carregarDashboard() {
     const acimaMedia   = entregasMes.filter(e => (parseFloat(e.quantidade_definida)||0) > media).length;
     const acimaMediaPct= totalEnt > 0 ? Math.round((acimaMedia/totalEnt)*100) : 0;
 
+    // Média diária: dias únicos com pelo menos 1 entrega
+    const diasUnicos = new Set(entregasMes.map(e => (e.data_registro||'').slice(0,10)).filter(Boolean));
+    const numDias    = diasUnicos.size || 1;
+    const mediaDiaria = totalResmas / numDias;
+
     const periodLabel = di || df ? `${di ? di.slice(8,10)+'/'+di.slice(5,7) : '…'} – ${df ? df.slice(8,10)+'/'+df.slice(5,7) : '…'}` : 'Este mês';
     document.getElementById('lblKpiEntregas').textContent = 'Entregas';
     document.getElementById('lblKpiResmas').textContent   = 'Resmas';
@@ -1820,8 +1875,13 @@ async function carregarDashboard() {
     document.getElementById('kpiEquip').textContent      = equips.length.toLocaleString('pt-BR');
     document.getElementById('kpiEntregas').textContent   = totalEnt.toLocaleString('pt-BR');
     document.getElementById('kpiResmas').textContent     = Math.round(totalResmas).toLocaleString('pt-BR');
+    const mdEl = document.getElementById('kpiMediaDiaria');
+    if (mdEl) mdEl.textContent = totalEnt > 0 ? mediaDiaria.toFixed(1) : '—';
+    const mdSub = document.getElementById('kpiMediaDiariaSub');
+    if (mdSub) mdSub.textContent = totalEnt > 0 ? `em ${numDias} dia${numDias > 1 ? 's' : ''}` : '';
     document.getElementById('kpiMedia').textContent      = media > 0 ? media.toFixed(1) : '—';
-    document.getElementById('kpiAnalises').textContent   = analises.length.toLocaleString('pt-BR');
+    const entRegalizadas = entregasMes.filter(e => e.status === 'confirmado').length;
+    document.getElementById('kpiAnalises').textContent   = entRegalizadas.toLocaleString('pt-BR');
     document.getElementById('kpiAcimaMedia').textContent = acimaMedia.toLocaleString('pt-BR');
     const subEl = document.getElementById('kpiAcimaMediaPct');
     if (subEl) subEl.textContent = totalEnt > 0 ? `${acimaMediaPct}% das entregas` : '';
@@ -2347,6 +2407,47 @@ async function abrirModalUsuario(username = null) {
 
 function fecharModalUsuario() {
   document.getElementById('modalUsuario').classList.add('hidden');
+}
+
+// ── Modal Entregas do Equipamento ──
+function abrirModalEquipamento(serie) {
+  const dados = (window.ultimoDashboardData || []).filter(e => e.equipamento?.serie === serie);
+  const totalResmas = dados.reduce((s,e) => s+(parseFloat(e.quantidade_definida)||0), 0);
+  const cliente = dados[0]?.equipamento?.cliente?.nome || '';
+  const cidade  = dados[0]?.equipamento?.cliente?.cidade || '';
+
+  document.getElementById('modalEquipTitle').textContent = `Série ${serie}`;
+  document.getElementById('modalEquipSub').textContent =
+    `${cliente}${cidade ? ' — '+cidade : ''} · ${dados.length} entrega${dados.length!==1?'s':''} · ${totalResmas} resmas no período`;
+
+  const tbody = document.getElementById('modalEquipTbody');
+  if (!dados.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-dim)">Nenhuma entrega no período filtrado.</td></tr>';
+  } else {
+    const statusTag = s => s === 'analise_aberta'
+      ? '<span class="tag-analise-aberta">Análise</span>'
+      : '<span style="color:var(--success,#22c55e);font-size:0.75rem;font-weight:600">Realizada</span>';
+    tbody.innerHTML = dados
+      .sort((a,b) => (b.data_registro||'').localeCompare(a.data_registro||''))
+      .map(e => {
+        const dt = e.data_registro ? e.data_registro.slice(0,10).split('-').reverse().join('/') : '—';
+        return `<tr>
+          <td>${esc(dt)}</td>
+          <td style="font-weight:700">${parseFloat(e.quantidade_definida)||0}</td>
+          <td>${esc(e.criado_por||'—')}</td>
+          <td>${statusTag(e.status)}</td>
+          <td>${esc(e.numero_os||'—')}</td>
+          <td style="font-size:0.78rem;color:var(--text-dim)">${esc(e.observacao||'')}</td>
+        </tr>`;
+      }).join('');
+  }
+
+  document.getElementById('modalEquipEntregas').classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function fecharModalEquipEntregas() {
+  document.getElementById('modalEquipEntregas').classList.add('hidden');
 }
 
 async function salvarUsuario() {
