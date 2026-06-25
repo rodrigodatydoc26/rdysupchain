@@ -761,10 +761,9 @@
                 <th>Cliente / Setor</th>
                 <th width="80" class="text-center">Resmas</th>
                 <th width="90" class="text-center">Média/mês</th>
-                <th width="180" class="text-center">Auditoria<br><span class="auditoria-subtext">(Base / Limite / Tempo)</span></th>
+                <th width="180" class="text-center">Auditoria<br><span class="auditoria-subtext">(Num. Atual / Num. Próxima Solicitação / Tempo)</span></th>
                 <th width="80">Sinais</th>
                 <th width="90">O.S.</th>
-                <th>Observação</th>
                 <th width="120">Técnico</th>
                 <th width="120" class="text-center">Status</th>
                 <th width="90" class="text-center">Ações</th>
@@ -2091,8 +2090,8 @@ async function carregarEntregas() {
         const dias = Math.round((Date.now() - new Date(e.data_registro).getTime()) / 86400000);
         const diasCls = dias > 7 ? 'dias-crit' : dias > 3 ? 'dias-warn' : 'dias-ok';
         
-        auditoriaHtml = `Base: <strong>${base.toLocaleString('pt-BR')}</strong><br>
-                        Limite: <strong>${limite.toLocaleString('pt-BR')}</strong> 
+        auditoriaHtml = `Num. Atual: <strong>${base.toLocaleString('pt-BR')}</strong><br>
+                        Próx. Sol.: <strong>${limite.toLocaleString('pt-BR')}</strong>
                         <span class="${diasCls}">(${dias}d)</span>`;
       } else {
         let baseText = '—';
@@ -2111,8 +2110,8 @@ async function carregarEntregas() {
             limiteText = limVal.toLocaleString('pt-BR');
           }
         }
-        auditoriaHtml = `Contador: <strong>${baseText}</strong><br>
-                        Limite: <strong>${limiteText}</strong>`;
+        auditoriaHtml = `Num. Atual: <strong>${baseText}</strong><br>
+                        Próx. Sol.: <strong>${limiteText}</strong>`;
       }
       
       return `
@@ -2126,7 +2125,6 @@ async function carregarEntregas() {
         <td style="font-size:0.8rem; line-height:1.4;">${auditoriaHtml}</td>
         <td><div class="tags-container">${tags}</div></td>
         <td>${esc(e.numero_os || '—')}</td>
-        <td style="max-width:160px;font-size:0.75rem;color:var(--text-dim)">${esc(obsText || '—')}</td>
         <td>${fmtTecnico(e.criado_por)}</td>
         <td>${statusBadge(e.status)}</td>
         <td class="text-center">
