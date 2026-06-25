@@ -1639,8 +1639,7 @@ function renderizarGraficos(entregas) {
     });
   }
 
-  // ── 5. TOP 8 CLIENTES (horizontal bar) ──
-  // ── 5. TOP 10 EQUIPAMENTOS ──
+  // ── 5. TOP 10 EQUIPAMENTOS CONSUMIDORES ──
   const serieMap = {};
   entregas.forEach(e => {
     const s = e.equipamento?.serie || 'Desconhecido';
@@ -1822,7 +1821,7 @@ async function carregarDashboard() {
   try {
     const [equips, entregasMes, analises] = await Promise.all([
       API.fetch(`/equipamentos?select=id${adminState.cidade ? ',cliente:clientes(cidade)' : ''}${equipFilter()}&limit=5000`),
-      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qData}${cidadeFilter()}${qCidade}${qTecnico}&select=quantidade_definida,data_registro,status,criado_por,equipamento:equipamentos!inner(cliente:clientes!inner(nome,cidade))&limit=5000`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qData}${cidadeFilter()}${qCidade}${qTecnico}&select=quantidade_definida,data_registro,status,criado_por,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
     ]);
 
