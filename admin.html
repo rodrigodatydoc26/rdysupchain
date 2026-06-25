@@ -957,8 +957,9 @@ const API = {
 // INIT
 // ════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('admDataInicio').value = '';
-  document.getElementById('admDataFim').value = '';
+  const hojeStr = new Date().toISOString().slice(0,10);
+  document.getElementById('admDataInicio').value = hojeStr;
+  document.getElementById('admDataFim').value = hojeStr;
   safeCreateIcons();
   initTheme();
   const saved = localStorage.getItem('adm_user');
