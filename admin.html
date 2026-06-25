@@ -1484,13 +1484,21 @@ function renderizarGraficos(entregas) {
 // ════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════
-// Filtra balanceamento_entregas pela cidade do técnico via join
+// Filtra balanceamento_entregas pela cidade via join equipamento→cliente
 function cidadeFilter(sep = '&') {
   if (!adminState.cidade) return '';
   return `${sep}equipamento.cliente.cidade=eq.${encodeURIComponent(adminState.cidade)}`;
 }
 
-// Filtra equipamentos pela cidade do técnico via join
+// Filtra equipamentos pela cidade via join cliente (inclui o join no select externamente)
+// Retorna objeto {filter, select} para ser usado junto
+function equipFilterParams() {
+  if (!adminState.cidade) return { filter: '', selectExtra: '' };
+  return {
+    filter: `&cliente.cidade=eq.${encodeURIComponent(adminState.cidade)}`,
+    selectExtra: ',cliente:clientes(cidade)'
+  };
+}
 function equipFilter(sep = '&') {
   if (!adminState.cidade) return '';
   return `${sep}cliente.cidade=eq.${encodeURIComponent(adminState.cidade)}`;
@@ -1533,7 +1541,7 @@ async function carregarDashboard() {
 
   try {
     const [equips, entregasMes, analises, recentes] = await Promise.all([
-      API.fetch(`/equipamentos?select=id${equipFilter()}&limit=5000`),
+      API.fetch(`/equipamentos?select=id${adminState.cidade ? ',cliente:clientes(cidade)' : ''}${equipFilter()}&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,data_registro,status,equipamento:equipamentos!inner(cliente:clientes!inner(nome,cidade))&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
       API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,criado_por,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
