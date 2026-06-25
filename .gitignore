@@ -8,3 +8,5 @@ node_modules/
 scratch/
 scripts/migrar_banco_antigo_para_novo.js
 fix_brbsq.html
+
+.vercel

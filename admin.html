@@ -1354,197 +1354,189 @@ async function cadCarregarListaRecente() {
 // RENDERIZAR GRÁFICOS (CHART.JS)
 // ════════════════════════════════════════════════════════
 function renderizarGraficos(entregas) {
-  if (window.chartCidadesInstance) window.chartCidadesInstance.destroy();
-  if (window.chartEvolucaoInstance) window.chartEvolucaoInstance.destroy();
-  if (window.chartTopClientesInstance) window.chartTopClientesInstance.destroy();
-  if (window.chartStatusInstance) window.chartStatusInstance.destroy();
+  ['chartCidadesInstance','chartEvolucaoInstance','chartTopClientesInstance',
+   'chartStatusInstance','chartTecnicosInstance','chartVolumeInstance'].forEach(k => {
+    if (window[k]) { window[k].destroy(); window[k] = null; }
+  });
 
-  const rootStyle = getComputedStyle(document.documentElement);
-  const goldColor = rootStyle.getPropertyValue('--gold').trim() || '#e60000';
-  const textColor = rootStyle.getPropertyValue('--text').trim() || '#ffffff';
+  const rootStyle    = getComputedStyle(document.documentElement);
+  const goldColor    = rootStyle.getPropertyValue('--gold').trim()     || '#e60000';
+  const textColor    = rootStyle.getPropertyValue('--text').trim()     || '#ffffff';
   const textDimColor = rootStyle.getPropertyValue('--text-dim').trim() || '#a0a0ac';
-  const bg2Color = rootStyle.getPropertyValue('--bg-2').trim() || '#16161f';
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const bg2Color     = rootStyle.getPropertyValue('--bg-2').trim()     || '#16161f';
+  const isDark       = document.documentElement.getAttribute('data-theme') === 'dark';
 
-  const chartOptions = {
+  const palette  = [goldColor,'#3b82f6','#10b981','#a78bfa','#f59e0b','#ec4899','#06b6d4','#84cc16'];
+  const borderC  = isDark ? '#0e0e14' : '#fff';
+  const gridC    = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+
+  const baseOpts = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        labels: {
-          color: textDimColor,
-          font: { family: 'Outfit', size: 11, weight: '500' }
-        }
-      },
+      legend: { labels: { color: textDimColor, font: { family:'Outfit', size:11, weight:'500' }, boxWidth:12, padding:14 } },
       tooltip: {
-        backgroundColor: bg2Color,
-        titleColor: textColor,
-        bodyColor: textColor,
-        titleFont: { family: 'Outfit', weight: '700' },
-        bodyFont: { family: 'Outfit' },
-        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-        borderWidth: 1
+        backgroundColor: bg2Color, titleColor: textColor, bodyColor: textDimColor,
+        titleFont: { family:'Outfit', weight:'700' }, bodyFont: { family:'Outfit', size:12 },
+        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)', borderWidth:1,
+        padding:10, cornerRadius:8,
+        callbacks: { label: ctx => ` ${ctx.formattedValue} resmas` }
       }
     },
     scales: {
-      x: {
-        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
-        ticks: { color: textDimColor, font: { family: 'Outfit', size: 10 } }
-      },
-      y: {
-        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
-        ticks: { color: textDimColor, font: { family: 'Outfit', size: 10 } }
-      }
+      x: { grid: { color:gridC }, ticks: { color:textDimColor, font: { family:'Outfit', size:10 } } },
+      y: { grid: { color:gridC }, ticks: { color:textDimColor, font: { family:'Outfit', size:10 } } }
     }
   };
 
-  // 1. CONSUMO POR CIDADE
-  const consumoPorCidade = {};
-  entregas.forEach(e => {
-    const cidade = e.equipamento?.cliente?.cidade || 'DESCONHECIDO';
-    const qtd = parseFloat(e.quantidade_definida) || 0;
-    consumoPorCidade[cidade] = (consumoPorCidade[cidade] || 0) + qtd;
-  });
-
-  const cidadesLabels = Object.keys(consumoPorCidade);
-  const cidadesData = Object.values(consumoPorCidade);
-  const cityColors = [goldColor, '#3b82f6', '#10b981', '#a78bfa', '#f59e0b', '#ec4899'];
-
-  const ctxCidades = document.getElementById('chartCidades')?.getContext('2d');
-  if (ctxCidades) {
-    window.chartCidadesInstance = new Chart(ctxCidades, {
-      type: 'doughnut',
-      data: {
-        labels: cidadesLabels,
-        datasets: [{
-          data: cidadesData,
-          backgroundColor: cityColors.slice(0, cidadesLabels.length),
-          borderWidth: isDark ? 2 : 1,
-          borderColor: isDark ? '#0e0e14' : '#fff'
-        }]
-      },
-      options: {
-        ...chartOptions,
-        cutout: '65%',
-        plugins: {
-          ...chartOptions.plugins,
-          legend: { ...chartOptions.plugins.legend, position: 'right' }
-        }
-      }
-    });
-  }
-
-  // 2. EVOLUÇÃO TEMPORAL
-  const evolucaoConsumo = {};
+  // ── 1. EVOLUÇÃO TEMPORAL (line largo) ──
+  const evoMap = {};
   entregas.forEach(e => {
     if (!e.data_registro) return;
-    const dataStr = new Date(e.data_registro).toLocaleDateString('pt-BR');
-    const qtd = parseFloat(e.quantidade_definida) || 0;
-    evolucaoConsumo[dataStr] = (evolucaoConsumo[dataStr] || 0) + qtd;
+    const d = e.data_registro.slice(0,10);
+    evoMap[d] = (evoMap[d]||0) + (parseFloat(e.quantidade_definida)||0);
   });
+  const evoDates    = Object.keys(evoMap).sort();
+  const evoVals     = evoDates.map(d => evoMap[d]);
+  const evoLabels   = evoDates.map(d => { const [y,m,day]=d.split('-'); return `${day}/${m}`; });
 
-  const datasOrdenadas = Object.keys(evolucaoConsumo).sort((a, b) => {
-    const partsA = a.split('/');
-    const partsB = b.split('/');
-    return new Date(partsA[2], partsA[1]-1, partsA[0]) - new Date(partsB[2], partsB[1]-1, partsB[0]);
-  });
-  const datasData = datasOrdenadas.map(d => evolucaoConsumo[d]);
-
-  const ctxEvolucao = document.getElementById('chartEvolucao')?.getContext('2d');
-  if (ctxEvolucao) {
-    const gradient = ctxEvolucao.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, goldColor + '44');
-    gradient.addColorStop(1, goldColor + '00');
-
-    window.chartEvolucaoInstance = new Chart(ctxEvolucao, {
-      type: 'line',
-      data: {
-        labels: datasOrdenadas,
-        datasets: [{
-          label: 'Resmas Entregues',
-          data: datasData,
-          borderColor: goldColor,
-          backgroundColor: gradient,
-          borderWidth: 2,
-          fill: true,
-          tension: 0.35,
-          pointBackgroundColor: goldColor,
-          pointBorderColor: isDark ? '#0e0e14' : '#fff',
-          pointHoverRadius: 6
-        }]
-      },
-      options: chartOptions
+  const ctxEvo = document.getElementById('chartEvolucao')?.getContext('2d');
+  if (ctxEvo) {
+    const grad = ctxEvo.createLinearGradient(0,0,0,260);
+    grad.addColorStop(0, goldColor+'55');
+    grad.addColorStop(1, goldColor+'00');
+    window.chartEvolucaoInstance = new Chart(ctxEvo, {
+      type:'line',
+      data: { labels:evoLabels, datasets:[{
+        label:'Resmas entregues', data:evoVals,
+        borderColor:goldColor, backgroundColor:grad, borderWidth:2.5,
+        fill:true, tension:0.4,
+        pointBackgroundColor:goldColor, pointBorderColor:borderC,
+        pointRadius: evoDates.length>30 ? 0 : 4, pointHoverRadius:7
+      }]},
+      options: { ...baseOpts, plugins: { ...baseOpts.plugins, legend:{ display:false } } }
     });
   }
 
-  // 3. TOP CLIENTES
-  const consumoPorCliente = {};
+  // ── 2. CIDADE (doughnut) ──
+  const cidadeMap = {};
   entregas.forEach(e => {
-    const cliente = e.equipamento?.cliente?.nome || 'DESCONHECIDO';
-    const qtd = parseFloat(e.quantidade_definida) || 0;
-    consumoPorCliente[cliente] = (consumoPorCliente[cliente] || 0) + qtd;
+    const c = e.equipamento?.cliente?.cidade || 'Desconhecido';
+    cidadeMap[c] = (cidadeMap[c]||0) + (parseFloat(e.quantidade_definida)||0);
   });
+  const cidadeLabels = Object.keys(cidadeMap);
+  const cidadeVals   = Object.values(cidadeMap);
 
-  const topClientesSorted = Object.entries(consumoPorCliente)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  const topClientesLabels = topClientesSorted.map(item => item[0]);
-  const topClientesData = topClientesSorted.map(item => item[1]);
-
-  const ctxTopClientes = document.getElementById('chartTopClientes')?.getContext('2d');
-  if (ctxTopClientes) {
-    window.chartTopClientesInstance = new Chart(ctxTopClientes, {
-      type: 'bar',
-      data: {
-        labels: topClientesLabels.map(l => l.length > 22 ? l.substring(0, 19) + '...' : l),
-        datasets: [{
-          label: 'Total de Resmas',
-          data: topClientesData,
-          backgroundColor: goldColor + 'dd',
-          hoverBackgroundColor: goldColor,
-          borderRadius: 6,
-          borderWidth: 0
-        }]
-      },
-      options: {
-        ...chartOptions,
-        indexAxis: 'y',
-        plugins: {
-          ...chartOptions.plugins,
-          legend: { display: false }
-        }
+  const ctxCid = document.getElementById('chartCidades')?.getContext('2d');
+  if (ctxCid) {
+    window.chartCidadesInstance = new Chart(ctxCid, {
+      type:'doughnut',
+      data: { labels:cidadeLabels, datasets:[{
+        data:cidadeVals, backgroundColor:palette.slice(0,cidadeLabels.length), borderWidth:2, borderColor:borderC
+      }]},
+      options: { ...baseOpts, cutout:'65%',
+        plugins: { ...baseOpts.plugins, legend:{ ...baseOpts.plugins.legend, position:'bottom' } }
       }
     });
   }
 
-  // 4. DISTRIBUIÇÃO POR STATUS
-  let confirmadosCount = 0;
-  let analisesCount = 0;
+  // ── 3. POR TÉCNICO (horizontal bar) ──
+  const tecMap = {};
   entregas.forEach(e => {
-    if (e.status === 'confirmado') confirmadosCount++;
-    else if (e.status === 'analise_aberta') analisesCount++;
+    const tec = (e.criado_por && e.criado_por !== 'Portal' && e.criado_por !== 'Sistema Original')
+      ? e.criado_por : 'Migrado/Portal';
+    tecMap[tec] = (tecMap[tec]||0) + (parseFloat(e.quantidade_definida)||0);
+  });
+  const tecEntries = Object.entries(tecMap).sort((a,b)=>b[1]-a[1]);
+  const tecColors  = tecEntries.map((x,i) => x[0]==='Migrado/Portal' ? textDimColor+'88' : palette[i%palette.length]);
+
+  const ctxTec = document.getElementById('chartTecnicos')?.getContext('2d');
+  if (ctxTec) {
+    window.chartTecnicosInstance = new Chart(ctxTec, {
+      type:'bar',
+      data: { labels:tecEntries.map(x=>x[0]), datasets:[{
+        label:'Resmas', data:tecEntries.map(x=>x[1]),
+        backgroundColor:tecColors, borderRadius:6, borderWidth:0
+      }]},
+      options: { ...baseOpts, indexAxis:'y',
+        plugins: { ...baseOpts.plugins, legend:{ display:false } },
+        scales: { ...baseOpts.scales, x:{ ...baseOpts.scales.x, beginAtZero:true } }
+      }
+    });
+  }
+
+  // ── 4. STATUS (doughnut) ──
+  let conf=0, aberta=0;
+  entregas.forEach(e => {
+    if (e.status==='confirmado') conf++;
+    else if (e.status==='analise_aberta') aberta++;
   });
 
-  const ctxStatus = document.getElementById('chartStatus')?.getContext('2d');
-  if (ctxStatus) {
-    window.chartStatusInstance = new Chart(ctxStatus, {
-      type: 'pie',
-      data: {
-        labels: ['Confirmadas', 'Em Aberto'],
-        datasets: [{
-          data: [confirmadosCount, analisesCount],
-          backgroundColor: ['#10b981', '#f59e0b'],
-          borderWidth: isDark ? 2 : 1,
-          borderColor: isDark ? '#0e0e14' : '#fff'
-        }]
-      },
-      options: {
-        ...chartOptions,
-        plugins: {
-          ...chartOptions.plugins,
-          legend: { ...chartOptions.plugins.legend, position: 'bottom' }
-        }
+  const ctxSt = document.getElementById('chartStatus')?.getContext('2d');
+  if (ctxSt) {
+    window.chartStatusInstance = new Chart(ctxSt, {
+      type:'doughnut',
+      data: { labels:['Confirmadas','Análise Aberta'], datasets:[{
+        data:[conf,aberta], backgroundColor:['#10b981','#f59e0b'], borderWidth:2, borderColor:borderC
+      }]},
+      options: { ...baseOpts, cutout:'55%',
+        plugins: { ...baseOpts.plugins, legend:{ ...baseOpts.plugins.legend, position:'bottom' },
+          tooltip:{ ...baseOpts.plugins.tooltip, callbacks:{ label:ctx => ` ${ctx.parsed} entregas` } } }
+      }
+    });
+  }
+
+  // ── 5. TOP 8 CLIENTES (horizontal bar) ──
+  const cliMap = {};
+  entregas.forEach(e => {
+    const c = e.equipamento?.cliente?.nome || 'Desconhecido';
+    cliMap[c] = (cliMap[c]||0) + (parseFloat(e.quantidade_definida)||0);
+  });
+  const topCli = Object.entries(cliMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  const ctxCli = document.getElementById('chartTopClientes')?.getContext('2d');
+  if (ctxCli) {
+    window.chartTopClientesInstance = new Chart(ctxCli, {
+      type:'bar',
+      data: { labels:topCli.map(x => x[0].length>25 ? x[0].slice(0,22)+'…' : x[0]),
+              datasets:[{
+                label:'Resmas', data:topCli.map(x=>x[1]),
+                backgroundColor:goldColor+'cc', hoverBackgroundColor:goldColor, borderRadius:6, borderWidth:0
+              }]},
+      options: { ...baseOpts, indexAxis:'y',
+        plugins: { ...baseOpts.plugins, legend:{ display:false } },
+        scales: { ...baseOpts.scales, x:{ ...baseOpts.scales.x, beginAtZero:true } }
+      }
+    });
+  }
+
+  // ── 6. DISTRIBUIÇÃO POR FAIXA (histogram) ──
+  const faixas    = ['1–5','6–10','11–20','21–50','51–100','101–200','201+'];
+  const faixaVals = [0,0,0,0,0,0,0];
+  entregas.forEach(e => {
+    const q = parseFloat(e.quantidade_definida)||0;
+    if      (q<=5)   faixaVals[0]++;
+    else if (q<=10)  faixaVals[1]++;
+    else if (q<=20)  faixaVals[2]++;
+    else if (q<=50)  faixaVals[3]++;
+    else if (q<=100) faixaVals[4]++;
+    else if (q<=200) faixaVals[5]++;
+    else             faixaVals[6]++;
+  });
+
+  const ctxVol = document.getElementById('chartVolume')?.getContext('2d');
+  if (ctxVol) {
+    window.chartVolumeInstance = new Chart(ctxVol, {
+      type:'bar',
+      data: { labels:faixas, datasets:[{
+        label:'Entregas', data:faixaVals,
+        backgroundColor:palette.map(c=>c+'bb'), hoverBackgroundColor:palette, borderRadius:6, borderWidth:0
+      }]},
+      options: { ...baseOpts,
+        plugins: { ...baseOpts.plugins, legend:{ display:false },
+          tooltip:{ ...baseOpts.plugins.tooltip, callbacks:{ label:ctx => ` ${ctx.parsed.y} entregas` } } },
+        scales: { ...baseOpts.scales, y:{ ...baseOpts.scales.y, beginAtZero:true,
+          ticks:{ ...baseOpts.scales.y.ticks, precision:0 } } }
       }
     });
   }
@@ -1611,60 +1603,133 @@ function fmtTecnico(criado_por) {
 // ════════════════════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════════════════════
-async function carregarDashboard() {
-  const di = document.getElementById('dashDataInicio')?.value;
-  const df = document.getElementById('dashDataFim')?.value;
-  const fCidade = document.getElementById('dashFiltroCidade')?.value.trim().toLowerCase();
+function dashPeriodo(periodo) {
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  event?.currentTarget?.classList.add('active');
 
-  const defaultInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+  const today = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+  let di, df = fmt(today);
+  if (periodo === 'hoje') {
+    di = fmt(today);
+  } else if (periodo === 'semana') {
+    const mon = new Date(today); mon.setDate(today.getDate() - today.getDay() + 1);
+    di = fmt(mon);
+  } else if (periodo === 'mes') {
+    di = `${today.getFullYear()}-${pad(today.getMonth()+1)}-01`;
+  } else if (periodo === 'trimestre') {
+    const m = today.getMonth(); const qStart = m - (m % 3);
+    di = `${today.getFullYear()}-${pad(qStart+1)}-01`;
+  } else if (periodo === 'ano') {
+    di = `${today.getFullYear()}-01-01`;
+  }
+
+  document.getElementById('dashDataInicio').value = di;
+  document.getElementById('dashDataFim').value = df;
+  carregarDashboard();
+}
+
+async function carregarDashboard() {
+  const di      = document.getElementById('dashDataInicio')?.value;
+  const df      = document.getElementById('dashDataFim')?.value;
+  const fCidade = document.getElementById('dashFiltroCidade')?.value || '';
+  const fTecnico= document.getElementById('dashFiltroTecnico')?.value || '';
+
+  const defaultInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    .toISOString().split('T')[0];
   const queryDi = di || defaultInicio;
-  
+
   const tz = getLocalOffsetString();
-  let qDataEntregas = `&data_registro=gte.${queryDi}T00:00:00${tz}`;
-  if (df) qDataEntregas += `&data_registro=lte.${df}T23:59:59${tz}`;
+  let qData = `&data_registro=gte.${queryDi}T00:00:00${tz}`;
+  if (df) qData += `&data_registro=lte.${df}T23:59:59${tz}`;
 
   let qCidade = '';
-  if (fCidade) qCidade = `&equipamento.cliente.cidade=ilike.*${encodeURIComponent(fCidade)}*`;
+  if (fCidade) qCidade = `&equipamento.cliente.cidade=eq.${encodeURIComponent(fCidade)}`;
+  let qTecnico = '';
+  if (fTecnico) qTecnico = fTecnico === '__portal__'
+    ? `&or=(criado_por.is.null,criado_por.eq.Portal,criado_por.eq.Sistema Original)`
+    : `&criado_por=eq.${encodeURIComponent(fTecnico)}`;
 
   try {
     const [equips, entregasMes, analises, recentes] = await Promise.all([
       API.fetch(`/equipamentos?select=id${adminState.cidade ? ',cliente:clientes(cidade)' : ''}${equipFilter()}&limit=5000`),
-      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qDataEntregas}${cidadeFilter()}${qCidade}&select=quantidade_definida,data_registro,status,equipamento:equipamentos!inner(cliente:clientes!inner(nome,cidade))&limit=5000`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qData}${cidadeFilter()}${qCidade}${qTecnico}&select=quantidade_definida,data_registro,status,criado_por,equipamento:equipamentos!inner(cliente:clientes!inner(nome,cidade))&limit=5000`),
       API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
-      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}&order=data_registro.desc&limit=15&select=data_registro,quantidade_definida,numero_os,status,criado_por,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${cidadeFilter()}${qCidade}${qTecnico}&order=data_registro.desc&limit=20&select=data_registro,quantidade_definida,status,criado_por,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))`),
     ]);
 
-    const label = (di || df || fCidade) ? "Filtradas" : "Este mês";
-    document.getElementById('lblKpiEntregas').innerText = `Entregas ${label}`;
-    document.getElementById('lblKpiResmas').innerText   = `Resmas ${label}`;
+    // Popula selects (só na primeira carga ou quando vazio)
+    const tecSelect = document.getElementById('dashFiltroTecnico');
+    if (tecSelect && tecSelect.options.length <= 1) {
+      const tecnicos = [...new Set(
+        entregasMes.map(e => e.criado_por)
+          .filter(t => t && t !== 'Portal' && t !== 'Sistema Original')
+      )].sort();
+      tecnicos.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        tecSelect.appendChild(opt);
+      });
+      if (!tecSelect.querySelector('option[value="__portal__"]') && entregasMes.some(e => !e.criado_por || e.criado_por === 'Portal')) {
+        const opt = document.createElement('option');
+        opt.value = '__portal__'; opt.textContent = 'Migrado/Portal';
+        tecSelect.appendChild(opt);
+      }
+    }
 
-    document.getElementById('kpiEquip').innerText    = equips.length;
-    document.getElementById('kpiEntregas').innerText  = entregasMes.length;
-    document.getElementById('kpiResmas').innerText    = entregasMes
-      .reduce((s, e) => s + (parseFloat(e.quantidade_definida) || 0), 0).toFixed(0);
-    document.getElementById('kpiAnalises').innerText  = analises.length;
+    const cidSelect = document.getElementById('dashFiltroCidade');
+    if (cidSelect && cidSelect.options.length <= 1) {
+      const cidades = [...new Set(entregasMes.map(e => e.equipamento?.cliente?.cidade).filter(Boolean))].sort();
+      cidades.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        cidSelect.appendChild(opt);
+      });
+    }
+
+    // KPIs
+    const totalResmas  = entregasMes.reduce((s,e) => s+(parseFloat(e.quantidade_definida)||0), 0);
+    const totalEnt     = entregasMes.length;
+    const media        = totalEnt > 0 ? (totalResmas / totalEnt) : 0;
+    const acimaMedia   = entregasMes.filter(e => (parseFloat(e.quantidade_definida)||0) > media).length;
+    const acimaMediaPct= totalEnt > 0 ? Math.round((acimaMedia/totalEnt)*100) : 0;
+
+    const periodLabel = di || df ? `${di ? di.slice(8,10)+'/'+di.slice(5,7) : '…'} – ${df ? df.slice(8,10)+'/'+df.slice(5,7) : '…'}` : 'Este mês';
+    document.getElementById('lblKpiEntregas').textContent = 'Entregas';
+    document.getElementById('lblKpiResmas').textContent   = 'Resmas';
+
+    document.getElementById('kpiEquip').textContent      = equips.length.toLocaleString('pt-BR');
+    document.getElementById('kpiEntregas').textContent   = totalEnt.toLocaleString('pt-BR');
+    document.getElementById('kpiResmas').textContent     = Math.round(totalResmas).toLocaleString('pt-BR');
+    document.getElementById('kpiMedia').textContent      = media > 0 ? media.toFixed(1) : '—';
+    document.getElementById('kpiAnalises').textContent   = analises.length.toLocaleString('pt-BR');
+    document.getElementById('kpiAcimaMedia').textContent = acimaMedia.toLocaleString('pt-BR');
+    const subEl = document.getElementById('kpiAcimaMediaPct');
+    if (subEl) subEl.textContent = totalEnt > 0 ? `${acimaMediaPct}% das entregas` : '';
 
     window.ultimoDashboardData = entregasMes;
     renderizarGraficos(entregasMes);
 
+    // Tabela
     const tbody = document.getElementById('dashTbody');
     tbody.innerHTML = recentes.length === 0
-      ? '<tr><td colspan="8" class="text-center">Nenhuma entrega encontrada.</td></tr>'
+      ? '<tr><td colspan="7" class="text-center">Nenhuma entrega encontrada.</td></tr>'
       : recentes.map(e => `
           <tr>
             <td>${fmtData(e.data_registro)}</td>
             <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
             <td>${esc(e.equipamento?.cliente?.nome || '—')}</td>
-            <td>${esc(e.equipamento?.secretaria || '—')}</td>
-            <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
-            <td>${esc(e.numero_os || '—')}</td>
+            <td>${esc(e.equipamento?.cliente?.cidade || '—')}</td>
+            <td class="text-center"><strong>${esc(String(e.quantidade_definida||0))}</strong></td>
             <td>${fmtTecnico(e.criado_por)}</td>
             <td>${statusBadge(e.status)}</td>
           </tr>`).join('');
-          
+
     safeCreateIcons();
   } catch(err) {
-    console.error(err);
+    console.error('carregarDashboard:', err);
   }
 }
 
