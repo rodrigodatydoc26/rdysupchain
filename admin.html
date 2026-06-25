@@ -18,14 +18,14 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260634';
+      window.location.href = 'index.html?v=20260635';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260634">
+  <link rel="stylesheet" href="css/style.css?v=20260635">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin></script>
   <style>
     #adminApp { display: none; }
     /* Garante que loginScreen seja visível por padrão no admin.html,
@@ -49,7 +49,7 @@
       box-shadow: var(--shadow);
     }
     .login-logo { text-align: center; margin-bottom: 32px; }
-    .login-logo i { color: var(--gold); width: 36px; height: 36px; }
+    .login-logo i, .login-logo svg { color: var(--gold); width: 36px; height: 36px; }
     .login-logo h1 { font-size: 1.3rem; font-weight: 700; margin-top: 12px; }
     .login-logo p { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
     .login-form .lg-group { margin-bottom: 16px; }
@@ -118,7 +118,7 @@
       margin-bottom: 16px;
     }
     .section-hdr h3 { font-size: 0.9375rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .section-hdr h3 i { color: var(--gold); }
+    .section-hdr h3 i, .section-hdr h3 svg { color: var(--gold); }
 
     /* ── DIAS ALERTA ── */
     .dias-ok   { color: var(--success); font-weight: 700; }
@@ -168,7 +168,7 @@
       background: var(--bg-2); color: var(--text-dim);
       border: 1px solid var(--border);
     }
-    .badge-tag i { width: 14px; height: 14px; }
+    .badge-tag i, .badge-tag svg { width: 14px; height: 14px; }
     .tag-entregue { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
     .tag-acima-media { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
     .tag-portal { background: rgba(59, 130, 246, 0.1); color: var(--cyan); border-color: rgba(59, 130, 246, 0.2); }
@@ -249,7 +249,7 @@
       gap: 8px;
       margin: 0;
     }
-    .chart-card h4 i {
+    .chart-card h4 i, .chart-card h4 svg {
       color: var(--gold);
       width: 16px;
       height: 16px;
@@ -264,7 +264,7 @@
     .kpi-grid-6 { grid-template-columns: repeat(6, 1fr); }
     .kpi-grid-7 { grid-template-columns: repeat(7, 1fr); }
     .kpi-icon { color: var(--gold); opacity: 0.7; display: flex; align-items: center; }
-    .kpi-icon i { width: 18px; height: 18px; }
+    .kpi-icon i, .kpi-icon svg { width: 18px; height: 18px; }
     .kpi-trend { font-size: 0.7rem; font-weight: 700; color: var(--text-dim); }
     .kpi-sub   { font-size: 0.7rem; color: var(--text-dim); }
 
@@ -1102,8 +1102,8 @@
   </div>
 
 </div>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/lucide@latest" crossorigin></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" crossorigin></script>
 <script>
 // ════════════════════════════════════════════════════════
 // CONFIG

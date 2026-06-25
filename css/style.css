@@ -79,7 +79,7 @@ body {
   gap: 12px;
 }
 
-.logo i {
+.logo i, .logo svg {
   color: var(--gold);
 }
 
@@ -1518,7 +1518,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   font-weight: 700;
 }
 
-.login-logo i { color: var(--gold); }
+.login-logo i, .login-logo svg { color: var(--gold); }
 
 .login-header h2 {
   font-size: 1.5rem;
@@ -2235,7 +2235,7 @@ select.input-text option { background: var(--bg-0); color: var(--text); }
 }
 
 .analise-rapida-direct { border-color: rgba(212,175,55,0.4); background: var(--bg-1); }
-.analise-rapida-direct h2 i { color: var(--gold); }
+.analise-rapida-direct h2 i, .analise-rapida-direct h2 svg { color: var(--gold); }
 .analise-rapida-direct .search-input-wrapper { flex-direction: column; }
 
 .modal-content-sm { max-width: 400px; }
@@ -2244,8 +2244,8 @@ select.input-text option { background: var(--bg-0); color: var(--text); }
 .analise-fechar-card { border-color: rgba(16, 185, 129, 0.4); }
 .analise-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
 .analise-fechar-header { background: rgba(16, 185, 129, 0.05); }
-.analise-header i { color: var(--gold); flex-shrink: 0; }
-.analise-fechar-header i { color: var(--success); }
+.analise-header i, .analise-header svg { color: var(--gold); flex-shrink: 0; }
+.analise-fechar-header i, .analise-fechar-header svg { color: var(--success); }
 .analise-header h4 { font-size: 0.9375rem; font-weight: 600; line-height: 1.2; }
 .analise-header .sub-txt { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
 .btn-close-analise { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text-dim); display: flex; align-items: center; padding: 4px; border-radius: 6px; transition: var(--transition); }
@@ -2339,7 +2339,9 @@ select.input-text option { background: var(--bg-0); color: var(--text); }
 }
 
 .btn-iniciar-analise i,
-.btn-confirmar-analise i {
+.btn-iniciar-analise svg,
+.btn-confirmar-analise i,
+.btn-confirmar-analise svg {
   color: #000;
   transition: transform 0.3s ease;
 }

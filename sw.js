@@ -1,4 +1,4 @@
-const CACHE = 'rdy-bal-v37';
+const CACHE = 'rdy-bal-v38';
 const SUPABASE = 'https://iedkbtceqgrawgubxslh.supabase.co';
 
 const SHELL = [
@@ -75,7 +75,7 @@ self.addEventListener('fetch', e => {
   }
 
   // Outros assets: rede primeiro (network-first), cache como fallback
-  if (url.origin === self.location.origin || url.hostname.includes('fonts.googleapis') || url.hostname.includes('unpkg.com') || url.hostname.includes('cdn.sheetjs')) {
+  if (url.origin === self.location.origin || url.hostname.includes('fonts.googleapis') || url.hostname.includes('unpkg.com') || url.hostname.includes('cdn.sheetjs') || url.hostname.includes('jsdelivr.net')) {
     e.respondWith(
       fetch(req.clone())
         .then(res => {
