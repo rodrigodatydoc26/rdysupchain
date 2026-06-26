@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260637';
+      window.location.href = 'index.html?v=20260638';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260637">
+  <link rel="stylesheet" href="css/style.css?v=20260638">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
   <style>
@@ -1598,8 +1598,14 @@ function renderizarGraficos(entregas) {
     const c = e.equipamento?.cliente?.cidade || 'Desconhecido';
     cidadeMap[c] = (cidadeMap[c]||0) + (parseFloat(e.quantidade_definida)||0);
   });
-  const cidadeLabels = Object.keys(cidadeMap);
-  const cidadeVals   = Object.values(cidadeMap);
+  const cidadeRawLabels = Object.keys(cidadeMap);
+  const cidadeVals      = Object.values(cidadeMap);
+  const totalCidResmas  = cidadeVals.reduce((sum, val) => sum + val, 0);
+  const cidadeLabels    = cidadeRawLabels.map((label, idx) => {
+    const val = cidadeVals[idx];
+    const pct = totalCidResmas > 0 ? ((val / totalCidResmas) * 100).toFixed(1) : '0.0';
+    return `${label} (${pct}%)`;
+  });
 
   const ctxCid = document.getElementById('chartCidades')?.getContext('2d');
   if (ctxCid) {
@@ -1609,7 +1615,21 @@ function renderizarGraficos(entregas) {
         data:cidadeVals, backgroundColor:palette.slice(0,cidadeLabels.length), borderWidth:2, borderColor:borderC
       }]},
       options: { ...baseOpts, cutout:'65%',
-        plugins: { ...baseOpts.plugins, legend:{ ...baseOpts.plugins.legend, position:'bottom' } }
+        plugins: {
+          ...baseOpts.plugins,
+          legend: { ...baseOpts.plugins.legend, position:'bottom' },
+          tooltip: {
+            ...baseOpts.plugins.tooltip,
+            callbacks: {
+              label: ctx => {
+                const val = ctx.parsed || 0;
+                const total = ctx.dataset.data.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
+                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+                return ` ${val.toLocaleString('pt-BR')} resmas (${pct}%)`;
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -1646,16 +1666,35 @@ function renderizarGraficos(entregas) {
     else if (e.status==='analise_aberta') aberta++;
   });
 
+  const totalStatus = conf + aberta;
+  const statusLabels = [
+    `Confirmadas (${totalStatus > 0 ? ((conf / totalStatus) * 100).toFixed(1) : '0.0'}%)`,
+    `Análise Aberta (${totalStatus > 0 ? ((aberta / totalStatus) * 100).toFixed(1) : '0.0'}%)`
+  ];
+
   const ctxSt = document.getElementById('chartStatus')?.getContext('2d');
   if (ctxSt) {
     window.chartStatusInstance = new Chart(ctxSt, {
       type:'doughnut',
-      data: { labels:['Confirmadas','Análise Aberta'], datasets:[{
+      data: { labels:statusLabels, datasets:[{
         data:[conf,aberta], backgroundColor:['#10b981','#f59e0b'], borderWidth:2, borderColor:borderC
       }]},
       options: { ...baseOpts, cutout:'55%',
-        plugins: { ...baseOpts.plugins, legend:{ ...baseOpts.plugins.legend, position:'bottom' },
-          tooltip:{ ...baseOpts.plugins.tooltip, callbacks:{ label:ctx => ` ${ctx.parsed} entregas` } } }
+        plugins: {
+          ...baseOpts.plugins,
+          legend: { ...baseOpts.plugins.legend, position:'bottom' },
+          tooltip: {
+            ...baseOpts.plugins.tooltip,
+            callbacks: {
+              label: ctx => {
+                const val = ctx.parsed || 0;
+                const total = ctx.dataset.data.reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
+                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+                return ` ${val.toLocaleString('pt-BR')} entregas (${pct}%)`;
+              }
+            }
+          }
+        }
       }
     });
   }
