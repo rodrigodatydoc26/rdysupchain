@@ -3,16 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <script>
-    window.onerror = function(message, source, lineno, colno, error) {
-      const msg = message + '\nAt: ' + source + ':' + lineno + ':' + colno + '\nStack: ' + (error ? error.stack : '');
-      alert('ERRO DE EXECUÇÃO JS:\n' + msg);
-      console.error(msg);
-      return false;
-    };
     window.addEventListener('unhandledrejection', function(event) {
-      const msg = 'Unhandled Rejection: ' + (event.reason ? (event.reason.message || event.reason) : 'Unknown reason') + '\nStack: ' + (event.reason ? event.reason.stack : '');
-      alert('REJEIÇÃO DE PROMISE JS:\n' + msg);
-      console.error(event.reason);
+      console.error('Unhandled rejection:', event.reason);
     });
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
