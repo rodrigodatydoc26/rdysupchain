@@ -1798,13 +1798,17 @@ async function carregarDashboard() {
   const fCidade = document.getElementById('dashFiltroCidade')?.value || '';
   const fTecnico= document.getElementById('dashFiltroTecnico')?.value || '';
 
-  const defaultInicio = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-    .toISOString().split('T')[0];
+  const hoje = new Date();
+  const pad2 = n => String(n).padStart(2,'0');
+  const fmtLocal = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  const defaultInicio = `${hoje.getFullYear()}-${pad2(hoje.getMonth()+1)}-01`;
+  const defaultFim    = fmtLocal(hoje);
   const queryDi = di || defaultInicio;
+  const queryDf = df || defaultFim;
 
   const tz = getLocalOffsetString();
   let qData = `&data_registro=gte.${queryDi}T00:00:00${tz}`;
-  if (df) qData += `&data_registro=lte.${df}T23:59:59${tz}`;
+  qData += `&data_registro=lte.${queryDf}T23:59:59${tz}`;
 
   let qCidade = '';
   if (fCidade) qCidade = `&equipamento.cliente.cidade=eq.${encodeURIComponent(fCidade)}`;
@@ -1865,7 +1869,6 @@ async function carregarDashboard() {
     document.getElementById('lblKpiEntregas').textContent = 'Entregas';
     document.getElementById('lblKpiResmas').textContent   = 'Resmas';
 
-    document.getElementById('kpiEquip').textContent      = equips.length.toLocaleString('pt-BR');
     document.getElementById('kpiEntregas').textContent   = totalEnt.toLocaleString('pt-BR');
     document.getElementById('kpiResmas').textContent     = Math.round(totalResmas).toLocaleString('pt-BR');
     const mdEl = document.getElementById('kpiMediaDiaria');
@@ -1873,8 +1876,6 @@ async function carregarDashboard() {
     const mdSub = document.getElementById('kpiMediaDiariaSub');
     if (mdSub) mdSub.textContent = totalEnt > 0 ? `em ${numDias} dia${numDias > 1 ? 's' : ''}` : '';
     document.getElementById('kpiMedia').textContent      = media > 0 ? media.toFixed(1) : '—';
-    const entRegalizadas = entregasMes.filter(e => e.status === 'confirmado').length;
-    document.getElementById('kpiAnalises').textContent   = entRegalizadas.toLocaleString('pt-BR');
     document.getElementById('kpiAcimaMedia').textContent = acimaMedia.toLocaleString('pt-BR');
     const subEl = document.getElementById('kpiAcimaMediaPct');
     if (subEl) subEl.textContent = totalEnt > 0 ? `${acimaMediaPct}% das entregas` : '';
