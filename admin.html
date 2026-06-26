@@ -1925,25 +1925,28 @@ async function carregarDashboard() {
   let qData = `&data_registro=gte.${queryDi}T00:00:00${tz}`;
   qData += `&data_registro=lte.${queryDf}T23:59:59${tz}`;
 
-  let qCidade = '';
-  if (fCidade) qCidade = `&equipamento.cliente.cidade=eq.${encodeURIComponent(fCidade)}`;
   let qTecnico = '';
   if (fTecnico) qTecnico = fTecnico === '__portal__'
     ? `&or=(criado_por.is.null,criado_por.eq.Portal,criado_por.eq.Sistema Original)`
     : `&criado_por=eq.${encodeURIComponent(fTecnico)}`;
 
   try {
-    const [equips, entregasMes, analises] = await Promise.all([
+    const [equips, entregasBruto, analises] = await Promise.all([
       API.fetch(`/equipamentos?select=id${adminState.cidade ? ',cliente:clientes(cidade)' : ''}${equipFilter()}&limit=5000`),
-      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qData}${cidadeFilter()}${qCidade}${qTecnico}&select=quantidade_definida,data_registro,status,criado_por,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))&limit=5000`),
-      API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}${qCidade}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
+      API.fetch(`/balanceamento_entregas?status=in.(confirmado,analise_aberta)${qData}${cidadeFilter()}${qTecnico}&select=quantidade_definida,data_registro,status,criado_por,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))&limit=5000`),
+      API.fetch(`/balanceamento_entregas?status=eq.analise_aberta${cidadeFilter()}&select=id,equipamento:equipamentos!inner(cliente:clientes!inner(cidade))&limit=2000`),
     ]);
 
-    // Popula selects (só na primeira carga ou quando vazio)
+    // Filtro de cidade aplicado no cliente (PostgREST não suporta filter em joins aninhados)
+    const entregasMes = fCidade
+      ? entregasBruto.filter(e => e.equipamento?.cliente?.cidade === fCidade)
+      : entregasBruto;
+
+    // Popula selects na primeira carga com dados reais (sem filtro de cidade)
     const tecSelect = document.getElementById('dashFiltroTecnico');
     if (tecSelect && tecSelect.options.length <= 1) {
       const tecnicos = [...new Set(
-        entregasMes.map(e => e.criado_por)
+        entregasBruto.map(e => e.criado_por)
           .filter(t => t && t !== 'Portal' && t !== 'Sistema Original')
       )].sort();
       tecnicos.forEach(t => {
@@ -1951,7 +1954,7 @@ async function carregarDashboard() {
         opt.value = t; opt.textContent = t;
         tecSelect.appendChild(opt);
       });
-      if (!tecSelect.querySelector('option[value="__portal__"]') && entregasMes.some(e => !e.criado_por || e.criado_por === 'Portal')) {
+      if (!tecSelect.querySelector('option[value="__portal__"]') && entregasBruto.some(e => !e.criado_por || e.criado_por === 'Portal')) {
         const opt = document.createElement('option');
         opt.value = '__portal__'; opt.textContent = 'Migrado/Portal';
         tecSelect.appendChild(opt);
@@ -1960,7 +1963,7 @@ async function carregarDashboard() {
 
     const cidSelect = document.getElementById('dashFiltroCidade');
     if (cidSelect && cidSelect.options.length <= 1) {
-      const cidades = [...new Set(entregasMes.map(e => e.equipamento?.cliente?.cidade).filter(Boolean))].sort();
+      const cidades = [...new Set(entregasBruto.map(e => e.equipamento?.cliente?.cidade).filter(Boolean))].sort();
       cidades.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c; opt.textContent = c;
