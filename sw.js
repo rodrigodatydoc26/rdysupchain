@@ -1,4 +1,4 @@
-const CACHE = 'rdy-bal-v45';
+const CACHE = 'rdy-bal-v46';
 const SUPABASE = 'https://iedkbtceqgrawgubxslh.supabase.co';
 
 const SHELL = [
@@ -74,8 +74,10 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Outros assets: rede primeiro (network-first), cache como fallback
-  if (url.origin === self.location.origin || url.hostname.includes('fonts.googleapis') || url.hostname.includes('unpkg.com') || url.hostname.includes('cdn.sheetjs') || url.hostname.includes('jsdelivr.net')) {
+  // Same-origin: rede primeiro, cache como fallback
+  // CDN (jsdelivr, googleapis, etc.) NÃO é interceptado — browser lida diretamente
+  // (evita conflito com CSP connect-src no contexto do SW)
+  if (url.origin === self.location.origin) {
     e.respondWith(
       fetch(req.clone())
         .then(res => {
@@ -92,4 +94,5 @@ self.addEventListener('fetch', e => {
         )
     );
   }
+  // cross-origin (CDN, fonts): passa direto pelo browser sem interceptação do SW
 });
