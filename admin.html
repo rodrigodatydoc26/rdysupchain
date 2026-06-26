@@ -125,6 +125,15 @@
     .dias-warn { color: #f59e0b; font-weight: 700; }
     .dias-crit { color: var(--danger); font-weight: 700; }
 
+    /* ── BADGE DIVERGÊNCIA DE RESMAS ── */
+    .badge-diverg {
+      display: inline-block; margin-top: 4px;
+      background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35);
+      color: #ef4444; border-radius: 4px;
+      padding: 2px 6px; font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
     /* ── NOVOS FILTROS ── */
     .admin-filters-grid {
       display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
@@ -2078,16 +2087,21 @@ async function carregarEntregas() {
       }
       
       // Detalhes da Auditoria
+      const divMatch = e.observacao?.match(/\[DIVERG\.([0-9.]+)R\]/i);
+      const divBadge = divMatch
+        ? `<span class="badge-diverg" title="Divergência de resmas registrada">⚠️ ${divMatch[1]}r sem produção</span>`
+        : '';
+
       let auditoriaHtml = '';
       if (e.status === 'analise_aberta') {
         const base = parseInt(e.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0;
         const limite = base + (parseFloat(e.quantidade_definida) || 0) * 500;
         const dias = Math.round((Date.now() - new Date(e.data_registro).getTime()) / 86400000);
         const diasCls = dias > 7 ? 'dias-crit' : dias > 3 ? 'dias-warn' : 'dias-ok';
-        
+
         auditoriaHtml = `Num. Atual: <strong>${base.toLocaleString('pt-BR')}</strong><br>
                         Próx. Sol.: <strong>${limite.toLocaleString('pt-BR')}</strong>
-                        <span class="${diasCls}">(${dias}d)</span>`;
+                        <span class="${diasCls}">(${dias}d)</span>${divBadge ? '<br>'+divBadge : ''}`;
       } else {
         let baseText = '—';
         let limiteText = '—';
@@ -2097,7 +2111,6 @@ async function carregarEntregas() {
           const limVal = contVal + (parseFloat(e.quantidade_definida) || 0) * 500;
           limiteText = limVal.toLocaleString('pt-BR');
         } else {
-          // Tentar extrair da observação caso não haja na coluna
           const baseMatch = parseInt(e.observacao?.match(/ANALISE_BASE:(\d+)/)?.[1]) || 0;
           if (baseMatch > 0) {
             baseText = baseMatch.toLocaleString('pt-BR');
@@ -2106,7 +2119,7 @@ async function carregarEntregas() {
           }
         }
         auditoriaHtml = `Num. Atual: <strong>${baseText}</strong><br>
-                        Próx. Sol.: <strong>${limiteText}</strong>`;
+                        Próx. Sol.: <strong>${limiteText}</strong>${divBadge ? '<br>'+divBadge : ''}`;
       }
       
       return `
