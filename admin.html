@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260639';
+      window.location.href = 'index.html?v=20260640';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260639">
+  <link rel="stylesheet" href="css/style.css?v=20260640">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
   <style>
@@ -189,6 +189,9 @@
     .tag-acima-media { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
     .tag-portal { background: rgba(59, 130, 246, 0.1); color: var(--cyan); border-color: rgba(59, 130, 246, 0.2); }
     .tag-antigo { background: rgba(156, 163, 175, 0.1); color: var(--text-dim); border-color: rgba(156, 163, 175, 0.2); }
+    .tag-repetido { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.35); }
+    .tr-repetido { background: rgba(245, 158, 11, 0.04) !important; }
+    .tr-repetido:hover { background: rgba(245, 158, 11, 0.08) !important; }
     .legend-row {
       display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
       background: var(--bg-1); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
@@ -756,6 +759,11 @@
               <span class="toggle-switch-slider"></span>
               <span class="toggle-switch-text">Apenas Superior à Última Entrega</span>
             </label>
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="admFiltroRepetidas" class="toggle-switch-checkbox" onchange="carregarEntregas()">
+              <span class="toggle-switch-slider"></span>
+              <span class="toggle-switch-text">Apenas Repetidas (Curto Período)</span>
+            </label>
           </div>
         </div>
         <div class="legend-row">
@@ -764,6 +772,7 @@
           <div class="legend-item" onclick="toggleLegendFilter('analise_aberta')"><span class="badge-tag tag-analise-aberta"><i data-lucide="activity"></i></span> Análise Aberta</div>
           <div class="legend-item" onclick="toggleLegendFilter('acima-media')"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
           <div class="legend-item" onclick="toggleLegendFilter('superior-ultima')"><span class="badge-tag tag-superior-ultima"><i data-lucide="chevrons-up"></i></span> Superior à Última Entrega</div>
+          <div class="legend-item" onclick="toggleLegendFilter('repetido')"><span class="badge-tag tag-repetido"><i data-lucide="alert-triangle"></i></span> Repetidas (Curto Período)</div>
           <div class="legend-item" onclick="toggleLegendFilter('portal')"><span class="badge-tag tag-portal"><i data-lucide="globe"></i></span> Técnicos</div>
           <div class="legend-item" onclick="toggleLegendFilter('antigo')"><span class="badge-tag tag-antigo"><i data-lucide="archive"></i></span> Sistema Original</div>
         </div>
@@ -1185,6 +1194,23 @@ const API = {
     }
     if (res.status === 204) return null;
     return res.json();
+  },
+  
+  async delete(endpoint) {
+    const sep = endpoint.includes('?') ? '&' : '?';
+    const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_KEY}`;
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`HTTP ${res.status}: ${body}`);
+    }
+    return true;
   }
 };
 
@@ -1966,6 +1992,9 @@ function toggleLegendFilter(type) {
   } else if (type === 'superior-ultima') {
     const cb = document.getElementById('admFiltroSuperiorUltima');
     if (cb) cb.checked = !cb.checked;
+  } else if (type === 'repetido') {
+    const cb = document.getElementById('admFiltroRepetidas');
+    if (cb) cb.checked = !cb.checked;
   } else {
     if (activeLegendFilters.has(type)) {
       activeLegendFilters.delete(type);
@@ -1980,8 +2009,9 @@ function toggleLegendFilter(type) {
 function updateLegendUI() {
   const fAcima = document.getElementById('admFiltroAcimaMedia')?.checked || false;
   const fSup = document.getElementById('admFiltroSuperiorUltima')?.checked || false;
+  const fRep = document.getElementById('admFiltroRepetidas')?.checked || false;
   
-  const hasActive = activeLegendFilters.size > 0 || fAcima || fSup;
+  const hasActive = activeLegendFilters.size > 0 || fAcima || fSup || fRep;
   
   document.querySelectorAll('.legend-row .legend-item').forEach(item => {
     const badge = item.querySelector('.badge-tag');
@@ -1989,6 +2019,7 @@ function updateLegendUI() {
       let isActive = false;
       if (badge.classList.contains('tag-acima-media')) isActive = fAcima;
       else if (badge.classList.contains('tag-superior-ultima')) isActive = fSup;
+      else if (badge.classList.contains('tag-repetido')) isActive = fRep;
       else if (badge.classList.contains('tag-entregue')) isActive = activeLegendFilters.has('entregue');
       else if (badge.classList.contains('tag-analise-aberta')) isActive = activeLegendFilters.has('analise_aberta');
       else if (badge.classList.contains('tag-portal')) isActive = activeLegendFilters.has('portal');
@@ -2020,6 +2051,7 @@ async function carregarEntregas() {
   const fAcimaMedia = document.getElementById('admFiltroAcimaMedia').checked;
   const fJustificados = document.getElementById('admFiltroJustificados').checked;
   const fSuperiorUltima = document.getElementById('admFiltroSuperiorUltima').checked;
+  const fRepetidas = document.getElementById('admFiltroRepetidas')?.checked || false;
 
   let statusParam = 'in.(confirmado,analise_aberta)';
   if (fStatus === 'confirmado') statusParam = 'eq.confirmado';
@@ -2045,6 +2077,28 @@ async function carregarEntregas() {
   try {
     let data = await API.fetch(`/balanceamento_entregas?${params}`);
     
+    // Identificar entregas repetidas para o mesmo equipamento na mesma data (curto período)
+    const mapRepetidos = {};
+    data.forEach(e => {
+      const serie = e.equipamento?.serie;
+      const dataStr = e.data_registro ? e.data_registro.slice(0, 10) : '';
+      if (serie && dataStr) {
+        const key = `${serie}_${dataStr}`;
+        mapRepetidos[key] = (mapRepetidos[key] || 0) + 1;
+      }
+    });
+
+    data.forEach(e => {
+      const serie = e.equipamento?.serie;
+      const dataStr = e.data_registro ? e.data_registro.slice(0, 10) : '';
+      if (serie && dataStr) {
+        const key = `${serie}_${dataStr}`;
+        if (mapRepetidos[key] > 1) {
+          e._isRepetido = true;
+        }
+      }
+    });
+
     // Filtros em Memória
     if (fAcimaMedia) {
         data = data.filter(e => {
@@ -2059,6 +2113,10 @@ async function carregarEntregas() {
 
     if (fSuperiorUltima) {
         data = data.filter(e => e.observacao && e.observacao.includes('[SUPERIOR A ULTIMA]'));
+    }
+
+    if (fRepetidas) {
+        data = data.filter(e => e._isRepetido);
     }
 
     // Filtros adicionais da legenda (Entregue / Analise Aberta / Portal / Antigo)
@@ -2128,6 +2186,9 @@ async function carregarEntregas() {
       if (isSuperiorUltima) {
         tags += `<span class="badge-tag tag-superior-ultima" title="Superior à Última Entrega"><i data-lucide="chevrons-up"></i></span>`;
       }
+      if (e._isRepetido) {
+        tags += `<span class="badge-tag tag-repetido" title="Entrega Repetida na mesma data"><i data-lucide="alert-triangle"></i></span>`;
+      }
       if (e.criado_por && e.criado_por !== 'Portal' && e.criado_por !== 'Sistema Original') {
         tags += `<span class="badge-tag tag-portal" title="Técnico: ${esc(e.criado_por)}"><i data-lucide="user"></i></span>`;
       } else if (e.criado_por === 'Portal') {
@@ -2179,7 +2240,7 @@ async function carregarEntregas() {
       }
       
       return `
-      <tr>
+      <tr class="${e._isRepetido ? 'tr-repetido' : ''}">
         <td class="text-center" style="color:var(--text-dim);font-size:0.8rem;font-weight:600;">${fmtHora(e.data_registro)}</td>
         <td>${fmtData(e.data_registro)}</td>
         <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
@@ -2558,7 +2619,7 @@ async function excluirUsuario(username) {
   }
   
   try {
-    await API.fetch(`/balanceamento_usuarios?username=eq.${username}`, { method: 'DELETE' });
+    await API.delete(`/balanceamento_usuarios?username=eq.${username}`);
     carregarGovernanca();
   } catch(err) {
     console.error(err);
@@ -2802,13 +2863,13 @@ async function confirmarDbAuth() {
       const dataCorte = new Date();
       dataCorte.setMonth(dataCorte.getMonth() - 3);
       const isoData = dataCorte.toISOString();
-      await API.fetch(`/balanceamento_entregas?data_registro=lt.${isoData}`, { method: 'DELETE' });
+      await API.delete(`/balanceamento_entregas?data_registro=lt.${isoData}`);
     } else {
-      await API.fetch('/balanceamento_entregas?id=not.is.null', { method: 'DELETE' });
+      await API.delete('/balanceamento_entregas?id=not.is.null');
       
       if (tipoLimpezaPendente === 'completo') {
-        await API.fetch('/equipamentos?id=not.is.null', { method: 'DELETE' });
-        await API.fetch('/clientes?id=not.is.null', { method: 'DELETE' });
+        await API.delete('/equipamentos?id=not.is.null');
+        await API.delete('/clientes?id=not.is.null');
       }
     }
     
@@ -2840,9 +2901,26 @@ async function excluirRegistroHistorico(id) {
   if (adminState.role !== 'cto' && adminState.role !== 'gestor') {
     return alert("Você não tem permissão para excluir registros.");
   }
+  
+  const senhaFornecida = prompt("Digite sua senha de Administrador para confirmar a exclusão:");
+  if (senhaFornecida === null) return; // Cancelado pelo usuário
+  if (!senhaFornecida.trim()) {
+    return alert("Operação cancelada: a senha não foi fornecida.");
+  }
+
+  try {
+    const usr = await API.fetch(`/balanceamento_usuarios?username=eq.${adminState.user}&select=password`);
+    if (!usr || !usr[0] || usr[0].password !== senhaFornecida) {
+      return alert("Senha de Administrador incorreta.");
+    }
+  } catch (e) {
+    console.error(e);
+    return alert("Erro ao validar senha no servidor.");
+  }
+
   if (confirm("Tem certeza que deseja excluir este registro de histórico permanentemente?")) {
     try {
-      await API.fetch(`/balanceamento_entregas?id=eq.${id}`, { method: 'DELETE' });
+      await API.delete(`/balanceamento_entregas?id=eq.${id}`);
       alert("Registro excluído com sucesso!");
       carregarEntregas();
       carregarDashboard();
