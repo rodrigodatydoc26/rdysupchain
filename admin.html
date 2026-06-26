@@ -185,11 +185,11 @@
       fill: none !important;
       vertical-align: middle;
     }
-    .tag-entregue { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
-    .tag-acima-media { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
-    .tag-portal { background: rgba(59, 130, 246, 0.1); color: var(--cyan); border-color: rgba(59, 130, 246, 0.2); }
-    .tag-antigo { background: rgba(156, 163, 175, 0.1); color: var(--text-dim); border-color: rgba(156, 163, 175, 0.2); }
-    .tag-repetido { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border-color: rgba(245, 158, 11, 0.35); }
+    .tag-entregue { background: rgba(16, 185, 129, 0.18); color: var(--success); border-color: rgba(16, 185, 129, 0.4); }
+    .tag-acima-media { background: rgba(239, 68, 68, 0.18); color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
+    .tag-portal { background: rgba(59, 130, 246, 0.18); color: var(--cyan); border-color: rgba(59, 130, 246, 0.4); }
+    .tag-antigo { background: rgba(156, 163, 175, 0.18); color: var(--text-dim); border-color: rgba(156, 163, 175, 0.4); }
+    .tag-repetido { background: rgba(245, 158, 11, 0.18); color: #f59e0b; border-color: rgba(245, 158, 11, 0.45); }
     .tr-repetido { background: rgba(245, 158, 11, 0.04) !important; }
     .tr-repetido:hover { background: rgba(245, 158, 11, 0.08) !important; }
     .legend-row {
@@ -233,7 +233,7 @@
     .pl-36 { padding-left: 36px !important; }
     .max-w-200 { max-width: 200px; }
     .db-import-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .tag-superior-ultima { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: rgba(239, 68, 68, 0.35); }
+    .tag-superior-ultima { background: rgba(239, 68, 68, 0.22); color: var(--danger); border-color: rgba(239, 68, 68, 0.45); }
     
     /* ── DASHBOARD CHARTS ── */
     .dashboard-charts-grid {
@@ -344,9 +344,9 @@
     }
 
     .tag-analise-aberta {
-      background: rgba(245, 158, 11, 0.1);
+      background: rgba(245, 158, 11, 0.18);
       color: #f59e0b;
-      border-color: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.4);
     }
     /* ── ACTION BUTTONS IN TABLE ── */
     .action-btns {
@@ -744,8 +744,8 @@
             <div class="filter-input-group">
               <select id="admFiltroStatus" title="Status" onchange="carregarEntregas()">
                 <option value="todos">Todos os Status</option>
-                <option value="confirmado">Confirmados / Entregues</option>
-                <option value="analise_aberta">Análises em Aberto</option>
+                <option value="confirmado">Conformes</option>
+                <option value="analise_aberta">Inconformes</option>
               </select>
             </div>
             <div class="filter-input-group">
@@ -785,8 +785,8 @@
         </div>
         <div class="legend-row">
           <span class="legend-title">Legenda de Sinais:</span>
-          <div class="legend-item" onclick="toggleLegendFilter('entregue')"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Entregue</div>
-          <div class="legend-item" onclick="toggleLegendFilter('analise_aberta')"><span class="badge-tag tag-analise-aberta"><i data-lucide="activity"></i></span> Análise Aberta</div>
+          <div class="legend-item" onclick="toggleLegendFilter('entregue')"><span class="badge-tag tag-entregue"><i data-lucide="package-check"></i></span> Conforme</div>
+          <div class="legend-item" onclick="toggleLegendFilter('analise_aberta')"><span class="badge-tag tag-analise-aberta"><i data-lucide="activity"></i></span> Inconforme</div>
           <div class="legend-item" onclick="toggleLegendFilter('acima-media')"><span class="badge-tag tag-acima-media"><i data-lucide="trending-up"></i></span> Acima da Média Mensal</div>
           <div class="legend-item" onclick="toggleLegendFilter('superior-ultima')"><span class="badge-tag tag-superior-ultima"><i data-lucide="chevrons-up"></i></span> Superior à Última Entrega</div>
           <div class="legend-item" onclick="toggleLegendFilter('repetido')"><span class="badge-tag tag-repetido"><i data-lucide="alert-triangle"></i></span> Repetidas (Curto Período)</div>
@@ -1133,8 +1133,8 @@
           <div class="form-group">
             <label for="editHistStatus">Status</label>
             <select id="editHistStatus" class="input-text">
-              <option value="confirmado">Confirmado</option>
-              <option value="analise_aberta">Análise em Aberto</option>
+              <option value="confirmado">Conforme</option>
+              <option value="analise_aberta">Inconforme</option>
             </select>
           </div>
           
@@ -1718,8 +1718,8 @@ function renderizarGraficos(entregas) {
 
   const totalStatus = conf + aberta;
   const statusLabels = [
-    `Confirmadas (${totalStatus > 0 ? ((conf / totalStatus) * 100).toFixed(1) : '0.0'}%)`,
-    `Análise Aberta (${totalStatus > 0 ? ((aberta / totalStatus) * 100).toFixed(1) : '0.0'}%)`
+    `Conformes (${totalStatus > 0 ? ((conf / totalStatus) * 100).toFixed(1) : '0.0'}%)`,
+    `Inconformes (${totalStatus > 0 ? ((aberta / totalStatus) * 100).toFixed(1) : '0.0'}%)`
   ];
 
   const ctxSt = document.getElementById('chartStatus')?.getContext('2d');
@@ -1864,7 +1864,7 @@ function fmtHora(iso) {
 
 function statusBadge(s) {
   const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-pendente' };
-  const label = { confirmado:'Confirmado', pendente:'Pendente', entregue:'Entregue', analise_aberta:'Análise Aberta' };
+  const label = { confirmado:'Conforme', pendente:'Pendente', entregue:'Conforme', analise_aberta:'Inconforme' };
   return `<span class="status-badge ${cls[s]||''}">${esc(label[s]||s)}</span>`;
 }
 

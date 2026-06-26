@@ -1959,8 +1959,8 @@ function initAdminTabs() {
 function formatarStatus(s) {
     if(!s) return '-';
     s = s.toLowerCase();
-    const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-confirmado' };
-    const label = { confirmado:'Confirmado', pendente:'Pendente', entregue:'Entregue', analise_aberta:'Confirmada' };
+    const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-pendente' };
+    const label = { confirmado:'Conforme', pendente:'Pendente', entregue:'Conforme', analise_aberta:'Inconforme' };
     return '<span class="status-badge ' + (cls[s]||'') + '">' + esc(label[s]||s).toUpperCase() + '</span>';
 }
 
@@ -2034,7 +2034,7 @@ function admFmtData(iso) {
 
 function admStatusBadge(s) {
     const cls   = { confirmado:'status-confirmado', pendente:'status-pendente', entregue:'status-entregue', analise_aberta:'status-pendente' };
-    const label = { confirmado:'Confirmado', pendente:'Pendente', entregue:'Entregue', analise_aberta:'Analise Aberta' };
+    const label = { confirmado:'Conforme', pendente:'Pendente', entregue:'Conforme', analise_aberta:'Inconforme' };
     return '<span class="status-badge ' + (cls[s]||'') + '">' + esc(label[s]||s) + '</span>';
 }
 
