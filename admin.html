@@ -2004,6 +2004,8 @@ async function carregarDashboard() {
     safeCreateIcons();
   } catch(err) {
     console.error('carregarDashboard:', err);
+    const kpiEl = document.querySelector('.kpi-grid-5');
+    if (kpiEl) kpiEl.innerHTML = `<div style="grid-column:1/-1;padding:16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:8px;color:#ef4444;font-size:.85rem"><strong>Erro ao carregar dashboard:</strong><br>${err.message}</div>`;
   }
 }
 
