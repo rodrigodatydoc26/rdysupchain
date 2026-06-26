@@ -3004,24 +3004,45 @@ function fecharModalEdicaoHistorico() {
   document.getElementById('modalEdicaoHistorico').classList.add('hidden');
 }
 
-// Registro e atualização forçada do Service Worker para evitar cache antigo
+// Registro e atualização forçada do Service Worker
 if ('serviceWorker' in navigator) {
+  let refreshing = false;
+
+  function forceSwActivate(reg) {
+    const sw = reg.waiting || reg.installing;
+    if (sw) sw.postMessage({ type: 'SKIP_WAITING' });
+  }
+
   navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
-    // Checa por atualizações a cada 30 segundos
+    // Se já há um SW em espera, ativa imediatamente
+    if (reg.waiting) forceSwActivate(reg);
+
+    // Quando um novo SW for encontrado, força ativação assim que instalado
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed') forceSwActivate(reg);
+      });
+    });
+
+    // Checa atualização imediatamente e depois a cada 30 s
+    reg.update().catch(() => {});
     setInterval(() => reg.update().catch(() => {}), 30000);
+
+    // Checa ao voltar para a aba
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) reg.update().catch(() => {});
+    });
   }).catch(() => {});
 
-  navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data && e.data.type === 'SW_UPDATED') {
-      window.location.reload(true);
-    }
+  // Reload quando SW mudar de controlador
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) { refreshing = true; window.location.reload(true); }
   });
 
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      window.location.reload(true);
-      refreshing = true;
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.type === 'SW_UPDATED' && !refreshing) {
+      refreshing = true; window.location.reload(true);
     }
   });
 }

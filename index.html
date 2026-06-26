@@ -803,30 +803,47 @@
   // Registro do Service Worker — updateViaCache: 'none' força o browser
   // a sempre checar o SW no servidor sem usar cache HTTP
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
-      console.log('SW registrado', reg.scope);
-      // Verifica atualizações a cada 60 segundos
-      setInterval(() => reg.update().catch(() => {}), 60000);
-    }).catch(err => console.log('SW erro', err));
+    let refreshing = false;
 
-    // Receber mensagem do SW (sync bem-sucedido)
+    function forceSwActivate(reg) {
+      const sw = reg.waiting || reg.installing;
+      if (sw) sw.postMessage({ type: 'SKIP_WAITING' });
+    }
+
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+      // Se já há um SW em espera, ativa imediatamente
+      if (reg.waiting) forceSwActivate(reg);
+
+      // Quando um novo SW for encontrado, força ativação assim que instalado
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed') forceSwActivate(reg);
+        });
+      });
+
+      // Checa atualização imediatamente e depois a cada 30 s
+      reg.update().catch(() => {});
+      setInterval(() => reg.update().catch(() => {}), 30000);
+
+      // Checa ao voltar para a aba
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) reg.update().catch(() => {});
+      });
+    }).catch(() => {});
+
+    // Reload quando SW mudar de controlador
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) { refreshing = true; window.location.reload(true); }
+    });
+
     navigator.serviceWorker.addEventListener('message', e => {
       if (e.data && e.data.type === 'SYNC_OK') {
         localStorage.setItem('lastSync', e.data.time);
         document.getElementById('syncBanner').classList.add('hidden');
       }
-      // SW atualizado → recarregar página automaticamente
-      if (e.data && e.data.type === 'SW_UPDATED') {
-        window.location.reload(true);
-      }
-    });
-
-    // Recarregar a página automaticamente ao atualizar o SW
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        window.location.reload(true);
-        refreshing = true;
+      if (e.data && e.data.type === 'SW_UPDATED' && !refreshing) {
+        refreshing = true; window.location.reload(true);
       }
     });
   }
