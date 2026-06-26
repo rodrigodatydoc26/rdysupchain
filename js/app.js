@@ -999,31 +999,59 @@ async function salvarBalanceamento() {
 
     let isExcecao = false;
     let isSuperiorUltima = false;
-    let isEntregaAMais = false;
+    let isDivergencia = false;
+    let divergenciaResmas = 0;
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
 
     if (!isSistemaOriginal) {
-        // VALIDAR CONSUMO DA ENTREGA ANTERIOR
-        if (cont !== null && cont > 0 && ultimaEntregaResmas > 0) {
+        // ── SALDO: ENTREGUE VS PRODUZIDO ──
+        // Tolerância: 250 páginas (0,5 resma)
+        const TOLERANCIA_PAG = 250;
+        if (cont !== null && cont > 0 && ultimaEntregaResmas > 0 && ultimoContador > 0) {
             const paginasProduzidas = cont - ultimoContador;
-            const paginasEsperadas = ultimaEntregaResmas * 500;
-            if (paginasProduzidas < paginasEsperadas) {
-                const minLiberar = ultimoContador + paginasEsperadas;
-                const confirmou = confirm(`Aviso: O equipamento produziu apenas ${paginasProduzidas.toLocaleString('pt-BR')} páginas desde a última entrega de ${ultimaEntregaResmas} resma(s) (esperado: ${paginasEsperadas.toLocaleString('pt-BR')} páginas). O numerador atual para liberar normalmente precisaria ser no mínimo ${minLiberar.toLocaleString('pt-BR')}. Você confirma que deseja realizar esta entrega a mais?`);
-                if (!confirmou) return;
-                isEntregaAMais = true;
+            const paginasEsperadas  = ultimaEntregaResmas * 500;
+            if (paginasProduzidas < (paginasEsperadas - TOLERANCIA_PAG)) {
+                isDivergencia    = true;
+                const resmasProd = Math.max(0, paginasProduzidas / 500);
+                divergenciaResmas = parseFloat((qtd - resmasProd).toFixed(1));
+
+                alert(
+                    `⚠️ DIVERGÊNCIA DE RESMAS DETECTADA\n\n` +
+                    `Última entrega: ${ultimaEntregaResmas} resma(s)\n` +
+                    `Produção medida: ${paginasProduzidas.toLocaleString('pt-BR')} páginas (≈ ${resmasProd.toFixed(1)} resmas)\n` +
+                    `Divergência: ${divergenciaResmas} resma(s) sem produção correspondente\n\n` +
+                    `AÇÃO OBRIGATÓRIA: Informe o número da O.S. e descreva o ocorrido no campo Observação antes de confirmar.`
+                );
+
+                // Expõe campos O.S. e Observação
+                document.getElementById('formLineObs')?.classList.remove('hidden');
+
+                // Pré-preenche Observação com a divergência calculada
+                const obsEl = document.getElementById('inputObs');
+                if (obsEl && !obsEl.value.trim()) {
+                    obsEl.value = `Divergência de ${divergenciaResmas}r sem produção correspondente. `;
+                }
+
+                // Exige O.S. antes de prosseguir
+                if (!os) {
+                    alert('Informe o número da O.S. para registrar a divergência.');
+                    document.getElementById('inputOs')?.focus();
+                    return;
+                }
             }
         }
 
+        // ── SUPERIOR À ÚLTIMA ENTREGA ──
         if (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) {
             const confirmou = confirm(`A quantidade atual (${qtd} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
             if (!confirmou) return;
             isSuperiorUltima = true;
         }
 
-        if (isEntregaAMais || (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
+        // ── ACIMA DA MÉDIA MENSAL ──
+        if ((ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) || (calcularEntregasMes() + qtd > (state.media || 0))) {
             if (!obs) {
-                alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal, o limite da última entrega ou o equipamento não consumiu a entrega anterior. Por favor, preencha o campo 'Observação' com o motivo.");
+                alert("JUSTIFICATIVA OBRIGATÓRIA: A quantidade solicitada ultrapassa a média mensal ou o limite da última entrega. Preencha o campo Observação.");
                 document.getElementById('formLineObs').classList.remove('hidden');
                 document.getElementById('inputObs').focus();
                 return;
@@ -1045,10 +1073,10 @@ async function salvarBalanceamento() {
         if (!isFinite(finalMedia) || isNaN(finalMedia) || finalMedia < 0) finalMedia = state.media || 0;
 
         let finalObs = obs || '';
+        if (isDivergencia)   finalObs = `[DIVERG.${divergenciaResmas}R] ${finalObs}`.trim();
         if (state.opcao === 'rec') finalObs = `[RECOMENDADO] ${finalObs}`.trim();
-        if (isExcecao) finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
+        if (isExcecao)       finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
         if (isSuperiorUltima) finalObs = `[SUPERIOR A ULTIMA] ${finalObs}`.trim();
-        if (isEntregaAMais) finalObs = `[ENTREGA A MAIS] ${finalObs}`.trim();
 
         await API.post('/balanceamento_entregas', {
             equipamento_id: state.equipamento.id,
