@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260641';
+      window.location.href = 'index.html?v=20260642';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260641">
+  <link rel="stylesheet" href="css/style.css?v=20260642">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
   <style>
@@ -740,6 +740,11 @@
             </div>
             <div class="filter-input-group">
               <input type="text" id="admFiltroOs" placeholder="Filtrar por O.S..." title="Ordem de Serviço">
+            </div>
+            <div class="filter-input-group">
+              <select id="admFiltroTecnico" title="Técnico" onchange="carregarEntregas()">
+                <option value="">Todos os Técnicos</option>
+              </select>
             </div>
             <div class="filter-input-group">
               <select id="admFiltroStatus" title="Status" onchange="carregarEntregas()">
@@ -1614,15 +1619,49 @@ function renderizarGraficos(entregas) {
   };
 
   // ── 1. EVOLUÇÃO TEMPORAL (line largo) ──
-  const evoMap = {};
-  entregas.forEach(e => {
-    if (!e.data_registro) return;
-    const d = e.data_registro.slice(0,10);
-    evoMap[d] = (evoMap[d]||0) + (parseFloat(e.quantidade_definida)||0);
-  });
-  const evoDates    = Object.keys(evoMap).sort();
-  const evoVals     = evoDates.map(d => evoMap[d]);
-  const evoLabels   = evoDates.map(d => { const [y,m,day]=d.split('-'); return `${day}/${m}`; });
+  let evoVals = [];
+  let evoLabels = [];
+  
+  const filterDi = document.getElementById('dashDataInicio')?.value;
+  const filterDf = document.getElementById('dashDataFim')?.value;
+  const hojeTemp = new Date();
+  const padTemp = n => String(n).padStart(2,'0');
+  const queryDi = filterDi || `${hojeTemp.getFullYear()}-${padTemp(hojeTemp.getMonth()+1)}-01`;
+  const queryDf = filterDf || `${hojeTemp.getFullYear()}-${padTemp(hojeTemp.getMonth()+1)}-${padTemp(hojeTemp.getDate())}`;
+  const isSingleDay = queryDi === queryDf;
+
+  if (isSingleDay) {
+    const hourlyMap = {};
+    entregas.forEach(e => {
+      if (!e.data_registro) return;
+      const d = new Date(e.data_registro);
+      const hr = d.getHours();
+      hourlyMap[hr] = (hourlyMap[hr] || 0) + (parseFloat(e.quantidade_definida) || 0);
+    });
+
+    let minHour = 7;
+    let maxHour = 18;
+    const hoursInMap = Object.keys(hourlyMap).map(Number);
+    if (hoursInMap.length > 0) {
+      minHour = Math.min(minHour, ...hoursInMap);
+      maxHour = Math.max(maxHour, ...hoursInMap);
+    }
+
+    for (let h = minHour; h <= maxHour; h++) {
+      evoLabels.push(`${String(h).padStart(2, '0')}h`);
+      evoVals.push(hourlyMap[h] || 0);
+    }
+  } else {
+    const evoMap = {};
+    entregas.forEach(e => {
+      if (!e.data_registro) return;
+      const d = e.data_registro.slice(0,10);
+      evoMap[d] = (evoMap[d]||0) + (parseFloat(e.quantidade_definida)||0);
+    });
+    const evoDates = Object.keys(evoMap).sort();
+    evoVals = evoDates.map(d => evoMap[d]);
+    evoLabels = evoDates.map(d => { const [y,m,day]=d.split('-'); return `${day}/${m}`; });
+  }
 
   const ctxEvo = document.getElementById('chartEvolucao')?.getContext('2d');
   if (ctxEvo) {
@@ -1632,11 +1671,11 @@ function renderizarGraficos(entregas) {
     window.chartEvolucaoInstance = new Chart(ctxEvo, {
       type:'line',
       data: { labels:evoLabels, datasets:[{
-        label:'Resmas entregues', data:evoVals,
+        label: isSingleDay ? 'Resmas entregues por hora' : 'Resmas entregues', data:evoVals,
         borderColor:goldColor, backgroundColor:grad, borderWidth:2.5,
         fill:true, tension:0.4,
         pointBackgroundColor:goldColor, pointBorderColor:borderC,
-        pointRadius: evoDates.length>30 ? 0 : 4, pointHoverRadius:7
+        pointRadius: !isSingleDay && evoLabels.length>30 ? 0 : 4, pointHoverRadius:7
       }]},
       options: { ...baseCartesianOpts, plugins: { ...baseCartesianOpts.plugins, legend:{ display:false } } }
     });
@@ -1689,23 +1728,71 @@ function renderizarGraficos(entregas) {
   entregas.forEach(e => {
     const tec = (e.criado_por && e.criado_por !== 'Portal' && e.criado_por !== 'Sistema Original')
       ? e.criado_por : 'Migrado/Portal';
-    tecMap[tec] = (tecMap[tec]||0) + (parseFloat(e.quantidade_definida)||0);
+    if (!tecMap[tec]) {
+      tecMap[tec] = { resmas: 0, entregas: 0 };
+    }
+    tecMap[tec].resmas += parseFloat(e.quantidade_definida) || 0;
+    tecMap[tec].entregas += 1;
   });
-  const tecEntries = Object.entries(tecMap).sort((a,b)=>b[1]-a[1]);
+  const tecEntries = Object.entries(tecMap).sort((a,b)=>b[1].resmas-a[1].resmas);
   const tecColors  = tecEntries.map((x,i) => x[0]==='Migrado/Portal' ? textDimColor+'88' : palette[i%palette.length]);
 
   const ctxTec = document.getElementById('chartTecnicos')?.getContext('2d');
   if (ctxTec) {
     window.chartTecnicosInstance = new Chart(ctxTec, {
       type:'bar',
-      data: { labels:tecEntries.map(x=>x[0]), datasets:[{
-        label:'Resmas', data:tecEntries.map(x=>x[1]),
-        backgroundColor:tecColors, borderRadius:6, borderWidth:0
-      }]},
+      data: { 
+        labels: tecEntries.map(x => x[0]), 
+        datasets:[{
+          label:'Resmas', data:tecEntries.map(x=>x[1].resmas),
+          backgroundColor:tecColors, borderRadius:6, borderWidth:0
+        }]
+      },
       options: { ...baseCartesianOpts, indexAxis:'y',
-        plugins: { ...baseCartesianOpts.plugins, legend:{ display:false } },
+        plugins: { 
+          ...baseCartesianOpts.plugins, 
+          legend:{ display:false },
+          tooltip: {
+            ...baseCartesianOpts.plugins.tooltip,
+            callbacks: {
+              label: ctx => {
+                const idx = ctx.dataIndex;
+                const entry = tecEntries[idx];
+                return ` ${entry[1].entregas} entregas (${Math.round(entry[1].resmas)} resmas)`;
+              }
+            }
+          }
+        },
         scales: { ...baseCartesianOpts.scales, x:{ ...baseCartesianOpts.scales.x, beginAtZero:true } }
-      }
+      },
+      plugins: [{
+        id: 'barLabels',
+        afterDatasetsDraw(chart) {
+          const { ctx, chartArea: { right } } = chart;
+          ctx.save();
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data) return;
+          meta.data.forEach((bar, index) => {
+            const entry = tecEntries[index];
+            if (!entry) return;
+            const text = `${entry[1].entregas} ent. / ${Math.round(entry[1].resmas)} resmas`;
+            ctx.font = 'bold 10px Outfit';
+            ctx.fillStyle = textDimColor;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            
+            const xPos = bar.x + 8;
+            if (xPos + 60 < right) {
+              ctx.fillText(text, xPos, bar.y);
+            } else {
+              ctx.textAlign = 'right';
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(text, bar.x - 8, bar.y);
+            }
+          });
+          ctx.restore();
+        }
+      }]
     });
   }
 
@@ -2081,6 +2168,7 @@ async function carregarEntregas() {
   const fJustificados = document.getElementById('admFiltroJustificados').checked;
   const fSuperiorUltima = document.getElementById('admFiltroSuperiorUltima').checked;
   const fRepetidas = document.getElementById('admFiltroRepetidas')?.checked || false;
+  const fTecnico  = document.getElementById('admFiltroTecnico')?.value || '';
 
   let statusParam = 'in.(confirmado,analise_aberta)';
   if (fStatus === 'confirmado') statusParam = 'eq.confirmado';
@@ -2127,6 +2215,29 @@ async function carregarEntregas() {
         }
       }
     });
+
+    // Popula dropdown de técnicos na primeira carga
+    const tecSelectHist = document.getElementById('admFiltroTecnico');
+    if (tecSelectHist && tecSelectHist.options.length <= 1) {
+      const tecnicos = [...new Set(data.map(e => e.criado_por).filter(t => t && t !== 'Portal' && t !== 'Sistema Original'))].sort();
+      tecnicos.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        tecSelectHist.appendChild(opt);
+      });
+      if (data.some(e => !e.criado_por || e.criado_por === 'Portal' || e.criado_por === 'Sistema Original')) {
+        const opt = document.createElement('option');
+        opt.value = '__portal__'; opt.textContent = 'Migrado/Portal';
+        tecSelectHist.appendChild(opt);
+      }
+    }
+
+    // Filtro de técnico em memória
+    if (fTecnico === '__portal__') {
+      data = data.filter(e => !e.criado_por || e.criado_por === 'Portal' || e.criado_por === 'Sistema Original');
+    } else if (fTecnico) {
+      data = data.filter(e => e.criado_por === fTecnico);
+    }
 
     // Filtros em Memória
     if (fAcimaMedia) {
