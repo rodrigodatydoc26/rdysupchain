@@ -18,14 +18,14 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260636';
+      window.location.href = 'index.html?v=20260637';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260636">
+  <link rel="stylesheet" href="css/style.css?v=20260637">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
   <style>
     #adminApp { display: none; }
     /* Garante que loginScreen seja visível por padrão no admin.html,
@@ -177,7 +177,14 @@
       background: var(--bg-2); color: var(--text-dim);
       border: 1px solid var(--border);
     }
-    .badge-tag i, .badge-tag svg { width: 14px; height: 14px; }
+    .badge-tag i, .badge-tag svg {
+      width: 14px !important;
+      height: 14px !important;
+      display: inline-block;
+      stroke: currentColor !important;
+      fill: none !important;
+      vertical-align: middle;
+    }
     .tag-entregue { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
     .tag-acima-media { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
     .tag-portal { background: rgba(59, 130, 246, 0.1); color: var(--cyan); border-color: rgba(59, 130, 246, 0.2); }
@@ -358,6 +365,16 @@
       cursor: pointer;
       transition: var(--transition);
       padding: 0;
+    }
+    .btn-edit-icon i, .btn-edit-icon svg,
+    .btn-delete-icon i, .btn-delete-icon svg {
+      width: 16px !important;
+      height: 16px !important;
+      display: inline-block;
+      stroke: currentColor !important;
+      fill: none !important;
+      stroke-width: 2px;
+      vertical-align: middle;
     }
     .btn-edit-icon:hover {
       background: var(--bg-0);
@@ -1105,8 +1122,8 @@
   </div>
 
 </div>
-<script src="https://unpkg.com/lucide@latest" crossorigin></script>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin></script>
 <script>
 // ════════════════════════════════════════════════════════
 // CONFIG
