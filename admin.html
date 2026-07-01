@@ -3217,10 +3217,11 @@ async function carregarInvestigacao() {
     const hoje = new Date();
     const pad2 = n => String(n).padStart(2,'0');
     const fmtD = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-    const tresMesesAtras = new Date(hoje); tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
-    const di = document.getElementById('invDataInicio')?.value || fmtD(tresMesesAtras);
+    const dozeMesesAtras = new Date(hoje); dozeMesesAtras.setFullYear(dozeMesesAtras.getFullYear() - 1);
+    const di = document.getElementById('invDataInicio')?.value || fmtD(dozeMesesAtras);
     const df = document.getElementById('invDataFim')?.value   || fmtD(hoje);
-    const fCidade = document.getElementById('invFiltroCidade')?.value.trim().toLowerCase() || '';
+    const fCidade = document.getElementById('invFiltroCidade')?.value.trim().toLowerCase()
+                 || (adminState.cidade || '').toLowerCase(); // restrição do perfil (Gestor)
     const fSerie  = document.getElementById('invFiltroSerie')?.value.trim().toLowerCase() || '';
     const fTipo   = document.getElementById('invFiltroTipo')?.value || 'todos';
 
@@ -3230,17 +3231,20 @@ async function carregarInvestigacao() {
     if (dfEl && !dfEl.value) dfEl.value = df;
 
     const tbody = document.getElementById('investigacaoTbody');
-    if (!tbody) return; // tab ainda não está no DOM
+    if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
 
     const tz = getLocalOffsetString();
-    let params = `status=in.(confirmado,analise_aberta)${cidadeFilter()}`;
+    // Sem cidadeFilter() no servidor — PostgREST não suporta filtro em join aninhado (equipamento.cliente.cidade)
+    // Filtro de cidade feito no cliente JS abaixo
+    let params = `status=in.(confirmado,analise_aberta)`;
     params += `&data_registro=gte.${di}T00:00:00${tz}`;
     params += `&data_registro=lte.${df}T23:59:59${tz}`;
     params += `&select=equipamento_id,quantidade_definida,contador_atual,observacao,data_registro,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))`;
     params += `&order=data_registro.asc&limit=5000`;
 
     const data = await API.fetch(`/balanceamento_entregas?${params}`);
+    const totalBruto = (data || []).length;
 
     // ── AGRUPA POR EQUIPAMENTO ──
     const byEquip = {};
@@ -3319,7 +3323,10 @@ async function carregarInvestigacao() {
     }
 
     if (rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Nenhum registro encontrado para o período.</td></tr>`;
+      const msg = totalBruto === 0
+        ? `Nenhuma entrega encontrada entre ${di} e ${df}. Ajuste o período ou verifique os dados.`
+        : `${totalBruto} entregas carregadas, mas nenhum equipamento passou nos filtros selecionados.`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim);padding:16px">${msg}</td></tr>`;
       return;
     }
 
