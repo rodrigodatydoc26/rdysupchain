@@ -981,14 +981,18 @@ function updateProxima() {
     else if (state.opcao !== null) qtd = state.sugestoes[state.opcao] || 0;
 
     // ── PRÓXIMA SOLICITAÇÃO ──
-    // Numerador mínimo = contador atual + resmas a entregar × 500
-    // (indica o ponto onde o papel acabará e nova visita será necessária)
+    // Numerador mínimo = contador atual + (resmas entregues hoje + saldo em estoque no cliente) × 500
+    // Exemplo: contador 224.027, entrega 7r, saldo 3r → mínimo = 224.027 + (7+3)×500 = 229.027
     const el = document.getElementById('resProximaSolicitacao');
     let qtdAtual = 0;
     if (state.opcao === 0) qtdAtual = parseInt(document.getElementById('inputManualQtd')?.value) || 0;
     else if (state.opcao !== null) qtdAtual = state.sugestoes[state.opcao] || 0;
     if (cont > 0 && qtdAtual > 0) {
-        el.innerText = Math.round(cont + qtdAtual * 500).toLocaleString('pt-BR');
+        const totalPapelDisponivel = qtdAtual + saldoRemanescente; // entrega hoje + saldo no cliente
+        el.innerText = Math.round(cont + totalPapelDisponivel * 500).toLocaleString('pt-BR');
+    } else if (cont > 0 && saldoRemanescente > 0) {
+        // Sem nova entrega mas tem saldo: o próximo mínimo é quando acabar o saldo
+        el.innerText = Math.round(cont + saldoRemanescente * 500).toLocaleString('pt-BR');
     } else {
         el.innerText = '---';
     }
@@ -1121,12 +1125,17 @@ async function salvarBalanceamento() {
         const recomendadoAtual = state.sugestoes['rec'] || 0;
         if (recomendadoAtual > 0 && qtd > recomendadoAtual) {
             const excesso = qtd - recomendadoAtual;
+            const saldoAtual = state.saldoRemanescente || 0;
+            const saldoInfo = saldoAtual > 0
+                ? `Saldo em estoque no cliente: ≈${saldoAtual.toFixed(1)} resma(s) (não consumidas)\n`
+                : '';
             const confirmou = confirm(
                 `⚠️ ENTREGA ACIMA DO CONSUMO MEDIDO\n\n` +
                 `Consumo real desde a última visita: ${recomendadoAtual} resma(s)\n` +
-                `Quantidade a entregar: ${qtd} resma(s)\n` +
-                `Excesso: ${excesso} resma(s) além do que foi consumido\n\n` +
-                `Esta entrega excede o consumo real e necessita de justificativa.\nDeseja confirmar a entrega mesmo assim?`
+                saldoInfo +
+                `Quantidade a entregar agora: ${qtd} resma(s)\n` +
+                `Excesso sobre o consumo: ${excesso} resma(s)\n\n` +
+                `Esta entrega excede o consumo real medido.\nDeseja confirmar mesmo assim?`
             );
             if (!confirmou) return;
             isAcimaRecomendado = true;
