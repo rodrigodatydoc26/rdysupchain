@@ -1503,7 +1503,8 @@ async function confirmarFechamentoAnalise() {
     const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 0;
 
     // Calcular se o valor é superior à última entrega
-    const confirmadas = entregas.filter(e => e.status === 'confirmado' && e.id !== analise.id);
+    const novaOs = (document.getElementById('fecharOsInput')?.value || '').trim();
+    const confirmadas = (state.entregas || []).filter(e => e.status === 'confirmado' && e.id !== analise.id);
     const ultimaConfirmada = confirmadas.length > 0 ? confirmadas[confirmadas.length - 1] : null;
     const ultimaEntregaResmas = ultimaConfirmada ? (parseInt(ultimaConfirmada.quantidade_definida) || 0) : 0;
 
@@ -1549,7 +1550,7 @@ async function confirmarFechamentoAnalise() {
         await API.post('/balanceamento_entregas', {
             equipamento_id: equip.id,
             cliente_id: equip.cliente.id,
-            numero_os: analise.numero_os || '',
+            numero_os: novaOs || analise.numero_os || '',
             media_consumo_mensal: analise.media_consumo_mensal || 0,
             opcao_entrega: null,
             quantidade_definida: novasResmas,
