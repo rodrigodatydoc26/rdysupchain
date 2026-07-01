@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limpando Cache...</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 40px 32px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; color: #f1f5f9; }
+    p  { font-size: 0.9rem; color: #94a3b8; line-height: 1.5; }
+    .log {
+      margin-top: 24px;
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: left;
+      font-size: 0.8rem;
+      font-family: monospace;
+      color: #64748b;
+      min-height: 120px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log .ok  { color: #22c55e; }
+    .log .err { color: #ef4444; }
+    .log .inf { color: #94a3b8; }
+    .bar-wrap {
+      margin-top: 20px;
+      background: #0f172a;
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: #3b82f6;
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+    .status {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .btn {
+      display: none;
+      margin-top: 24px;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn:hover { background: #2563eb; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🔄</div>
+  <h1>Limpando Cache</h1>
+  <p>Aguarde — removendo versões antigas para garantir que você use sempre a versão mais recente do sistema.</p>
+
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  <div class="status" id="status">Iniciando...</div>
+
+  <div class="log" id="log"></div>
+
+  <button class="btn" id="btnIr" onclick="ir()">Abrir Sistema Atualizado</button>
+</div>
+
+<script>
+  const log  = document.getElementById('log');
+  const bar  = document.getElementById('bar');
+  const stat = document.getElementById('status');
+
+  function linha(txt, tipo = 'inf') {
+    const d = document.createElement('div');
+    d.className = tipo;
+    d.textContent = '› ' + txt;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function setBar(pct, msg) {
+    bar.style.width = pct + '%';
+    stat.textContent = msg;
+  }
+
+  async function limpar() {
+    let erros = 0;
+
+    // 1. Cancelar service workers
+    setBar(10, 'Removendo Service Workers...');
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        if (regs.length === 0) {
+          linha('Nenhum Service Worker registrado', 'inf');
+        }
+        for (const reg of regs) {
+          await reg.unregister();
+          linha('SW removido: ' + (reg.scope || '(sem escopo)'), 'ok');
+        }
+      } else {
+        linha('Service Workers não suportados neste navegador', 'inf');
+      }
+    } catch (e) {
+      linha('Erro ao remover SWs: ' + e.message, 'err');
+      erros++;
+    }
+
+    // 2. Limpar Cache API
+    setBar(35, 'Limpando Cache API...');
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        if (keys.length === 0) {
+          linha('Cache API vazia', 'inf');
+        }
+        for (const k of keys) {
+          await caches.delete(k);
+          linha('Cache removido: ' + k, 'ok');
+        }
+      } else {
+        linha('Cache API não suportada', 'inf');
+      }
+    } catch (e) {
+      linha('Erro ao limpar Cache API: ' + e.message, 'err');
+      erros++;
+    }
+
+    // 3. Limpar localStorage do sistema
+    setBar(55, 'Limpando dados locais...');
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        // Remove apenas chaves do sistema (preserva outras abas do navegador)
+        if (k && (k.startsWith('rdy') || k.startsWith('adm_') || k.startsWith('tec_') || k.startsWith('sync'))) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach(k => { localStorage.removeItem(k); linha('localStorage: ' + k + ' removido', 'ok'); });
+      if (keysToRemove.length === 0) linha('localStorage sem chaves do sistema', 'inf');
+    } catch (e) {
+      linha('Erro ao limpar localStorage: ' + e.message, 'err');
+      erros++;
+    }
+
+    // 4. Limpar IndexedDB do sistema
+    setBar(70, 'Limpando IndexedDB...');
+    try {
+      if ('indexedDB' in window) {
+        const dbs = await indexedDB.databases?.() || [];
+        const dbsRdy = dbs.filter(d => d.name && d.name.includes('rdy'));
+        for (const db of dbsRdy) {
+          await new Promise((res, rej) => {
+            const req = indexedDB.deleteDatabase(db.name);
+            req.onsuccess = () => { linha('IndexedDB removido: ' + db.name, 'ok'); res(); };
+            req.onerror   = () => { linha('Erro IndexedDB: ' + db.name, 'err'); rej(); };
+            req.onblocked = () => { linha('IndexedDB bloqueado (feche outras abas): ' + db.name, 'err'); res(); };
+          }).catch(() => erros++);
+        }
+        if (dbsRdy.length === 0) linha('IndexedDB sem bases do sistema', 'inf');
+      } else {
+        linha('IndexedDB não suportado', 'inf');
+      }
+    } catch (e) {
+      linha('Erro ao limpar IndexedDB: ' + e.message, 'err');
+      erros++;
+    }
+
+    // 5. Concluir
+    setBar(100, erros === 0 ? 'Concluído com sucesso!' : `Concluído com ${erros} aviso(s)`);
+    linha(erros === 0 ? 'Tudo limpo. Sistema pronto para atualização.' : 'Limpeza concluída com avisos.', erros === 0 ? 'ok' : 'err');
+
+    document.getElementById('btnIr').style.display = 'block';
+
+    // Redireciona automaticamente em 3s
+    let t = 3;
+    const iv = setInterval(() => {
+      stat.textContent = `Redirecionando em ${t--}s...`;
+      if (t < 0) { clearInterval(iv); ir(); }
+    }, 1000);
+  }
+
+  function ir() {
+    // Abre sem cache
+    window.location.replace('./index.html?nocache=' + Date.now());
+  }
+
+  limpar();
+</script>
+</body>
+</html>
