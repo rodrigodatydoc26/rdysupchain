@@ -1024,12 +1024,26 @@
           <div class="cadastro-step-title">2 · Equipamento</div>
           <div class="form-grid form-grid-cadastro">
             <div class="form-group">
+              <label>Série *</label>
+              <input type="text" id="cadSerie" class="input-text" placeholder="Ex: VBQ1234567">
+            </div>
+            <div class="form-group">
               <label>Modelo</label>
               <input type="text" id="cadModelo" class="input-text" placeholder="Ex: Kyocera TASKalfa 3212i">
             </div>
             <div class="form-group">
-              <label>Série *</label>
-              <input type="text" id="cadSerie" class="input-text" placeholder="Ex: VBQ1234567">
+              <label>Tipo</label>
+              <select id="cadTipo" class="input-text">
+                <option value="">Selecione...</option>
+                <option value="MULTIFUNCIONAL">Multifuncional</option>
+                <option value="IMPRESSORA">Impressora</option>
+                <option value="COPIADORA">Copiadora</option>
+                <option value="PLOTTER">Plotter</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Secretaria / Setor</label>
+              <input type="text" id="cadSecretaria" class="input-text" placeholder="Ex: SECRETARIA DE EDUCAÇÃO">
             </div>
             <div class="form-group">
               <label>Patrimônio</label>
@@ -1038,6 +1052,10 @@
             <div class="form-group">
               <label>Numerador Atual</label>
               <input type="number" id="cadNumerador" class="input-text" placeholder="Ex: 126414" min="0">
+            </div>
+            <div class="form-group">
+              <label>Média de Referência <span class="text-dim-normal">(resmas/mês)</span></label>
+              <input type="number" id="cadMediaRef" class="input-text" placeholder="Ex: 5" min="0" step="0.5">
             </div>
           </div>
         </div>
@@ -1061,8 +1079,8 @@
         </div>
         <table class="data-table" id="cadEquipListTable">
           <thead><tr>
-            <th>Série</th><th>Patrimônio</th><th>Modelo</th>
-            <th>Cliente / Local</th><th>Cidade</th><th>Numerador</th>
+            <th>Série</th><th>Modelo</th><th>Tipo</th>
+            <th>Cliente / Local</th><th>Cidade</th><th>Secretaria</th><th>Numerador</th>
           </tr></thead>
           <tbody id="cadEquipListBody">
             <tr><td colspan="6" class="text-center text-dim-color">Carregando...</td></tr>
@@ -1324,6 +1342,12 @@ const API = {
     return res.json();
   },
   
+  async post(endpoint, data) {
+    return this.fetch(endpoint, { method: 'POST', body: JSON.stringify(data) });
+  },
+  async patch(endpoint, data) {
+    return this.fetch(endpoint, { method: 'PATCH', body: JSON.stringify(data), headers: { 'Prefer': 'return=representation' } });
+  },
   async delete(endpoint) {
     const sep = endpoint.includes('?') ? '&' : '?';
     const url = `${SUPABASE_URL}/rest/v1${endpoint}${sep}apikey=${SUPABASE_SVC}`;
@@ -1578,13 +1602,17 @@ async function cadSalvar() {
   cadMsgSucesso.classList.add('hidden');
   cadMsgErro.classList.add('hidden');
 
-  const cidade   = document.getElementById('cadCidade').value.trim().toUpperCase();
-  const subNome  = document.getElementById('cadSubNome').value.trim();
-  const modelo   = document.getElementById('cadModelo').value.trim();
-  const serie    = document.getElementById('cadSerie').value.trim().toUpperCase();
-  const patrim   = document.getElementById('cadPatrimonio').value.trim();
-  const numVal   = document.getElementById('cadNumerador').value.trim();
-  const numerador = numVal !== '' ? parseInt(numVal) : null;
+  const cidade      = document.getElementById('cadCidade').value.trim().toUpperCase();
+  const subNome     = document.getElementById('cadSubNome').value.trim();
+  const modelo      = document.getElementById('cadModelo').value.trim();
+  const tipo        = document.getElementById('cadTipo').value.trim();
+  const secretaria  = document.getElementById('cadSecretaria').value.trim().toUpperCase();
+  const serie       = document.getElementById('cadSerie').value.trim().toUpperCase();
+  const patrim      = document.getElementById('cadPatrimonio').value.trim();
+  const numVal      = document.getElementById('cadNumerador').value.trim();
+  const numerador   = numVal !== '' ? parseInt(numVal) : null;
+  const mediaVal    = document.getElementById('cadMediaRef').value.trim();
+  const mediaRef    = mediaVal !== '' ? parseFloat(mediaVal) : null;
 
   if (!cidade) return cadErro('Informe a cidade.');
   if (!serie)  return cadErro('Informe o número de série.');
@@ -1618,8 +1646,10 @@ async function cadSalvar() {
     const payload = {
       cliente_id:      clienteId,
       serie,
-      patrimonio:      patrim  || null,
-      modelo:          modelo  || null,
+      patrimonio:      patrim      || null,
+      modelo:          modelo      || null,
+      secretaria:      secretaria  || null,
+      media_referencia: mediaRef,
       ultimo_contador: numerador,
       data_ultimo_contador: numerador !== null ? new Date().toISOString() : null
     };
@@ -1640,7 +1670,10 @@ async function cadSalvar() {
       } catch(e) {}
     }
 
-    document.getElementById('cadMsgDetalhe').textContent = `Série: ${serie} · Cliente: ${cidade}`;
+    const nomeCliente = cadClienteMode === 'novo'
+      ? document.getElementById('cadClienteNovo').value.trim()
+      : document.getElementById('cadClienteSelect').options[document.getElementById('cadClienteSelect').selectedIndex]?.text || cidade;
+    document.getElementById('cadMsgDetalhe').textContent = `Série: ${serie} · ${nomeCliente} · ${cidade}`;
     cadMsgSucesso.classList.remove('hidden');
     cadLimpar();
     cadCarregarListaRecente();
@@ -1651,12 +1684,23 @@ async function cadSalvar() {
 
 function cadErro(msg) {
   const el = document.getElementById('cadMsgErro');
-  el.textContent = msg;
+  // Tenta extrair mensagem legível da resposta PostgREST (ex: "duplicate key", "violates foreign key")
+  let display = msg;
+  try {
+    const m = msg.match(/\{.*\}/s);
+    if (m) {
+      const obj = JSON.parse(m[0]);
+      if (obj.message) display = obj.message + (obj.details ? ' — ' + obj.details : '');
+      if (obj.message?.includes('duplicate key')) display = 'Série já cadastrada no sistema.';
+    }
+  } catch(e) {}
+  el.textContent = display;
   el.classList.remove('hidden');
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function cadLimpar() {
-  ['cadCidade','cadClienteNovo','cadSubNome','cadModelo','cadSerie','cadPatrimonio','cadNumerador']
+  ['cadCidade','cadClienteNovo','cadSubNome','cadModelo','cadTipo','cadSecretaria','cadSerie','cadPatrimonio','cadNumerador','cadMediaRef']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('cadClienteSelect').innerHTML = '<option value="">Selecione...</option>';
   cadModoCliente('select');
@@ -1667,15 +1711,16 @@ function cadLimpar() {
 async function cadCarregarListaRecente() {
   const tbody = document.getElementById('cadEquipListBody');
   try {
-    const rows = await API.fetch('/equipamentos?select=serie,patrimonio,modelo,ultimo_contador,cliente:clientes(nome,cidade)&order=created_at.desc&limit=20');
+    const rows = await API.fetch('/equipamentos?select=serie,patrimonio,modelo,tipo,secretaria,ultimo_contador,cliente:clientes(nome,cidade)&order=created_at.desc&limit=20');
     tbody.innerHTML = rows.length === 0
-      ? '<tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Nenhum equipamento cadastrado.</td></tr>'
+      ? '<tr><td colspan="7" class="text-center" style="color:var(--text-dim);">Nenhum equipamento cadastrado.</td></tr>'
       : rows.map(r => `<tr>
           <td><strong>${esc(r.serie)}</strong></td>
-          <td>${esc(r.patrimonio || '—')}</td>
           <td>${esc(r.modelo || '—')}</td>
+          <td>${esc(r.tipo || '—')}</td>
           <td>${esc(r.cliente?.nome || '—')}</td>
           <td>${esc(r.cliente?.cidade || '—')}</td>
+          <td>${esc(r.secretaria || '—')}</td>
           <td class="text-center">${r.ultimo_contador ? r.ultimo_contador.toLocaleString('pt-BR') : '—'}</td>
         </tr>`).join('');
   } catch(e) {
