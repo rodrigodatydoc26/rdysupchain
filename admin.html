@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260644';
+      window.location.href = 'index.html?v=20260702';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260644">
+  <link rel="stylesheet" href="css/style.css?v=20260702">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
   <style>
@@ -860,7 +860,8 @@
               <select id="invFiltroTipo" onchange="carregarInvestigacao()">
                 <option value="todos" selected>Todos os Equipamentos</option>
                 <option value="acima_margem">Saldo &gt; 2 resmas (alerta)</option>
-                <option value="sugestao_zero">Entrega com Sugestão Zero</option>
+                <option value="acima_recomendado">Acima do Recomendado</option>
+                <option value="sugestao_zero">Entrega com Sugest&#xE3;o Zero</option>
               </select>
             </div>
             <button class="btn-filter-premium" onclick="carregarInvestigacao()" title="Buscar">
@@ -3255,15 +3256,16 @@ async function carregarInvestigacao() {
 
       const key = e.equipamento_id;
       if (!byEquip[key]) {
-        byEquip[key] = { serie, cliente, cidade, numerador: 0, recomendado: 0, entregue: 0, sugestaoZero: 0, acima: 0 };
+        byEquip[key] = { serie, cliente, cidade, numerador: 0, recomendado: 0, entregue: 0, sugestaoZero: 0, acima: 0, acimaRec: 0 };
       }
       const row = byEquip[key];
       // Recomendado: usa quantidade_sugerida se salva, senão media_consumo_mensal
       row.recomendado += parseFloat(e.quantidade_sugerida ?? e.media_consumo_mensal ?? 0);
       row.entregue    += parseFloat(e.quantidade_definida || 0);
       if (e.contador_atual && e.contador_atual > row.numerador) row.numerador = e.contador_atual;
-      if (e.observacao?.includes('[SUGESTAO_ZERO]'))  row.sugestaoZero++;
-      if (e.observacao?.includes('[ACIMA DO LIMITE]')) row.acima++;
+      if (e.observacao?.includes('[SUGESTAO_ZERO]'))    row.sugestaoZero++;
+      if (e.observacao?.includes('[ACIMA DO LIMITE]'))  row.acima++;
+      if (e.observacao?.includes('[ACIMA_RECOMENDADO')) row.acimaRec++;
     });
 
     let rows = Object.values(byEquip).map(r => ({
@@ -3272,8 +3274,9 @@ async function carregarInvestigacao() {
     }));
 
     // Filtro por tipo (margem de aceitação: 2 resmas)
-    if (fTipo === 'acima_margem')  rows = rows.filter(r => r.saldo > 2);
-    if (fTipo === 'sugestao_zero') rows = rows.filter(r => r.sugestaoZero > 0);
+    if (fTipo === 'acima_margem')      rows = rows.filter(r => r.saldo > 2);
+    if (fTipo === 'acima_recomendado') rows = rows.filter(r => r.acimaRec > 0);
+    if (fTipo === 'sugestao_zero')     rows = rows.filter(r => r.sugestaoZero > 0);
 
     // Ordena: saldo decrescente (maiores excessos no topo)
     rows.sort((a, b) => b.saldo - a.saldo);
@@ -3300,7 +3303,8 @@ async function carregarInvestigacao() {
       const numerador = r.numerador > 0 ? r.numerador.toLocaleString('pt-BR') : '—';
       const badges = [
         r.sugestaoZero > 0 ? `<span class="badge-diverg" style="background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.4);color:#ca8a04">SALDO ZERO ×${r.sugestaoZero}</span>` : '',
-        r.acima > 0        ? `<span class="badge-diverg">ACIMA LIMITE ×${r.acima}</span>` : ''
+        r.acima > 0        ? `<span class="badge-diverg">ACIMA LIMITE ×${r.acima}</span>` : '',
+        r.acimaRec > 0     ? `<span class="badge-diverg" style="background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.4);color:#ea580c">▲ ACIMA RECOMEND. ×${r.acimaRec}</span>` : ''
       ].filter(Boolean).join(' ');
       return `<tr>
         <td><strong>${esc(r.serie)}</strong></td>

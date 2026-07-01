@@ -981,11 +981,14 @@ function updateProxima() {
     else if (state.opcao !== null) qtd = state.sugestoes[state.opcao] || 0;
 
     // ── PRÓXIMA SOLICITAÇÃO ──
-    // Inclui o saldo remanescente no total de papel disponível para o próximo ciclo
+    // Numerador mínimo = contador atual + resmas a entregar × 500
+    // (indica o ponto onde o papel acabará e nova visita será necessária)
     const el = document.getElementById('resProximaSolicitacao');
-    if (cont > 0 && qtd > 0) {
-        const totalPapel = qtd + saldoRemanescente;
-        el.innerText = Math.round(cont + totalPapel * 500).toLocaleString('pt-BR');
+    let qtdAtual = 0;
+    if (state.opcao === 0) qtdAtual = parseInt(document.getElementById('inputManualQtd')?.value) || 0;
+    else if (state.opcao !== null) qtdAtual = state.sugestoes[state.opcao] || 0;
+    if (cont > 0 && qtdAtual > 0) {
+        el.innerText = Math.round(cont + qtdAtual * 500).toLocaleString('pt-BR');
     } else {
         el.innerText = '---';
     }
@@ -1072,6 +1075,7 @@ async function salvarBalanceamento() {
     let isExcecao = false;
     let isSuperiorUltima = false;
     let isDivergencia = false;
+    let isAcimaRecomendado = false;
     let divergenciaResmas = 0;
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
 
@@ -1113,6 +1117,21 @@ async function salvarBalanceamento() {
             }
         }
 
+        // ── ACIMA DO RECOMENDADO (consumo real medido) ──
+        const recomendadoAtual = state.sugestoes['rec'] || 0;
+        if (recomendadoAtual > 0 && qtd > recomendadoAtual) {
+            const excesso = qtd - recomendadoAtual;
+            const confirmou = confirm(
+                `⚠️ ENTREGA ACIMA DO CONSUMO MEDIDO\n\n` +
+                `Consumo real desde a última visita: ${recomendadoAtual} resma(s)\n` +
+                `Quantidade a entregar: ${qtd} resma(s)\n` +
+                `Excesso: ${excesso} resma(s) além do que foi consumido\n\n` +
+                `Esta entrega excede o consumo real e necessita de justificativa.\nDeseja confirmar a entrega mesmo assim?`
+            );
+            if (!confirmou) return;
+            isAcimaRecomendado = true;
+        }
+
         // ── SUPERIOR À ÚLTIMA ENTREGA ──
         if (ultimaEntregaResmas > 0 && qtd > ultimaEntregaResmas) {
             const confirmou = confirm(`A quantidade atual (${qtd} resmas) é superior à última entrega (${ultimaEntregaResmas} resmas). Deseja confirmar?`);
@@ -1145,11 +1164,15 @@ async function salvarBalanceamento() {
         if (!isFinite(finalMedia) || isNaN(finalMedia) || finalMedia < 0) finalMedia = state.media || 0;
 
         let finalObs = obs || '';
-        if (isDivergencia)   finalObs = `[DIVERG.${divergenciaResmas}R] ${finalObs}`.trim();
-        if (isSugestaoZero)  finalObs = `[SUGESTAO_ZERO] ${finalObs}`.trim();
+        if (isDivergencia)      finalObs = `[DIVERG.${divergenciaResmas}R] ${finalObs}`.trim();
+        if (isSugestaoZero)     finalObs = `[SUGESTAO_ZERO] ${finalObs}`.trim();
         if (state.opcao === 'rec') finalObs = `[RECOMENDADO] ${finalObs}`.trim();
-        if (isExcecao)       finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
-        if (isSuperiorUltima) finalObs = `[SUPERIOR A ULTIMA] ${finalObs}`.trim();
+        if (isExcecao)          finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
+        if (isSuperiorUltima)   finalObs = `[SUPERIOR A ULTIMA] ${finalObs}`.trim();
+        if (isAcimaRecomendado) {
+            const excR = qtd - (state.sugestoes['rec'] || 0);
+            finalObs = `[ACIMA_RECOMENDADO:+${excR}R] ${finalObs}`.trim();
+        }
 
         await API.post('/balanceamento_entregas', {
             equipamento_id: state.equipamento.id,
@@ -1982,7 +2005,7 @@ function showAdmin() {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260644';
+                window.location.href = 'admin.html?v=20260702';
             }
             return;
         }
