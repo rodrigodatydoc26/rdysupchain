@@ -18,12 +18,12 @@
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
       localStorage.removeItem('adm_user');
       localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260642';
+      window.location.href = 'index.html?v=20260644';
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RDY · Admin</title>
-  <link rel="stylesheet" href="css/style.css?v=20260642">
+  <link rel="stylesheet" href="css/style.css?v=20260644">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
   <style>
@@ -1601,7 +1601,8 @@ async function cadSalvar() {
       serie,
       patrimonio:      patrim  || null,
       modelo:          modelo  || null,
-      current_counter: numerador
+      ultimo_contador: numerador,
+      data_ultimo_contador: numerador !== null ? new Date().toISOString() : null
     };
     await API.post('/equipamentos', payload);
 
@@ -1647,7 +1648,7 @@ function cadLimpar() {
 async function cadCarregarListaRecente() {
   const tbody = document.getElementById('cadEquipListBody');
   try {
-    const rows = await API.fetch('/equipamentos?select=serie,patrimonio,modelo,current_counter,cliente:clientes(nome,cidade)&order=created_at.desc&limit=20');
+    const rows = await API.fetch('/equipamentos?select=serie,patrimonio,modelo,ultimo_contador,cliente:clientes(nome,cidade)&order=created_at.desc&limit=20');
     tbody.innerHTML = rows.length === 0
       ? '<tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Nenhum equipamento cadastrado.</td></tr>'
       : rows.map(r => `<tr>
@@ -1656,7 +1657,7 @@ async function cadCarregarListaRecente() {
           <td>${esc(r.modelo || '—')}</td>
           <td>${esc(r.cliente?.nome || '—')}</td>
           <td>${esc(r.cliente?.cidade || '—')}</td>
-          <td class="text-center">${r.current_counter ? r.current_counter.toLocaleString('pt-BR') : '—'}</td>
+          <td class="text-center">${r.ultimo_contador ? r.ultimo_contador.toLocaleString('pt-BR') : '—'}</td>
         </tr>`).join('');
   } catch(e) {
     tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Erro ao carregar.</td></tr>';

@@ -8,7 +8,12 @@
       "PowerShell(Start-Process \"http://localhost:8080\")",
       "Bash(node --check \"C:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\\\\js\\\\app.js\")",
       "Bash(git push *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(npx serve *)",
+      "Bash(npx --yes serve . -p 3001)",
+      "PowerShell(cd \"C:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\"; Start-Process -FilePath \"npx\" -ArgumentList \"serve\", \".\", \"--port\", \"3001\" -NoNewWindow -PassThru; Start-Sleep -Seconds 3; try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/index.html\" -UseBasicParsing -TimeoutSec 5; \"Status: $\\($r.StatusCode\\)\" } catch { \"Erro: $_\" })",
+      "PowerShell(cd \"C:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\"; $proc = Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c npx serve . --port 3001\" -PassThru -NoNewWindow; Start-Sleep -Seconds 5; try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/index.html\" -UseBasicParsing -TimeoutSec 5; \"HTTP $\\($r.StatusCode\\) — OK\" } catch { \"Erro ao conectar: $_\" })",
+      "PowerShell(Start-Process \"http://localhost:3001/index.html\")"
     ]
   }
 }

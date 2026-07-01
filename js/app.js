@@ -649,7 +649,7 @@ async function buscarEquipamento(serie) {
         ]);
 
         const ultimaOs = osHistory.length > 0 ? osHistory[osHistory.length - 1] : null;
-        equip.ultimo_contador = ultimaOs?.counter_reading || equip.current_counter || 0;
+        equip.ultimo_contador = ultimaOs?.counter_reading || equip.ultimo_contador || equip.current_counter || 0;
         equip.data_ultimo_contador = ultimaOs?.os_date || null;
 
         state.equipamento = equip;
@@ -794,6 +794,19 @@ function updateMedia(val) {
     state.sugestoes[1] = s1;
     state.sugestoes[2] = s2;
     state.sugestoes[3] = s3;
+
+    // Pré-popula rec com a média mensal enquanto contador não é digitado
+    const contAtual = parseInt(document.getElementById('inputContador')?.value) || 0;
+    if (!contAtual) {
+        const recPreview = Math.max(1, Math.ceil(val));
+        const optRecEl = document.getElementById('optRecQtd');
+        if (optRecEl) optRecEl.innerText = recPreview;
+        state.sugestoes['rec'] = recPreview;
+    }
+
+    // Seleciona Recomendado por padrão ao carregar
+    selecionarOpcao('rec', true);
+
     atualizarBarraConsumo(0);
 }
 
@@ -859,8 +872,8 @@ function atualizarBarraConsumo(qtdAdicional = 0) {
 }
 
 
-function selecionarOpcao(n) {
-    if (state.entregas && state.entregas.length > 0) {
+function selecionarOpcao(n, force = false) {
+    if (!force && state.entregas && state.entregas.length > 0) {
         const agora = new Date();
         const entregasMes = state.entregas.filter(e => {
             const dataE = new Date(e.data_registro);
@@ -940,10 +953,15 @@ function updateProxima() {
 
     // ── RECOMENDAÇÃO: exatamente o que foi produzido ──
     // Entrega = o que o equipamento imprimiu desde a última visita (nunca fica zero)
-    const recomendado = cont > 0 ? Math.max(1, Math.ceil(consumo / 500)) : 0;
+    const recomendado = cont > 0 ? Math.max(1, Math.ceil(consumo / 500)) : Math.max(1, Math.ceil(state.media || 0));
     const optRecEl = document.getElementById('optRecQtd');
     if (optRecEl) optRecEl.innerText = recomendado;
     state.sugestoes['rec'] = recomendado;
+
+    const optRecFooter = document.getElementById('optRecFooter');
+    if (optRecFooter) {
+        optRecFooter.innerText = cont > 0 ? 'consumo real' : 'média de ref.';
+    }
 
     // ── DISPLAY SALDO ──
     const lineSaldo = document.getElementById('lineSaldoRemanescente');
@@ -1247,8 +1265,7 @@ function analiseNumeradorChanged() {
         btnAplicar.classList.add('hidden');
     } else {
         const consumoPaginas = numerador - ultimoContador;
-        const limiteMinimo = (ultimaEntregaResmas > 0 ? ultimaEntregaResmas : 1) * 500;
-        const sugerido = consumoPaginas < limiteMinimo ? 0 : Math.floor(consumoPaginas / 500);
+        const sugerido = Math.ceil(consumoPaginas / 500);
         
         let subtitulo = '';
         if (ultimaEntregaResmas > 0) {
@@ -1396,8 +1413,7 @@ function fecharCalcularSaldo(evitarSobrescreverInputResmas = false) {
     const descEl = document.getElementById('fecharSaldoDesc');
     const resmasEl = document.getElementById('fecharSaldoResmas');
 
-    const limiteMinimo = (resmas > 0 ? resmas : 1) * 500;
-    const recomendacao = consumoPaginas < limiteMinimo ? 0 : Math.floor(consumoPaginas / 500);
+    const recomendacao = Math.ceil(consumoPaginas / 500);
     if (!evitarSobrescreverInputResmas) {
         document.getElementById('fecharResmasInput').value = recomendacao;
     }
@@ -1966,7 +1982,7 @@ function showAdmin() {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260642';
+                window.location.href = 'admin.html?v=20260644';
             }
             return;
         }
