@@ -814,7 +814,7 @@ function calcularEntregasMes() {
     if (!state.entregas || state.entregas.length === 0) return 0;
     const agora = new Date();
     return state.entregas.filter(e => {
-        if (e.status === 'cancelado') return false;
+        if (e.status === 'cancelado' || e.status === 'analise_aberta') return false;
         const d = new Date(e.data_registro);
         return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
     }).reduce((sum, e) => sum + (parseFloat(e.quantidade_definida) || 0), 0);
@@ -1015,6 +1015,8 @@ function recalcularComContador() {
 }
 
 async function salvarBalanceamento() {
+    if (!state.equipamento) return alert("Busque e selecione um equipamento antes de confirmar!");
+
     const isSistemaOriginal = window !== window.top;
 
     let os = document.getElementById('inputOs').value.trim().toUpperCase();
@@ -1036,7 +1038,8 @@ async function salvarBalanceamento() {
     if (!isSistemaOriginal && !isPrimeiraEntrega && (contVal === '' || isNaN(parseInt(contVal)))) {
         return alert("Por favor, insira o Contador/Numerador Atual!");
     }
-    const cont = contVal !== '' ? (parseInt(contVal) || 0) : null;
+    const contParsed = parseInt(contVal);
+    const cont = (contVal !== '' && !isNaN(contParsed)) ? contParsed : null;
 
     // Validar se o contador atual é menor que o anterior (só aplica se houver referência anterior)
     if (!isSistemaOriginal && !isPrimeiraEntrega && cont !== null && ultimoContador > 0 && cont < ultimoContador) {
@@ -1198,12 +1201,17 @@ async function salvarBalanceamento() {
         });
 
         if (cont !== null && !isNaN(cont)) {
-            await API.post('/ctrl_os', {
-                equipment_id: state.equipamento.id,
-                os_number: os || '',
-                counter_reading: cont,
-                os_date: new Date().toISOString().slice(0, 10)
-            });
+            try {
+                await API.post('/ctrl_os', {
+                    equipment_id: state.equipamento.id,
+                    os_number: os || '',
+                    counter_reading: cont,
+                    os_date: new Date().toISOString().slice(0, 10)
+                });
+            } catch (ctrlErr) {
+                // ctrl_os é histórico auxiliar — falha aqui não desfaz a entrega já salva
+                console.warn('ctrl_os falhou (não crítico):', ctrlErr);
+            }
         }
 
         alert("Balanceamento confirmado com sucesso!");
@@ -1950,6 +1958,7 @@ function setLoading(s) { document.getElementById('loadingIndicator').classList.t
 
 function setBtnLoading(s) {
     const b = document.getElementById('btnConfirmar');
+    if (!b) return;
     b.disabled = s;
     b.innerHTML = s
         ? '<i data-lucide="loader" class="spin"></i> SALVANDO...'
