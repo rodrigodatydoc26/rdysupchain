@@ -1032,16 +1032,6 @@
               <input type="text" id="cadModelo" class="input-text" placeholder="Ex: Kyocera TASKalfa 3212i">
             </div>
             <div class="form-group">
-              <label>Tipo</label>
-              <select id="cadTipo" class="input-text">
-                <option value="">Selecione...</option>
-                <option value="MULTIFUNCIONAL">Multifuncional</option>
-                <option value="IMPRESSORA">Impressora</option>
-                <option value="COPIADORA">Copiadora</option>
-                <option value="PLOTTER">Plotter</option>
-              </select>
-            </div>
-            <div class="form-group">
               <label>Secretaria / Setor</label>
               <input type="text" id="cadSecretaria" class="input-text" placeholder="Ex: SECRETARIA DE EDUCAÇÃO">
             </div>
@@ -1079,7 +1069,7 @@
         </div>
         <table class="data-table" id="cadEquipListTable">
           <thead><tr>
-            <th>Série</th><th>Modelo</th><th>Tipo</th>
+            <th>Série</th><th>Modelo</th>
             <th>Cliente / Local</th><th>Cidade</th><th>Secretaria</th><th>Numerador</th>
           </tr></thead>
           <tbody id="cadEquipListBody">
@@ -1605,7 +1595,6 @@ async function cadSalvar() {
   const cidade      = document.getElementById('cadCidade').value.trim().toUpperCase();
   const subNome     = document.getElementById('cadSubNome').value.trim();
   const modelo      = document.getElementById('cadModelo').value.trim();
-  const tipo        = document.getElementById('cadTipo').value.trim();
   const secretaria  = document.getElementById('cadSecretaria').value.trim().toUpperCase();
   const serie       = document.getElementById('cadSerie').value.trim().toUpperCase();
   const patrim      = document.getElementById('cadPatrimonio').value.trim();
@@ -1644,14 +1633,12 @@ async function cadSalvar() {
   // Salvar equipamento
   try {
     const payload = {
-      cliente_id:      clienteId,
+      cliente_id:       clienteId,
       serie,
-      patrimonio:      patrim      || null,
-      modelo:          modelo      || null,
-      secretaria:      secretaria  || null,
-      media_referencia: mediaRef,
-      ultimo_contador: numerador,
-      data_ultimo_contador: numerador !== null ? new Date().toISOString() : null
+      patrimonio:       patrim     || null,
+      modelo:           modelo     || null,
+      secretaria:       secretaria || null,
+      media_referencia: mediaRef
     };
     await API.post('/equipamentos', payload);
 
@@ -1700,7 +1687,7 @@ function cadErro(msg) {
 }
 
 function cadLimpar() {
-  ['cadCidade','cadClienteNovo','cadSubNome','cadModelo','cadTipo','cadSecretaria','cadSerie','cadPatrimonio','cadNumerador','cadMediaRef']
+  ['cadCidade','cadClienteNovo','cadSubNome','cadModelo','cadSecretaria','cadSerie','cadPatrimonio','cadNumerador','cadMediaRef']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('cadClienteSelect').innerHTML = '<option value="">Selecione...</option>';
   cadModoCliente('select');
@@ -1711,13 +1698,12 @@ function cadLimpar() {
 async function cadCarregarListaRecente() {
   const tbody = document.getElementById('cadEquipListBody');
   try {
-    const rows = await API.fetch('/equipamentos?select=serie,patrimonio,modelo,tipo,secretaria,ultimo_contador,cliente:clientes(nome,cidade)&order=created_at.desc&limit=20');
+    const rows = await API.fetch('/equipamentos?select=serie,patrimonio,modelo,secretaria,ultimo_contador,cliente:clientes(nome,cidade)&order=created_at.desc&limit=20');
     tbody.innerHTML = rows.length === 0
-      ? '<tr><td colspan="7" class="text-center" style="color:var(--text-dim);">Nenhum equipamento cadastrado.</td></tr>'
+      ? '<tr><td colspan="6" class="text-center" style="color:var(--text-dim);">Nenhum equipamento cadastrado.</td></tr>'
       : rows.map(r => `<tr>
           <td><strong>${esc(r.serie)}</strong></td>
           <td>${esc(r.modelo || '—')}</td>
-          <td>${esc(r.tipo || '—')}</td>
           <td>${esc(r.cliente?.nome || '—')}</td>
           <td>${esc(r.cliente?.cidade || '—')}</td>
           <td>${esc(r.secretaria || '—')}</td>
