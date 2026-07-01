@@ -859,8 +859,9 @@
             <div class="filter-input-group">
               <select id="invFiltroTipo" onchange="carregarInvestigacao()">
                 <option value="todos" selected>Todos os Equipamentos</option>
-                <option value="acima_margem">Saldo &gt; 2 resmas (alerta)</option>
-                <option value="acima_recomendado">Acima do Recomendado</option>
+                <option value="excesso">&#x1F534; Recebeu mais que consumiu</option>
+                <option value="deficit">&#x1F7E2; Consumiu mais que recebeu</option>
+                <option value="sem_contador">Sem leitura de contador</option>
                 <option value="sugestao_zero">Entrega com Sugest&#xE3;o Zero</option>
               </select>
             </div>
@@ -880,7 +881,7 @@
             <span class="kpi-value gold-text" id="invKpiEntregue">—</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Total Recomendado</span>
+            <span class="kpi-label">Total Consumido</span>
             <span class="kpi-value" id="invKpiRecomendado">—</span>
           </div>
           <div class="kpi-card">
@@ -896,8 +897,8 @@
                 <th>Série</th>
                 <th>Cliente</th>
                 <th>Cidade</th>
-                <th class="text-center">Numerador</th>
-                <th class="text-center">Recomendado</th>
+                <th class="text-center">Numerador (span)</th>
+                <th class="text-center">Consumido</th>
                 <th class="text-center">Entregue</th>
                 <th class="text-center">Saldo</th>
                 <th class="text-center">Ocorrências</th>
@@ -3225,7 +3226,6 @@ async function carregarInvestigacao() {
   const fSerie  = document.getElementById('invFiltroSerie')?.value.trim().toLowerCase() || '';
   const fTipo   = document.getElementById('invFiltroTipo')?.value || 'todos';
 
-  // Pré-preenche inputs de data se ainda vazios
   const diEl = document.getElementById('invDataInicio');
   const dfEl = document.getElementById('invDataFim');
   if (diEl && !diEl.value) diEl.value = di;
@@ -3238,59 +3238,92 @@ async function carregarInvestigacao() {
   let params = `status=in.(confirmado,analise_aberta)${cidadeFilter()}`;
   params += `&data_registro=gte.${di}T00:00:00${tz}`;
   params += `&data_registro=lte.${df}T23:59:59${tz}`;
-  params += `&select=equipamento_id,quantidade_definida,quantidade_sugerida,media_consumo_mensal,contador_atual,observacao,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))`;
-  params += `&limit=5000`;
+  params += `&select=equipamento_id,quantidade_definida,contador_atual,observacao,data_registro,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))`;
+  params += `&order=data_registro.asc&limit=5000`;
 
   try {
     const data = await API.fetch(`/balanceamento_entregas?${params}`);
 
-    // Agrupar por equipamento
+    // ── AGRUPA POR EQUIPAMENTO ──
     const byEquip = {};
     data.forEach(e => {
-      const serie = e.equipamento?.serie || '—';
+      const serie   = e.equipamento?.serie || '—';
       const cliente = e.equipamento?.cliente?.nome || '—';
-      const cidade = e.equipamento?.cliente?.cidade || '—';
+      const cidade  = e.equipamento?.cliente?.cidade || '—';
 
       if (fCidade && !cidade.toLowerCase().includes(fCidade)) return;
       if (fSerie  && !serie.toLowerCase().includes(fSerie))   return;
 
       const key = e.equipamento_id;
       if (!byEquip[key]) {
-        byEquip[key] = { serie, cliente, cidade, numerador: 0, recomendado: 0, entregue: 0, sugestaoZero: 0, acima: 0, acimaRec: 0 };
+        byEquip[key] = { serie, cliente, cidade, entregas: [], sugestaoZero: 0, acima: 0, acimaRec: 0 };
       }
-      const row = byEquip[key];
-      // Recomendado: usa quantidade_sugerida se salva, senão media_consumo_mensal
-      row.recomendado += parseFloat(e.quantidade_sugerida ?? e.media_consumo_mensal ?? 0);
-      row.entregue    += parseFloat(e.quantidade_definida || 0);
-      if (e.contador_atual && e.contador_atual > row.numerador) row.numerador = e.contador_atual;
-      if (e.observacao?.includes('[SUGESTAO_ZERO]'))    row.sugestaoZero++;
-      if (e.observacao?.includes('[ACIMA DO LIMITE]'))  row.acima++;
-      if (e.observacao?.includes('[ACIMA_RECOMENDADO')) row.acimaRec++;
+      byEquip[key].entregas.push(e);
+      if (e.observacao?.includes('[SUGESTAO_ZERO]'))    byEquip[key].sugestaoZero++;
+      if (e.observacao?.includes('[ACIMA DO LIMITE]'))  byEquip[key].acima++;
+      if (e.observacao?.includes('[ACIMA_RECOMENDADO')) byEquip[key].acimaRec++;
     });
 
-    let rows = Object.values(byEquip).map(r => ({
-      ...r,
-      saldo: parseFloat((r.entregue - r.recomendado).toFixed(1))
-    }));
+    // ── CALCULA CONSUMO REAL PELO CONTADOR (span entre leituras) ──
+    let rows = Object.values(byEquip).map(r => {
+      const entregue = r.entregas.reduce((s, e) => s + parseFloat(e.quantidade_definida || 0), 0);
 
-    // Filtro por tipo (margem de aceitação: 2 resmas)
-    if (fTipo === 'acima_margem')      rows = rows.filter(r => r.saldo > 2);
-    if (fTipo === 'acima_recomendado') rows = rows.filter(r => r.acimaRec > 0);
-    if (fTipo === 'sugestao_zero')     rows = rows.filter(r => r.sugestaoZero > 0);
+      // Filtra entregas com contador válido, já ordenadas (query veio asc)
+      const comCont = r.entregas.filter(e => e.contador_atual > 0);
 
-    // Ordena: saldo decrescente (maiores excessos no topo)
-    rows.sort((a, b) => b.saldo - a.saldo);
+      let consumoResmas = null;
+      let numMin = 0, numMax = 0;
 
-    // KPIs
-    const totalEntregue    = rows.reduce((s, r) => s + r.entregue, 0);
-    const totalRecomendado = rows.reduce((s, r) => s + r.recomendado, 0);
-    const saldoGeral       = parseFloat((totalEntregue - totalRecomendado).toFixed(1));
+      if (comCont.length >= 2) {
+        numMin = comCont[0].contador_atual;
+        numMax = comCont[comCont.length - 1].contador_atual;
+        consumoResmas = Math.max(0, parseFloat(((numMax - numMin) / 500).toFixed(1)));
+      } else if (comCont.length === 1) {
+        numMax = comCont[0].contador_atual;
+        // 1 leitura: consumo não calculável
+      }
+
+      // SALDO = consumido − entregue
+      // POSITIVO (+): consumiu mais do que entregamos → precisa de papel
+      // NEGATIVO (−): recebeu mais do que consumiu   → papel acumulando (alerta)
+      const saldo = consumoResmas !== null
+        ? parseFloat((consumoResmas - entregue).toFixed(1))
+        : null;
+
+      return {
+        serie: r.serie, cliente: r.cliente, cidade: r.cidade,
+        numMin, numMax, consumoResmas, entregue, saldo,
+        sugestaoZero: r.sugestaoZero, acima: r.acima, acimaRec: r.acimaRec
+      };
+    });
+
+    // ── FILTROS ──
+    if (fTipo === 'excesso')      rows = rows.filter(r => r.saldo !== null && r.saldo < -2);
+    if (fTipo === 'deficit')      rows = rows.filter(r => r.saldo !== null && r.saldo > 2);
+    if (fTipo === 'sem_contador') rows = rows.filter(r => r.consumoResmas === null);
+    if (fTipo === 'sugestao_zero') rows = rows.filter(r => r.sugestaoZero > 0);
+
+    // Ordena: saldo mais negativo no topo (casos mais suspeitos primeiro)
+    rows.sort((a, b) => {
+      if (a.saldo === null && b.saldo === null) return 0;
+      if (a.saldo === null) return 1;
+      if (b.saldo === null) return -1;
+      return a.saldo - b.saldo;
+    });
+
+    // ── KPIs ──
+    const totalEntregue  = rows.reduce((s, r) => s + r.entregue, 0);
+    const totalConsumido = rows.filter(r => r.consumoResmas !== null).reduce((s, r) => s + r.consumoResmas, 0);
+    const saldoGeral     = parseFloat((totalConsumido - totalEntregue).toFixed(1));
+
     document.getElementById('invKpiEquip').textContent       = rows.length;
-    document.getElementById('invKpiEntregue').textContent    = totalEntregue.toLocaleString('pt-BR') + ' r';
-    document.getElementById('invKpiRecomendado').textContent = totalRecomendado.toFixed(1).replace('.', ',') + ' r';
-    const saldoEl = document.getElementById('invKpiSaldo');
-    saldoEl.textContent = (saldoGeral > 0 ? '+' : '') + saldoGeral.toFixed(1).replace('.', ',') + ' r';
-    saldoEl.style.color = saldoGeral > 0 ? '#ef4444' : saldoGeral < 0 ? '#22c55e' : '';
+    document.getElementById('invKpiEntregue').textContent    = totalEntregue.toFixed(1).replace('.', ',') + ' r';
+    document.getElementById('invKpiRecomendado').textContent = totalConsumido.toFixed(1).replace('.', ',') + ' r';
+    const saldoKpiEl = document.getElementById('invKpiSaldo');
+    saldoKpiEl.textContent  = (saldoGeral > 0 ? '+' : '') + saldoGeral.toFixed(1).replace('.', ',') + ' r';
+    // Negativo = entregue > consumido = papel acumulando = VERMELHO
+    // Positivo = consumido > entregue = precisam de mais papel = VERDE
+    saldoKpiEl.style.color  = saldoGeral < -2 ? '#ef4444' : saldoGeral > 2 ? '#22c55e' : '#f59e0b';
 
     if (rows.length === 0) {
       tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Nenhum registro encontrado para o período.</td></tr>`;
@@ -3298,21 +3331,39 @@ async function carregarInvestigacao() {
     }
 
     tbody.innerHTML = rows.map(r => {
-      const saldoCor  = r.saldo > 2 ? '#ef4444' : r.saldo > 0 ? '#f59e0b' : r.saldo < 0 ? '#22c55e' : '';
-      const saldoTxt  = (r.saldo > 0 ? '+' : '') + r.saldo.toFixed(1).replace('.', ',');
-      const numerador = r.numerador > 0 ? r.numerador.toLocaleString('pt-BR') : '—';
+      // Saldo: negativo (alerta vermelho) = recebeu mais que consumiu
+      //        positivo (verde) = consumiu mais que recebeu
+      const saldoCor = r.saldo === null ? '#64748b'
+                     : r.saldo < -2    ? '#ef4444'
+                     : r.saldo < 0     ? '#f97316'
+                     : r.saldo <= 2    ? '#f59e0b'
+                     :                   '#22c55e';
+
+      const saldoTxt = r.saldo === null ? '—'
+                     : (r.saldo > 0 ? '+' : '') + r.saldo.toFixed(1).replace('.', ',') + ' r';
+
+      // Numerador: mostra span "min → max" quando há 2+ leituras
+      const spanTxt = r.numMin > 0 && r.numMax > r.numMin
+        ? `${r.numMin.toLocaleString('pt-BR')} → ${r.numMax.toLocaleString('pt-BR')}`
+        : r.numMax > 0 ? r.numMax.toLocaleString('pt-BR') : '—';
+
+      const consumidoTxt = r.consumoResmas !== null
+        ? r.consumoResmas.toFixed(1).replace('.', ',') + ' r'
+        : '<span style="color:#64748b;font-size:.75rem">sem leitura</span>';
+
       const badges = [
-        r.sugestaoZero > 0 ? `<span class="badge-diverg" style="background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.4);color:#ca8a04">SALDO ZERO ×${r.sugestaoZero}</span>` : '',
-        r.acima > 0        ? `<span class="badge-diverg">ACIMA LIMITE ×${r.acima}</span>` : '',
-        r.acimaRec > 0     ? `<span class="badge-diverg" style="background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.4);color:#ea580c">▲ ACIMA RECOMEND. ×${r.acimaRec}</span>` : ''
+        r.saldo !== null && r.saldo < -2 ? `<span class="badge-diverg">&#x26A0; EXCESSO ${Math.abs(r.saldo).toFixed(1).replace('.', ',')}r</span>` : '',
+        r.sugestaoZero > 0 ? `<span class="badge-diverg" style="background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.4);color:#ca8a04">SEM SALDO ×${r.sugestaoZero}</span>` : '',
+        r.acimaRec > 0     ? `<span class="badge-diverg" style="background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.4);color:#ea580c">▲ ACIMA REC. ×${r.acimaRec}</span>` : ''
       ].filter(Boolean).join(' ');
+
       return `<tr>
         <td><strong>${esc(r.serie)}</strong></td>
         <td>${esc(r.cliente)}</td>
         <td>${esc(r.cidade)}</td>
-        <td class="text-center">${numerador}</td>
-        <td class="text-center">${r.recomendado.toFixed(1).replace('.', ',')}</td>
-        <td class="text-center">${r.entregue}</td>
+        <td class="text-center" style="font-size:.8rem;color:#94a3b8">${spanTxt}</td>
+        <td class="text-center">${consumidoTxt}</td>
+        <td class="text-center">${r.entregue.toFixed(1).replace('.', ',') + ' r'}</td>
         <td class="text-center" style="font-weight:700;color:${saldoCor}">${saldoTxt}</td>
         <td class="text-center">${badges || '—'}</td>
       </tr>`;
