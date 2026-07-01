@@ -1125,29 +1125,16 @@ async function salvarBalanceamento() {
         const recomendadoAtual = state.sugestoes['rec'] || 0;
         if (recomendadoAtual > 0 && qtd > recomendadoAtual) {
             const excesso = qtd - recomendadoAtual;
-            const saldoAtual = state.saldoRemanescente || 0;
-            const serie = state.equipamento?.serie || '---';
-            const cliente = state.equipamento?.cliente?.nome || '---';
             const ultimaEntregaInfo = ultimaEntregaResmas > 0
-                ? `\u00daltima entrega registrada: ${ultimaEntregaResmas} resma(s)\n`
-                : '';
-            const saldoInfo = saldoAtual > 0
-                ? `Saldo ainda em estoque no cliente: \u2248${saldoAtual.toFixed(1)} resma(s)\n`
-                : '';
-            const consumoPags = cont > 0 ? (cont - ultimoContador) : 0;
-            const consumoInfo = consumoPags > 0
-                ? `Consumo medido: ${consumoPags.toLocaleString('pt-BR')} p\u00e1gs (${(consumoPags/500).toFixed(1)} resmas)\n`
+                ? `Última entrega: ${ultimaEntregaResmas} resma(s)\n`
                 : '';
             const confirmou = confirm(
-                `\u26a0\ufe0f ENTREGA ACIMA DO CONSUMO MEDIDO\n` +
-                `M\u00e1quina: ${serie} | Cliente: ${cliente}\n\n` +
+                `⚠️ ENTREGA ACIMA DO CONSUMO MEDIDO\n\n` +
                 ultimaEntregaInfo +
-                consumoInfo +
-                saldoInfo +
-                `Reposic\u0327\u00e3o sugerida: ${recomendadoAtual} resma(s)\n` +
-                `Quantidade a entregar agora: ${qtd} resma(s)\n` +
-                `Excesso sobre o consumo: +${excesso} resma(s)\n\n` +
-                `Esta entrega excede o consumo real medido desta m\u00e1quina.\nDeseja confirmar mesmo assim?`
+                `Reposição sugerida: ${recomendadoAtual} resma(s)\n` +
+                `Você está entregando: ${qtd} resma(s)\n` +
+                `Excesso: +${excesso} resma(s) além da última entrega\n\n` +
+                `Deseja confirmar mesmo assim?`
             );
             if (!confirmou) return;
             isAcimaRecomendado = true;
