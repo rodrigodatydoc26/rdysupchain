@@ -1126,16 +1126,28 @@ async function salvarBalanceamento() {
         if (recomendadoAtual > 0 && qtd > recomendadoAtual) {
             const excesso = qtd - recomendadoAtual;
             const saldoAtual = state.saldoRemanescente || 0;
+            const serie = state.equipamento?.serie || '---';
+            const cliente = state.equipamento?.cliente?.nome || '---';
+            const ultimaEntregaInfo = ultimaEntregaResmas > 0
+                ? `\u00daltima entrega registrada: ${ultimaEntregaResmas} resma(s)\n`
+                : '';
             const saldoInfo = saldoAtual > 0
-                ? `Saldo em estoque no cliente: ≈${saldoAtual.toFixed(1)} resma(s) (não consumidas)\n`
+                ? `Saldo ainda em estoque no cliente: \u2248${saldoAtual.toFixed(1)} resma(s)\n`
+                : '';
+            const consumoPags = cont > 0 ? (cont - ultimoContador) : 0;
+            const consumoInfo = consumoPags > 0
+                ? `Consumo medido: ${consumoPags.toLocaleString('pt-BR')} p\u00e1gs (${(consumoPags/500).toFixed(1)} resmas)\n`
                 : '';
             const confirmou = confirm(
-                `⚠️ ENTREGA ACIMA DO CONSUMO MEDIDO\n\n` +
-                `Consumo real desde a última visita: ${recomendadoAtual} resma(s)\n` +
+                `\u26a0\ufe0f ENTREGA ACIMA DO CONSUMO MEDIDO\n` +
+                `M\u00e1quina: ${serie} | Cliente: ${cliente}\n\n` +
+                ultimaEntregaInfo +
+                consumoInfo +
                 saldoInfo +
+                `Reposic\u0327\u00e3o sugerida: ${recomendadoAtual} resma(s)\n` +
                 `Quantidade a entregar agora: ${qtd} resma(s)\n` +
-                `Excesso sobre o consumo: ${excesso} resma(s)\n\n` +
-                `Esta entrega excede o consumo real medido.\nDeseja confirmar mesmo assim?`
+                `Excesso sobre o consumo: +${excesso} resma(s)\n\n` +
+                `Esta entrega excede o consumo real medido desta m\u00e1quina.\nDeseja confirmar mesmo assim?`
             );
             if (!confirmou) return;
             isAcimaRecomendado = true;
@@ -1478,6 +1490,12 @@ async function confirmarFechamentoAnalise() {
     if (novoContadorVal === '' || isNaN(parseInt(novoContadorVal))) {
         return alert("Informe o novo numerador atual!");
     }
+    const novaOsVal = (document.getElementById('fecharOsInput')?.value || '').trim();
+    if (!novaOsVal) {
+        alert("O número da O.S. é obrigatório para confirmar a entrega!");
+        document.getElementById('fecharOsInput')?.focus();
+        return;
+    }
     const novoContador = parseInt(novoContadorVal);
     
     const equip = state.equipamento;
@@ -1503,7 +1521,6 @@ async function confirmarFechamentoAnalise() {
     const novasResmas = parseInt(document.getElementById('fecharResmasInput').value) || 0;
 
     // Calcular se o valor é superior à última entrega
-    const novaOs = (document.getElementById('fecharOsInput')?.value || '').trim();
     const confirmadas = (state.entregas || []).filter(e => e.status === 'confirmado' && e.id !== analise.id);
     const ultimaConfirmada = confirmadas.length > 0 ? confirmadas[confirmadas.length - 1] : null;
     const ultimaEntregaResmas = ultimaConfirmada ? (parseInt(ultimaConfirmada.quantidade_definida) || 0) : 0;
@@ -1550,7 +1567,7 @@ async function confirmarFechamentoAnalise() {
         await API.post('/balanceamento_entregas', {
             equipamento_id: equip.id,
             cliente_id: equip.cliente.id,
-            numero_os: novaOs || analise.numero_os || '',
+            numero_os: novaOsVal || analise.numero_os || '',
             media_consumo_mensal: analise.media_consumo_mensal || 0,
             opcao_entrega: null,
             quantidade_definida: novasResmas,
