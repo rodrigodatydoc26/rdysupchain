@@ -992,10 +992,35 @@ async function salvarBalanceamento() {
     const obs = document.getElementById('inputObs').value.trim();
 
     let qtd = 0;
-    if (state.opcao === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
-    else qtd = state.sugestoes[state.opcao] || 0;
+    let isSugestaoZero = false;
+    let qtdSugerida = 0;
+
+    if (state.opcao === 0) {
+        qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
+        qtdSugerida = state.sugestoes[1] || 0;
+    } else {
+        const sugestaoSelecionada = state.sugestoes[state.opcao] || 0;
+        qtdSugerida = sugestaoSelecionada;
+        if (sugestaoSelecionada === 0) {
+            isSugestaoZero = true;
+            qtd = parseInt(document.getElementById('inputManualQtd')?.value) || 0;
+            if (!qtd) {
+                alert("Sugestão de entrega é 0 (sem previsão de consumo).\nInforme a quantidade no campo Manual e o nº da O.S. para prosseguir.");
+                return;
+            }
+        } else {
+            qtd = sugestaoSelecionada;
+        }
+    }
 
     if (!qtd) return alert("Selecione uma opção de entrega!");
+
+    // Entrega com sugestão zero sempre exige O.S.
+    if (isSugestaoZero && !os) {
+        alert("O.S. obrigatória para entrega com sugestão zero.");
+        document.getElementById('inputOs')?.focus();
+        return;
+    }
 
     let isExcecao = false;
     let isSuperiorUltima = false;
@@ -1074,6 +1099,7 @@ async function salvarBalanceamento() {
 
         let finalObs = obs || '';
         if (isDivergencia)   finalObs = `[DIVERG.${divergenciaResmas}R] ${finalObs}`.trim();
+        if (isSugestaoZero)  finalObs = `[SUGESTAO_ZERO] ${finalObs}`.trim();
         if (state.opcao === 'rec') finalObs = `[RECOMENDADO] ${finalObs}`.trim();
         if (isExcecao)       finalObs = `[ACIMA DO LIMITE] ${finalObs}`.trim();
         if (isSuperiorUltima) finalObs = `[SUPERIOR A ULTIMA] ${finalObs}`.trim();
@@ -1084,6 +1110,7 @@ async function salvarBalanceamento() {
             numero_os: os || '',
             media_consumo_mensal: finalMedia,
             opcao_entrega: (state.opcao === 'rec' || state.opcao === 0) ? null : state.opcao,
+            quantidade_sugerida: qtdSugerida || null,
             quantidade_definida: qtd,
             contador_atual: cont,
             observacao: finalObs,
@@ -1910,7 +1937,7 @@ function showAdmin() {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
             if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260641';
+                window.location.href = 'admin.html?v=20260642';
             }
             return;
         }
