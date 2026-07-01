@@ -122,6 +122,17 @@
     .dias-crit { color: var(--danger); font-weight: 700; }
 
     /* ── BADGE DIVERGÊNCIA DE RESMAS ── */
+    .inv-periodo-btn {
+      padding: 4px 10px; font-size: 0.75rem; font-weight: 600;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-dim); cursor: pointer;
+      transition: all .15s;
+    }
+    .inv-periodo-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .inv-periodo-btn-active {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff !important;
+    }
     .badge-diverg {
       display: inline-block; margin-top: 4px;
       background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35);
@@ -840,6 +851,16 @@
           </div>
         </div>
         <div class="admin-filters-grid">
+          <!-- Atalhos de período -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+            <button class="inv-periodo-btn" onclick="invSetPeriodo('hoje')">Hoje</button>
+            <button class="inv-periodo-btn" onclick="invSetPeriodo('ontem')">Ontem</button>
+            <button class="inv-periodo-btn" onclick="invSetPeriodo('semana')">Esta semana</button>
+            <button class="inv-periodo-btn" onclick="invSetPeriodo('mes')">Este mês</button>
+            <button class="inv-periodo-btn" onclick="invSetPeriodo('3meses')">3 meses</button>
+            <button class="inv-periodo-btn" onclick="invSetPeriodo('6meses')">6 meses</button>
+            <button class="inv-periodo-btn inv-periodo-btn-active" id="invBtnPeriodo12" onclick="invSetPeriodo('12meses')">12 meses</button>
+          </div>
           <div class="filter-row-top">
             <div class="date-range-group">
               <input type="date" id="invDataInicio" title="Data Inicial">
@@ -3211,6 +3232,48 @@ function fecharModalEdicaoHistorico() {
 // ════════════════════════════════════════════════════════
 // INVESTIGAÇÃO DE CONSUMO
 // ════════════════════════════════════════════════════════
+function invSetPeriodo(tipo) {
+  const hoje = new Date();
+  const pad2 = n => String(n).padStart(2,'0');
+  const fmt  = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  const hojeStr = fmt(hoje);
+  let di = hojeStr, df = hojeStr;
+
+  if (tipo === 'hoje') {
+    di = df = hojeStr;
+  } else if (tipo === 'ontem') {
+    const ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
+    di = df = fmt(ontem);
+  } else if (tipo === 'semana') {
+    const seg = new Date(hoje);
+    seg.setDate(hoje.getDate() - ((hoje.getDay() + 6) % 7)); // segunda-feira
+    di = fmt(seg); df = hojeStr;
+  } else if (tipo === 'mes') {
+    di = `${hoje.getFullYear()}-${pad2(hoje.getMonth()+1)}-01`;
+    df = hojeStr;
+  } else if (tipo === '3meses') {
+    const d = new Date(hoje); d.setMonth(d.getMonth() - 3);
+    di = fmt(d); df = hojeStr;
+  } else if (tipo === '6meses') {
+    const d = new Date(hoje); d.setMonth(d.getMonth() - 6);
+    di = fmt(d); df = hojeStr;
+  } else if (tipo === '12meses') {
+    const d = new Date(hoje); d.setFullYear(d.getFullYear() - 1);
+    di = fmt(d); df = hojeStr;
+  }
+
+  const diEl = document.getElementById('invDataInicio');
+  const dfEl = document.getElementById('invDataFim');
+  if (diEl) diEl.value = di;
+  if (dfEl) dfEl.value = df;
+
+  // Destaca o botão ativo
+  document.querySelectorAll('.inv-periodo-btn').forEach(b => b.classList.remove('inv-periodo-btn-active'));
+  event?.target?.classList.add('inv-periodo-btn-active');
+
+  carregarInvestigacao();
+}
+
 async function carregarInvestigacao() {
   // TUDO dentro de um único try/catch para nunca disparar o handler global de erros
   try {
