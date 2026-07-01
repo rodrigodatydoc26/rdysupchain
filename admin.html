@@ -858,9 +858,9 @@
             </div>
             <div class="filter-input-group">
               <select id="invFiltroTipo" onchange="carregarInvestigacao()">
-                <option value="todos">Todos</option>
-                <option value="acima_margem" selected>Saldo &gt; 2 resmas (alerta)</option>
-                <option value="sugestao_zero">Sugestão Zero</option>
+                <option value="todos" selected>Todos os Equipamentos</option>
+                <option value="acima_margem">Saldo &gt; 2 resmas (alerta)</option>
+                <option value="sugestao_zero">Entrega com Sugestão Zero</option>
               </select>
             </div>
             <button class="btn-filter-premium" onclick="carregarInvestigacao()" title="Buscar">
@@ -869,7 +869,7 @@
           </div>
         </div>
 
-        <div class="kpi-grid kpi-grid-entregas my-12">
+        <div class="kpi-grid kpi-grid-entregas" style="margin:12px 0">
           <div class="kpi-card">
             <span class="kpi-label">Equipamentos</span>
             <span class="kpi-value" id="invKpiEquip">—</span>
@@ -3215,13 +3215,19 @@ function fecharModalEdicaoHistorico() {
 async function carregarInvestigacao() {
   const hoje = new Date();
   const pad2 = n => String(n).padStart(2,'0');
-  const di = document.getElementById('invDataInicio')?.value
-    || `${hoje.getFullYear()}-${pad2(hoje.getMonth()+1)}-01`;
-  const df = document.getElementById('invDataFim')?.value
-    || `${hoje.getFullYear()}-${pad2(hoje.getMonth()+1)}-${pad2(hoje.getDate())}`;
+  const fmtD = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  const tresMesesAtras = new Date(hoje); tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
+  const di = document.getElementById('invDataInicio')?.value || fmtD(tresMesesAtras);
+  const df = document.getElementById('invDataFim')?.value   || fmtD(hoje);
   const fCidade = document.getElementById('invFiltroCidade')?.value.trim().toLowerCase() || '';
   const fSerie  = document.getElementById('invFiltroSerie')?.value.trim().toLowerCase() || '';
   const fTipo   = document.getElementById('invFiltroTipo')?.value || 'todos';
+
+  // Pré-preenche inputs de data se ainda vazios
+  const diEl = document.getElementById('invDataInicio');
+  const dfEl = document.getElementById('invDataFim');
+  if (diEl && !diEl.value) diEl.value = di;
+  if (dfEl && !dfEl.value) dfEl.value = df;
 
   const tbody = document.getElementById('investigacaoTbody');
   tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
