@@ -4,15 +4,11 @@
   <meta charset="UTF-8">
   <script>
     window.onerror = function(message, source, lineno, colno, error) {
-      const msg = message + '\nAt: ' + source + ':' + lineno + ':' + colno + '\nStack: ' + (error ? error.stack : '');
-      alert('ERRO DE EXECUÇÃO JS EM ADMIN:\n' + msg);
-      console.error(msg);
+      console.error('ADMIN JS ERROR:', message, 'at', source + ':' + lineno + ':' + colno, error);
       return false;
     };
     window.addEventListener('unhandledrejection', function(event) {
-      const msg = 'Unhandled Rejection EM ADMIN: ' + (event.reason ? (event.reason.message || event.reason) : 'Unknown reason') + '\nStack: ' + (event.reason ? event.reason.stack : '');
-      alert('REJEIÇÃO DE PROMISE JS EM ADMIN:\n' + msg);
-      console.error(event.reason);
+      console.error('ADMIN unhandledrejection:', event.reason);
     });
     // Exige adm_user E adm_tk — impede acesso apenas colocando a URL ou manipulando localStorage
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
@@ -3216,37 +3212,39 @@ function fecharModalEdicaoHistorico() {
 // INVESTIGAÇÃO DE CONSUMO
 // ════════════════════════════════════════════════════════
 async function carregarInvestigacao() {
-  const hoje = new Date();
-  const pad2 = n => String(n).padStart(2,'0');
-  const fmtD = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  const tresMesesAtras = new Date(hoje); tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
-  const di = document.getElementById('invDataInicio')?.value || fmtD(tresMesesAtras);
-  const df = document.getElementById('invDataFim')?.value   || fmtD(hoje);
-  const fCidade = document.getElementById('invFiltroCidade')?.value.trim().toLowerCase() || '';
-  const fSerie  = document.getElementById('invFiltroSerie')?.value.trim().toLowerCase() || '';
-  const fTipo   = document.getElementById('invFiltroTipo')?.value || 'todos';
-
-  const diEl = document.getElementById('invDataInicio');
-  const dfEl = document.getElementById('invDataFim');
-  if (diEl && !diEl.value) diEl.value = di;
-  if (dfEl && !dfEl.value) dfEl.value = df;
-
-  const tbody = document.getElementById('investigacaoTbody');
-  tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
-
-  const tz = getLocalOffsetString();
-  let params = `status=in.(confirmado,analise_aberta)${cidadeFilter()}`;
-  params += `&data_registro=gte.${di}T00:00:00${tz}`;
-  params += `&data_registro=lte.${df}T23:59:59${tz}`;
-  params += `&select=equipamento_id,quantidade_definida,contador_atual,observacao,data_registro,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))`;
-  params += `&order=data_registro.asc&limit=5000`;
-
+  // TUDO dentro de um único try/catch para nunca disparar o handler global de erros
   try {
+    const hoje = new Date();
+    const pad2 = n => String(n).padStart(2,'0');
+    const fmtD = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+    const tresMesesAtras = new Date(hoje); tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
+    const di = document.getElementById('invDataInicio')?.value || fmtD(tresMesesAtras);
+    const df = document.getElementById('invDataFim')?.value   || fmtD(hoje);
+    const fCidade = document.getElementById('invFiltroCidade')?.value.trim().toLowerCase() || '';
+    const fSerie  = document.getElementById('invFiltroSerie')?.value.trim().toLowerCase() || '';
+    const fTipo   = document.getElementById('invFiltroTipo')?.value || 'todos';
+
+    const diEl = document.getElementById('invDataInicio');
+    const dfEl = document.getElementById('invDataFim');
+    if (diEl && !diEl.value) diEl.value = di;
+    if (dfEl && !dfEl.value) dfEl.value = df;
+
+    const tbody = document.getElementById('investigacaoTbody');
+    if (!tbody) return; // tab ainda não está no DOM
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
+
+    const tz = getLocalOffsetString();
+    let params = `status=in.(confirmado,analise_aberta)${cidadeFilter()}`;
+    params += `&data_registro=gte.${di}T00:00:00${tz}`;
+    params += `&data_registro=lte.${df}T23:59:59${tz}`;
+    params += `&select=equipamento_id,quantidade_definida,contador_atual,observacao,data_registro,equipamento:equipamentos!inner(serie,cliente:clientes!inner(nome,cidade))`;
+    params += `&order=data_registro.asc&limit=5000`;
+
     const data = await API.fetch(`/balanceamento_entregas?${params}`);
 
     // ── AGRUPA POR EQUIPAMENTO ──
     const byEquip = {};
-    data.forEach(e => {
+    (data || []).forEach(e => {
       const serie   = e.equipamento?.serie || '—';
       const cliente = e.equipamento?.cliente?.nome || '—';
       const cidade  = e.equipamento?.cliente?.cidade || '—';
@@ -3267,43 +3265,35 @@ async function carregarInvestigacao() {
     // ── CALCULA CONSUMO REAL PELO CONTADOR (span entre leituras) ──
     let rows = Object.values(byEquip).map(r => {
       const entregue = r.entregas.reduce((s, e) => s + parseFloat(e.quantidade_definida || 0), 0);
+      const comCont  = r.entregas.filter(e => e.contador_atual > 0);
 
-      // Filtra entregas com contador válido, já ordenadas (query veio asc)
-      const comCont = r.entregas.filter(e => e.contador_atual > 0);
-
-      let consumoResmas = null;
-      let numMin = 0, numMax = 0;
-
+      let consumoResmas = null, numMin = 0, numMax = 0;
       if (comCont.length >= 2) {
         numMin = comCont[0].contador_atual;
         numMax = comCont[comCont.length - 1].contador_atual;
         consumoResmas = Math.max(0, parseFloat(((numMax - numMin) / 500).toFixed(1)));
       } else if (comCont.length === 1) {
         numMax = comCont[0].contador_atual;
-        // 1 leitura: consumo não calculável
       }
 
       // SALDO = consumido − entregue
-      // POSITIVO (+): consumiu mais do que entregamos → precisa de papel
-      // NEGATIVO (−): recebeu mais do que consumiu   → papel acumulando (alerta)
+      // POSITIVO: consumiu mais → precisa de papel
+      // NEGATIVO: recebeu mais → papel acumulando (alerta)
       const saldo = consumoResmas !== null
         ? parseFloat((consumoResmas - entregue).toFixed(1))
         : null;
 
-      return {
-        serie: r.serie, cliente: r.cliente, cidade: r.cidade,
-        numMin, numMax, consumoResmas, entregue, saldo,
-        sugestaoZero: r.sugestaoZero, acima: r.acima, acimaRec: r.acimaRec
-      };
+      return { serie: r.serie, cliente: r.cliente, cidade: r.cidade,
+               numMin, numMax, consumoResmas, entregue, saldo,
+               sugestaoZero: r.sugestaoZero, acima: r.acima, acimaRec: r.acimaRec };
     });
 
     // ── FILTROS ──
-    if (fTipo === 'excesso')      rows = rows.filter(r => r.saldo !== null && r.saldo < -2);
-    if (fTipo === 'deficit')      rows = rows.filter(r => r.saldo !== null && r.saldo > 2);
-    if (fTipo === 'sem_contador') rows = rows.filter(r => r.consumoResmas === null);
+    if (fTipo === 'excesso')       rows = rows.filter(r => r.saldo !== null && r.saldo < -2);
+    if (fTipo === 'deficit')       rows = rows.filter(r => r.saldo !== null && r.saldo > 2);
+    if (fTipo === 'sem_contador')  rows = rows.filter(r => r.consumoResmas === null);
     if (fTipo === 'sugestao_zero') rows = rows.filter(r => r.sugestaoZero > 0);
 
-    // Ordena: saldo mais negativo no topo (casos mais suspeitos primeiro)
     rows.sort((a, b) => {
       if (a.saldo === null && b.saldo === null) return 0;
       if (a.saldo === null) return 1;
@@ -3316,14 +3306,17 @@ async function carregarInvestigacao() {
     const totalConsumido = rows.filter(r => r.consumoResmas !== null).reduce((s, r) => s + r.consumoResmas, 0);
     const saldoGeral     = parseFloat((totalConsumido - totalEntregue).toFixed(1));
 
-    document.getElementById('invKpiEquip').textContent       = rows.length;
-    document.getElementById('invKpiEntregue').textContent    = totalEntregue.toFixed(1).replace('.', ',') + ' r';
-    document.getElementById('invKpiRecomendado').textContent = totalConsumido.toFixed(1).replace('.', ',') + ' r';
-    const saldoKpiEl = document.getElementById('invKpiSaldo');
-    saldoKpiEl.textContent  = (saldoGeral > 0 ? '+' : '') + saldoGeral.toFixed(1).replace('.', ',') + ' r';
-    // Negativo = entregue > consumido = papel acumulando = VERMELHO
-    // Positivo = consumido > entregue = precisam de mais papel = VERDE
-    saldoKpiEl.style.color  = saldoGeral < -2 ? '#ef4444' : saldoGeral > 2 ? '#22c55e' : '#f59e0b';
+    const kpiEquip = document.getElementById('invKpiEquip');
+    const kpiEntr  = document.getElementById('invKpiEntregue');
+    const kpiCons  = document.getElementById('invKpiRecomendado');
+    const kpiSaldo = document.getElementById('invKpiSaldo');
+    if (kpiEquip) kpiEquip.textContent = rows.length;
+    if (kpiEntr)  kpiEntr.textContent  = totalEntregue.toFixed(1).replace('.', ',') + ' r';
+    if (kpiCons)  kpiCons.textContent  = totalConsumido.toFixed(1).replace('.', ',') + ' r';
+    if (kpiSaldo) {
+      kpiSaldo.textContent = (saldoGeral > 0 ? '+' : '') + saldoGeral.toFixed(1).replace('.', ',') + ' r';
+      kpiSaldo.style.color = saldoGeral < -2 ? '#ef4444' : saldoGeral > 2 ? '#22c55e' : '#f59e0b';
+    }
 
     if (rows.length === 0) {
       tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Nenhum registro encontrado para o período.</td></tr>`;
@@ -3331,32 +3324,24 @@ async function carregarInvestigacao() {
     }
 
     tbody.innerHTML = rows.map(r => {
-      // Saldo: negativo (alerta vermelho) = recebeu mais que consumiu
-      //        positivo (verde) = consumiu mais que recebeu
       const saldoCor = r.saldo === null ? '#64748b'
                      : r.saldo < -2    ? '#ef4444'
                      : r.saldo < 0     ? '#f97316'
                      : r.saldo <= 2    ? '#f59e0b'
                      :                   '#22c55e';
-
       const saldoTxt = r.saldo === null ? '—'
                      : (r.saldo > 0 ? '+' : '') + r.saldo.toFixed(1).replace('.', ',') + ' r';
-
-      // Numerador: mostra span "min → max" quando há 2+ leituras
-      const spanTxt = r.numMin > 0 && r.numMax > r.numMin
+      const spanTxt  = r.numMin > 0 && r.numMax > r.numMin
         ? `${r.numMin.toLocaleString('pt-BR')} → ${r.numMax.toLocaleString('pt-BR')}`
         : r.numMax > 0 ? r.numMax.toLocaleString('pt-BR') : '—';
-
       const consumidoTxt = r.consumoResmas !== null
         ? r.consumoResmas.toFixed(1).replace('.', ',') + ' r'
         : '<span style="color:#64748b;font-size:.75rem">sem leitura</span>';
-
       const badges = [
         r.saldo !== null && r.saldo < -2 ? `<span class="badge-diverg">&#x26A0; EXCESSO ${Math.abs(r.saldo).toFixed(1).replace('.', ',')}r</span>` : '',
         r.sugestaoZero > 0 ? `<span class="badge-diverg" style="background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.4);color:#ca8a04">SEM SALDO ×${r.sugestaoZero}</span>` : '',
         r.acimaRec > 0     ? `<span class="badge-diverg" style="background:rgba(249,115,22,.12);border-color:rgba(249,115,22,.4);color:#ea580c">▲ ACIMA REC. ×${r.acimaRec}</span>` : ''
       ].filter(Boolean).join(' ');
-
       return `<tr>
         <td><strong>${esc(r.serie)}</strong></td>
         <td>${esc(r.cliente)}</td>
@@ -3372,7 +3357,8 @@ async function carregarInvestigacao() {
     safeCreateIcons();
   } catch(err) {
     console.error('carregarInvestigacao:', err);
-    tbody.innerHTML = `<tr><td colspan="8" style="color:#ef4444;padding:12px">${err.message}</td></tr>`;
+    const tbody = document.getElementById('investigacaoTbody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
   }
 }
 
