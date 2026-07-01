@@ -921,8 +921,7 @@ function atualizarProximaSolicitacao() {
 
 function updateProxima() {
     const cont = parseInt(document.getElementById('inputContador').value) || 0;
-    
-    // Calcular recomendação por consumo real para a aba de balanceamento do CTO
+
     const entregas = state.entregas || [];
     const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
     const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
@@ -930,18 +929,48 @@ function updateProxima() {
         : (state.equipamento?.ultimo_contador || 0);
 
     const consumo = Math.max(0, cont - ultimoContador);
+
+    // ── SALDO REMANESCENTE ──
+    // Resmas entregues na última visita que ainda não foram impressas
+    const ultimaEntregaQtd = ultimaEntrega ? (parseFloat(ultimaEntrega.quantidade_definida) || 0) : 0;
+    const saldoRemanescente = (cont > 0 && ultimaEntregaQtd > 0)
+        ? Math.max(0, ultimaEntregaQtd - consumo / 500)
+        : 0;
+    state.saldoRemanescente = saldoRemanescente;
+
+    // ── RECOMENDAÇÃO: exatamente o que foi produzido ──
+    // Entrega = o que o equipamento imprimiu desde a última visita (nunca fica zero)
     const recomendado = cont > 0 ? Math.max(1, Math.ceil(consumo / 500)) : 0;
     const optRecEl = document.getElementById('optRecQtd');
     if (optRecEl) optRecEl.innerText = recomendado;
     state.sugestoes['rec'] = recomendado;
 
+    // ── DISPLAY SALDO ──
+    const lineSaldo = document.getElementById('lineSaldoRemanescente');
+    const saldoEl   = document.getElementById('resSaldoRemanescente');
+    if (lineSaldo && saldoEl) {
+        if (saldoRemanescente >= 0.1) {
+            saldoEl.textContent = saldoRemanescente.toFixed(1).replace('.', ',') + ' resmas';
+            saldoEl.style.color = saldoRemanescente > 2 ? '#ef4444' : '#f59e0b';
+            lineSaldo.classList.remove('hidden');
+        } else {
+            lineSaldo.classList.add('hidden');
+        }
+    }
+
     let qtd = 0;
     if (state.opcao === 0) qtd = parseInt(document.getElementById('inputManualQtd').value) || 0;
     else if (state.opcao !== null) qtd = state.sugestoes[state.opcao] || 0;
 
+    // ── PRÓXIMA SOLICITAÇÃO ──
+    // Inclui o saldo remanescente no total de papel disponível para o próximo ciclo
     const el = document.getElementById('resProximaSolicitacao');
-    if (cont > 0 && qtd > 0) el.innerText = (cont + (qtd * 500)).toLocaleString('pt-BR');
-    else el.innerText = '---';
+    if (cont > 0 && qtd > 0) {
+        const totalPapel = qtd + saldoRemanescente;
+        el.innerText = Math.round(cont + totalPapel * 500).toLocaleString('pt-BR');
+    } else {
+        el.innerText = '---';
+    }
 
     if (state.opcao === 'rec') {
         document.getElementById('sumOpcaoText').innerText = `Recomendado (${recomendado} resma${recomendado !== 1 ? 's' : ''})`;
@@ -1031,7 +1060,7 @@ async function salvarBalanceamento() {
     if (!isSistemaOriginal) {
         // ── SALDO: ENTREGUE VS PRODUZIDO ──
         // Tolerância: 250 páginas (0,5 resma)
-        const TOLERANCIA_PAG = 250;
+        const TOLERANCIA_PAG = 1000; // 2 resmas de margem de aceitação
         if (cont !== null && cont > 0 && ultimaEntregaResmas > 0 && ultimoContador > 0) {
             const paginasProduzidas = cont - ultimoContador;
             const paginasEsperadas  = ultimaEntregaResmas * 500;

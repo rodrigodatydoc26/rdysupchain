@@ -499,6 +499,9 @@
     .modal-equip-table {
       width: 100%;
     }
+    .my-12 {
+      margin: 12px 0;
+    }
   </style>
 
 
@@ -856,7 +859,7 @@
             <div class="filter-input-group">
               <select id="invFiltroTipo" onchange="carregarInvestigacao()">
                 <option value="todos">Todos</option>
-                <option value="saldo_positivo">Saldo Positivo (Excesso)</option>
+                <option value="acima_margem" selected>Saldo &gt; 2 resmas (alerta)</option>
                 <option value="sugestao_zero">Sugestão Zero</option>
               </select>
             </div>
@@ -866,7 +869,7 @@
           </div>
         </div>
 
-        <div class="kpi-grid kpi-grid-entregas" style="margin:12px 0">
+        <div class="kpi-grid kpi-grid-entregas my-12">
           <div class="kpi-card">
             <span class="kpi-label">Equipamentos</span>
             <span class="kpi-value" id="invKpiEquip">—</span>
@@ -900,7 +903,7 @@
               </tr>
             </thead>
             <tbody id="investigacaoTbody">
-              <tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Clique em Buscar para carregar</td></tr>
+              <tr><td colspan="8" class="text-center text-dim-color">Clique em Buscar para carregar</td></tr>
             </tbody>
           </table>
         </div>
@@ -3261,9 +3264,9 @@ async function carregarInvestigacao() {
       saldo: parseFloat((r.entregue - r.recomendado).toFixed(1))
     }));
 
-    // Filtro por tipo
-    if (fTipo === 'saldo_positivo') rows = rows.filter(r => r.saldo > 0);
-    if (fTipo === 'sugestao_zero')  rows = rows.filter(r => r.sugestaoZero > 0);
+    // Filtro por tipo (margem de aceitação: 2 resmas)
+    if (fTipo === 'acima_margem')  rows = rows.filter(r => r.saldo > 2);
+    if (fTipo === 'sugestao_zero') rows = rows.filter(r => r.sugestaoZero > 0);
 
     // Ordena: saldo decrescente (maiores excessos no topo)
     rows.sort((a, b) => b.saldo - a.saldo);
@@ -3285,7 +3288,7 @@ async function carregarInvestigacao() {
     }
 
     tbody.innerHTML = rows.map(r => {
-      const saldoCor  = r.saldo > 0 ? '#ef4444' : r.saldo < 0 ? '#22c55e' : '';
+      const saldoCor  = r.saldo > 2 ? '#ef4444' : r.saldo > 0 ? '#f59e0b' : r.saldo < 0 ? '#22c55e' : '';
       const saldoTxt  = (r.saldo > 0 ? '+' : '') + r.saldo.toFixed(1).replace('.', ',');
       const numerador = r.numerador > 0 ? r.numerador.toLocaleString('pt-BR') : '—';
       const badges = [
