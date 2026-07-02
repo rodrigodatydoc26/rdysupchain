@@ -575,6 +575,7 @@
       <button class="tab-btn active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Visão Geral</button>
       <button class="tab-btn" data-tab="entregas"><i data-lucide="history"></i> Histórico & Auditorias</button>
       <button class="tab-btn hidden" data-tab="investigacao" id="btnTabInvestigacao"><i data-lucide="search"></i> Investigação de Consumo</button>
+      <button class="tab-btn hidden" data-tab="equipamentos" id="btnTabEquipamentos"><i data-lucide="printer"></i> Equipamentos</button>
       <button class="tab-btn hidden" data-tab="cadastro" id="btnTabCadastro"><i data-lucide="plus-circle"></i> Cadastro</button>
       <button class="tab-btn hidden" data-tab="governanca" id="btnTabGovernanca"><i data-lucide="users"></i> Governança</button>
       <button class="tab-btn hidden" data-tab="bancodados" id="btnTabBancoDados"><i data-lucide="database"></i> Banco de Dados</button>
@@ -982,6 +983,50 @@
       </div>
     </section>
 
+    <!-- ══ TAB: EQUIPAMENTOS ══ -->
+    <section id="tab-equipamentos" class="tab-content">
+      <div class="search-card">
+        <div class="section-hdr">
+          <h3><i data-lucide="printer"></i> Equipamentos Cadastrados</h3>
+        </div>
+        <div class="admin-filters-grid">
+          <div class="filter-row-top">
+            <div class="filter-input-group">
+              <select id="equipFiltrosCidade" class="input-text" onchange="carregarEquipamentosAdmin()">
+                <option value="">Todas as Cidades</option>
+              </select>
+            </div>
+            <div class="filter-input-group">
+              <input type="text" id="equipFiltroSerie" class="input-text" placeholder="Buscar por Série ou Cliente..." oninput="carregarEquipamentosAdmin()">
+            </div>
+            <button class="btn-filter-premium" onclick="carregarEquipamentosAdmin()">
+              <i data-lucide="search"></i> Buscar
+            </button>
+          </div>
+        </div>
+        <div style="margin:8px 0 12px;font-size:.85rem;color:var(--text-dim)">
+          <span id="equipKpiTotal">—</span> equipamentos encontrados
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr>
+              <th>Série</th>
+              <th>Modelo</th>
+              <th>Cliente / Local</th>
+              <th>Cidade</th>
+              <th>Secretaria / Setor</th>
+              <th class="text-center">Média/mês</th>
+              <th class="text-center">Contador</th>
+              <th class="text-center">Ações</th>
+            </tr></thead>
+            <tbody id="equipTbody">
+              <tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Selecione uma cidade para carregar.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- ══ TAB: BANCO DE DADOS ══ -->
     <!-- ══ TAB: CADASTRO ══ -->
     <section id="tab-cadastro" class="tab-content">
@@ -1228,6 +1273,61 @@
   </div>
 
   <!-- MODAL EDIÇÃO HISTÓRICO - Linter Refreshed -->
+  <!-- MODAL EDITAR EQUIPAMENTO -->
+  <div id="modalEditarEquip" class="modal-overlay hidden" onclick="if(event.target===this)fecharModalEditarEquip()">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h3><i data-lucide="edit"></i> Editar Equipamento</h3>
+        <button class="btn-close" onclick="fecharModalEditarEquip()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editEquipId">
+        <input type="hidden" id="editEquipClienteId">
+        <p id="editEquipInfo" style="font-size:.8rem;color:var(--text-dim);margin-bottom:12px"></p>
+
+        <div class="form-group">
+          <label>Série *</label>
+          <input type="text" id="editEquipSerie" class="input-text" required>
+        </div>
+        <div class="form-group">
+          <label>Modelo</label>
+          <input type="text" id="editEquipModelo" class="input-text" placeholder="Ex: Kyocera TASKalfa 3212i">
+        </div>
+        <div class="form-group">
+          <label>Patrimônio</label>
+          <input type="text" id="editEquipPatrimonio" class="input-text" placeholder="Ex: PAT-0042">
+        </div>
+        <div class="form-group">
+          <label>Secretaria / Setor</label>
+          <input type="text" id="editEquipSecretaria" class="input-text" placeholder="Ex: SECRETARIA DE EDUCAÇÃO">
+        </div>
+        <div class="form-group">
+          <label>Sub-Local do Cliente</label>
+          <input type="text" id="editEquipSubNome" class="input-text" placeholder="Ex: ESCOLA MUNICIPAL X">
+        </div>
+        <div class="form-group">
+          <label>Média de Referência <span style="color:var(--text-dim);font-weight:400">(resmas/mês)</span></label>
+          <input type="number" id="editEquipMedia" class="input-text" min="0" step="0.5">
+        </div>
+        <hr style="border-color:var(--border);margin:16px 0">
+        <div class="form-group">
+          <label>Atualizar Contador <span style="color:var(--text-dim);font-weight:400">(leitura atual do numerador)</span></label>
+          <input type="number" id="editEquipContador" class="input-text" min="0" placeholder="Deixe vazio para não alterar">
+          <small style="color:var(--text-dim);font-size:.75rem">Atual: <strong id="editEquipContadorAtual">—</strong></small>
+        </div>
+
+        <div id="editEquipMsg" class="hidden" style="margin-top:12px;padding:10px;border-radius:8px;font-size:.85rem"></div>
+
+        <div class="modal-actions mt-20">
+          <button type="button" class="btn-outline" onclick="fecharModalEditarEquip()">Cancelar</button>
+          <button type="button" class="btn-primary" onclick="salvarEdicaoEquipamento()">
+            <i data-lucide="save"></i> Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="modalEdicaoHistorico" class="modal-overlay hidden">
     <div class="modal-content modal-content-sm">
       <div class="modal-header">
@@ -1472,16 +1572,19 @@ async function entrarAdmin(user, cfg) {
   adminState.role   = cfg.role;
 
   // Show "Governança" and "Banco de Dados" tabs only if user is CTO
-  const btnCad  = document.getElementById('btnTabCadastro');
-  const btnGov  = document.getElementById('btnTabGovernanca');
-  const btnDb   = document.getElementById('btnTabBancoDados');
-  const btnInv  = document.getElementById('btnTabInvestigacao');
+  const btnCad   = document.getElementById('btnTabCadastro');
+  const btnGov   = document.getElementById('btnTabGovernanca');
+  const btnDb    = document.getElementById('btnTabBancoDados');
+  const btnInv   = document.getElementById('btnTabInvestigacao');
+  const btnEquip = document.getElementById('btnTabEquipamentos');
   if (cfg.role === 'cto' || cfg.role === 'gestor') {
     btnCad.classList.remove('hidden');
     btnInv?.classList.remove('hidden');
+    btnEquip?.classList.remove('hidden');
   } else {
     btnCad.classList.add('hidden');
     btnInv?.classList.add('hidden');
+    btnEquip?.classList.add('hidden');
   }
   if (cfg.role === 'cto') {
     btnGov.classList.remove('hidden');
@@ -1522,9 +1625,174 @@ function initAdminTabs() {
       if (tabId === 'entregas')      carregarEntregas();
       if (tabId === 'investigacao')  carregarInvestigacao();
       if (tabId === 'governanca')    carregarGovernanca();
+      if (tabId === 'equipamentos')  inicializarEquipamentosAdmin();
       if (tabId === 'cadastro')      cadInicializar();
     });
   });
+}
+
+// ════════════════════════════════════════════════════════
+// GESTÃO DE EQUIPAMENTOS
+// ════════════════════════════════════════════════════════
+let _equipAdminCache = [];
+
+async function inicializarEquipamentosAdmin() {
+  // Popula select de cidades
+  try {
+    const cids = await API.fetch('/clientes?select=cidade&order=cidade.asc');
+    const unicas = [...new Set(cids.map(c => c.cidade).filter(Boolean))].sort();
+    const sel = document.getElementById('equipFiltrosCidade');
+    if (sel) {
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">Todas as Cidades</option>' +
+        unicas.map(c => `<option value="${esc(c)}"${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
+    }
+  } catch(e) {}
+  carregarEquipamentosAdmin();
+}
+
+async function carregarEquipamentosAdmin() {
+  const tbody = document.getElementById('equipTbody');
+  const fCidade = document.getElementById('equipFiltrosCidade')?.value || '';
+  const fBusca  = document.getElementById('equipFiltroSerie')?.value.trim().toLowerCase() || '';
+  if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
+
+  try {
+    let params = '/equipamentos?select=id,serie,modelo,patrimonio,secretaria,media_referencia,ultimo_contador,cliente:clientes(id,nome,cidade,sub_nome)&order=serie.asc&limit=2000';
+    const data = await API.fetch(params);
+    _equipAdminCache = data || [];
+
+    // Filtros client-side
+    let rows = _equipAdminCache.filter(r => {
+      const cidade  = (r.cliente?.cidade || '').toUpperCase();
+      const serie   = (r.serie || '').toLowerCase();
+      const cliente = (r.cliente?.nome || '').toLowerCase();
+      if (fCidade && cidade !== fCidade.toUpperCase()) return false;
+      if (fBusca  && !serie.includes(fBusca) && !cliente.includes(fBusca)) return false;
+      return true;
+    });
+
+    const kpi = document.getElementById('equipKpiTotal');
+    if (kpi) kpi.textContent = rows.length;
+
+    if (!tbody) return;
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Nenhum equipamento encontrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${esc(r.serie)}</strong></td>
+      <td>${esc(r.modelo || '—')}</td>
+      <td>${esc(r.cliente?.nome || '—')}${r.cliente?.sub_nome ? `<br><small style="color:var(--text-dim)">${esc(r.cliente.sub_nome)}</small>` : ''}</td>
+      <td>${esc(r.cliente?.cidade || '—')}</td>
+      <td>${esc(r.secretaria || '—')}</td>
+      <td class="text-center">${r.media_referencia != null ? r.media_referencia + ' r' : '—'}</td>
+      <td class="text-center">${r.ultimo_contador != null ? r.ultimo_contador.toLocaleString('pt-BR') : '—'}</td>
+      <td class="text-center">
+        <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar">
+          <i data-lucide="edit"></i>
+        </button>
+      </td>
+    </tr>`).join('');
+    safeCreateIcons();
+  } catch(err) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
+  }
+}
+
+function abrirModalEditarEquip(id) {
+  const r = _equipAdminCache.find(e => e.id === id);
+  if (!r) return;
+  document.getElementById('editEquipId').value        = r.id;
+  document.getElementById('editEquipClienteId').value = r.cliente?.id || '';
+  document.getElementById('editEquipSerie').value      = r.serie || '';
+  document.getElementById('editEquipModelo').value     = r.modelo || '';
+  document.getElementById('editEquipPatrimonio').value = r.patrimonio || '';
+  document.getElementById('editEquipSecretaria').value = r.secretaria || '';
+  document.getElementById('editEquipSubNome').value    = r.cliente?.sub_nome || '';
+  document.getElementById('editEquipMedia').value      = r.media_referencia != null ? r.media_referencia : '';
+  document.getElementById('editEquipContador').value   = '';
+  document.getElementById('editEquipContadorAtual').textContent =
+    r.ultimo_contador != null ? r.ultimo_contador.toLocaleString('pt-BR') : 'não registrado';
+  document.getElementById('editEquipInfo').textContent =
+    `${r.cliente?.nome || ''} · ${r.cliente?.cidade || ''}`;
+  const msg = document.getElementById('editEquipMsg');
+  msg.className = 'hidden';
+  msg.textContent = '';
+  document.getElementById('modalEditarEquip').classList.remove('hidden');
+}
+
+function fecharModalEditarEquip() {
+  document.getElementById('modalEditarEquip').classList.add('hidden');
+}
+
+async function salvarEdicaoEquipamento() {
+  const id         = document.getElementById('editEquipId').value;
+  const clienteId  = document.getElementById('editEquipClienteId').value;
+  const serie      = document.getElementById('editEquipSerie').value.trim().toUpperCase();
+  const modelo     = document.getElementById('editEquipModelo').value.trim();
+  const patrimonio = document.getElementById('editEquipPatrimonio').value.trim();
+  const secretaria = document.getElementById('editEquipSecretaria').value.trim().toUpperCase();
+  const subNome    = document.getElementById('editEquipSubNome').value.trim();
+  const mediaVal   = document.getElementById('editEquipMedia').value.trim();
+  const contVal    = document.getElementById('editEquipContador').value.trim();
+  const msg        = document.getElementById('editEquipMsg');
+
+  if (!serie) {
+    msg.textContent = 'A série é obrigatória.';
+    msg.className = '';
+    msg.style.background = 'rgba(239,68,68,.1)';
+    msg.style.color = '#ef4444';
+    return;
+  }
+
+  msg.textContent = 'Salvando...';
+  msg.className = '';
+  msg.style.background = 'rgba(59,130,246,.1)';
+  msg.style.color = '#3b82f6';
+
+  try {
+    // 1. Atualiza equipamento
+    await API.patch(`/equipamentos?id=eq.${id}`, {
+      serie,
+      modelo:           modelo     || null,
+      patrimonio:       patrimonio || null,
+      secretaria:       secretaria || null,
+      media_referencia: mediaVal !== '' ? parseFloat(mediaVal) : null
+    });
+
+    // 2. Atualiza sub_nome do cliente (se informado e cliente existir)
+    if (clienteId) {
+      await API.patch(`/clientes?id=eq.${clienteId}`, { sub_nome: subNome || null });
+    }
+
+    // 3. Insere novo contador em ctrl_os (se informado)
+    if (contVal !== '' && !isNaN(parseInt(contVal))) {
+      try {
+        await API.post('/ctrl_os', {
+          equipment_id:    id,
+          os_number:       '',
+          counter_reading: parseInt(contVal),
+          os_date:         new Date().toISOString().slice(0, 10)
+        });
+      } catch(ctrlErr) {
+        console.warn('ctrl_os falhou:', ctrlErr);
+      }
+    }
+
+    msg.textContent = 'Salvo com sucesso!';
+    msg.style.background = 'rgba(34,197,94,.1)';
+    msg.style.color = '#22c55e';
+    setTimeout(() => {
+      fecharModalEditarEquip();
+      carregarEquipamentosAdmin();
+    }, 1000);
+  } catch(err) {
+    msg.textContent = 'Erro ao salvar: ' + err.message;
+    msg.style.background = 'rgba(239,68,68,.1)';
+    msg.style.color = '#ef4444';
+  }
 }
 
 // ════════════════════════════════════════════════════════
