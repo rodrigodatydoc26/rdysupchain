@@ -659,7 +659,7 @@ async function buscarEquipamento(serie) {
         state.equipamento = equip;
         state.entregas = entregas;
 
-        document.getElementById('resCliente').innerText = `Cliente: ${equip.cliente?.nome || 'N/D'}`;
+        document.getElementById('resCliente').innerText = equip.cliente?.nome || 'N/D';
         document.getElementById('resSubCliente').innerText = equip.sub_cliente?.nome || '';
         document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
         document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
