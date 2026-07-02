@@ -37,7 +37,7 @@
       var _lastTab = sessionStorage.getItem('adm_tab') || 'dashboard';
       var _st = document.createElement('style');
       _st.id = 'preTabStyle';
-      _st.innerHTML = '.tab-content { display: none !important; } #tab-' + _lastTab + ' { display: block !important; }';
+      _st.innerHTML = '.tab-content { display: none !important; } #tab-' + _lastTab + ' { display: block !important; } .nav-tabs .tab-btn { background: transparent !important; color: var(--text-dim) !important; border-color: transparent !important; } .nav-tabs .tab-btn[data-tab="' + _lastTab + '"] { background: var(--bg-1) !important; color: var(--primary) !important; border-bottom: 2px solid var(--primary) !important; }';
       document.head.appendChild(_st);
     }
   </script>
@@ -625,7 +625,7 @@
 
   <main class="main-content">
     <nav class="nav-tabs">
-      <button class="tab-btn active" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Visão Geral</button>
+      <button class="tab-btn" data-tab="dashboard"><i data-lucide="layout-dashboard"></i> Visão Geral</button>
       <button class="tab-btn" data-tab="entregas"><i data-lucide="history"></i> Histórico & Auditorias</button>
       <button class="tab-btn hidden" data-tab="investigacao" id="btnTabInvestigacao"><i data-lucide="search"></i> Investigação de Consumo</button>
       <button class="tab-btn hidden" data-tab="equipamentos" id="btnTabEquipamentos"><i data-lucide="printer"></i> Equipamentos</button>
@@ -635,7 +635,7 @@
     </nav>
 
     <!-- ══ TAB: VISÃO GERAL ══ -->
-    <section id="tab-dashboard" class="tab-content active">
+    <section id="tab-dashboard" class="tab-content">
 
       <!-- KPIs -->
       <div class="kpi-grid kpi-grid-5">
