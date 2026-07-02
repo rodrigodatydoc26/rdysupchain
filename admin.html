@@ -1799,7 +1799,7 @@ async function carregarEquipamentosAdmin() {
   if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
 
   try {
-    let params = '/equipamentos?select=id,serie,modelo,patrimonio,secretaria,media_referencia,ultimo_contador,cliente:clientes(id,nome,cidade,sub_nome)&order=serie.asc&limit=2000';
+    let params = '/equipamentos?select=id,serie,modelo,patrimonio,secretaria,media_referencia,cliente:clientes(id,nome,cidade,sub_nome)&order=serie.asc&limit=2000';
     const data = await API.fetch(params);
     _equipAdminCache = data || [];
 
@@ -1829,7 +1829,7 @@ async function carregarEquipamentosAdmin() {
       <td>${esc(r.cliente?.cidade || '—')}</td>
       <td>${esc(r.secretaria || '—')}</td>
       <td class="text-center">${r.media_referencia != null ? r.media_referencia + ' r' : '—'}</td>
-      <td class="text-center">${r.ultimo_contador != null ? r.ultimo_contador.toLocaleString('pt-BR') : '—'}</td>
+      <td class="text-center">—</td>
       <td class="text-center">
         <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar">
           <i data-lucide="edit"></i>
@@ -1854,8 +1854,7 @@ function abrirModalEditarEquip(id) {
   document.getElementById('editEquipSubNome').value    = r.cliente?.sub_nome || '';
   document.getElementById('editEquipMedia').value      = r.media_referencia != null ? r.media_referencia : '';
   document.getElementById('editEquipContador').value   = '';
-  document.getElementById('editEquipContadorAtual').textContent =
-    r.ultimo_contador != null ? r.ultimo_contador.toLocaleString('pt-BR') : 'não registrado';
+  document.getElementById('editEquipContadorAtual').textContent = 'ver histórico';
   document.getElementById('editEquipInfo').textContent =
     `${r.cliente?.nome || ''} · ${r.cliente?.cidade || ''}`;
   const msg = document.getElementById('editEquipMsg');
@@ -2070,7 +2069,7 @@ async function cadCarregarEquipsSubCliente(subClienteId) {
   const tbody = document.getElementById('cadEquipTbody');
   tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
   try {
-    const equips = await API.fetch(`/equipamentos?sub_cliente_id=eq.${subClienteId}&select=id,serie,modelo,secretaria,patrimonio,media_referencia,ultimo_contador&order=serie.asc`);
+    const equips = await API.fetch(`/equipamentos?sub_cliente_id=eq.${subClienteId}&select=id,serie,modelo,secretaria,patrimonio,media_referencia&order=serie.asc`);
     _cadEquips = equips || [];
     if (_cadEquips.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Nenhum equipamento. Clique em "+ Equipamento".</td></tr>`;
@@ -2080,7 +2079,7 @@ async function cadCarregarEquipsSubCliente(subClienteId) {
       <td><strong>${esc(r.serie)}</strong></td>
       <td>${esc(r.modelo || '—')}</td>
       <td>${esc(r.secretaria || '—')}</td>
-      <td class="text-center">${r.ultimo_contador != null ? r.ultimo_contador.toLocaleString('pt-BR') : '—'}</td>
+      <td class="text-center">—</td>
       <td class="text-center">${r.media_referencia != null ? r.media_referencia + ' r' : '—'}</td>
       <td class="text-center">
         <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar"><i data-lucide="edit"></i></button>
