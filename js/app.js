@@ -291,17 +291,13 @@ function applyRoleRestrictions() {
         }
     });
 
-    // Ocultar opções de entrega e resumo de balanceamento para técnicos, gestores ou usuários regionais (exceto no Sistema Original)
-    const isSistemaOriginal = window !== window.top;
-    const hideOptions = !isSistemaOriginal && (role === 'tecnico' || role === 'gestor' || cidade === 'LIMEIRA' || cidade === 'INDAIATUBA');
+    // Todos os usuários e cidades utilizam o Novo Sistema Supabase com acesso completo
     document.querySelectorAll('.options-section, .summary-column').forEach(el => {
-        el.style.display = hideOptions ? 'none' : '';
+        el.style.display = '';
     });
-
-    // Ocultar card "Recomendado" no Sistema Original
     const recCard = document.querySelector('.option-card[data-opcao="rec"]');
     if (recCard) {
-        recCard.style.display = isSistemaOriginal ? 'none' : '';
+        recCard.style.display = '';
     }
 
     // Controlar exibição dos chips de filtros rápidos de cidade no histórico
@@ -596,7 +592,8 @@ async function buscarEquipamento(serie) {
     try {
         let data = [];
         try {
-            data = await API.fetch(`/equipamentos?serie=eq.${encodeURIComponent(serie)}&select=*,cliente:clientes(id,nome,cidade),sub_cliente:sub_clientes(nome)&limit=1`);
+            const valEnc = encodeURIComponent(serie);
+            data = await API.fetch(`/equipamentos?or=(serie.ilike.*${valEnc}*,patrimonio.ilike.*${valEnc}*)&select=*,cliente:clientes(id,nome,cidade),sub_cliente:sub_clientes(nome)&limit=1`);
         } catch (apiErr) {
             console.warn("Supabase fetch failed, trying local IndexedDB cache:", apiErr);
         }
@@ -638,18 +635,9 @@ async function buscarEquipamento(serie) {
                 document.getElementById('resUltimaEntrega').innerText = 'N/D (Offline)';
                 state.entregas = [];
 
-                const isSistemaOriginal = window !== window.top;
-                if (isSistemaOriginal) {
-                    document.getElementById('analiseImediataBtn').classList.add('hidden');
-                    document.getElementById('analiseAbertaCard').classList.add('hidden');
-                    document.getElementById('analiseFecharCard').classList.add('hidden');
-                    const tbody = document.getElementById('historicoOriginalTbody');
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dim">Offline. Histórico indisponível.</td></tr>';
-                    document.getElementById('historicoOriginalCard').classList.remove('hidden');
-                } else {
-                    document.getElementById('historicoOriginalCard').classList.add('hidden');
-                    abrirAnaliseImediata();
-                }
+                const histOrigCardOff = document.getElementById('historicoOriginalCard');
+                if (histOrigCardOff) histOrigCardOff.classList.add('hidden');
+                abrirAnaliseImediata();
                 setLoading(false);
                 return;
             } else {
@@ -706,53 +694,13 @@ async function buscarEquipamento(serie) {
             resUltima.innerText = 'Nenhuma';
         }
 
-        const isSistemaOriginal = window !== window.top;
-        if (isSistemaOriginal) {
-            document.getElementById('analiseImediataBtn').classList.add('hidden');
-            document.getElementById('analiseAbertaCard').classList.add('hidden');
-            document.getElementById('analiseFecharCard').classList.add('hidden');
-            
-            // Renderiza e mostra as Últimas 4 Entregas
-            const ultimasEntregas = [...entregas]
-                .filter(e => e.status === 'confirmado')
-                .sort((a, b) => new Date(b.data_registro) - new Date(a.data_registro))
-                .slice(0, 4);
+        const histOrigCard = document.getElementById('historicoOriginalCard');
+        if (histOrigCard) histOrigCard.classList.add('hidden');
 
-            const tbody = document.getElementById('historicoOriginalTbody');
-            if (tbody) {
-                if (ultimasEntregas.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dim">Nenhuma entrega registrada.</td></tr>';
-                } else {
-                    tbody.innerHTML = ultimasEntregas.map(e => {
-                        const dt = new Date(e.data_registro).toLocaleDateString('pt-BR');
-                        const cont = (e.contador_atual !== null && e.contador_atual !== undefined) ? parseInt(e.contador_atual).toLocaleString('pt-BR') : '—';
-                        const qtd = parseFloat(e.quantidade_definida) || 0;
-                        const os = e.numero_os || '—';
-                        let obs = e.observacao || '—';
-                        obs = obs.replace(/\[ACIMA DO LIMITE\]/g, '')
-                                 .replace(/\[SUPERIOR A ULTIMA\]/g, '')
-                                 .replace(/\[RECOMENDADO\]/g, '')
-                                 .trim() || '—';
-                        return `
-                            <tr>
-                                <td>${esc(dt)}</td>
-                                <td>${esc(cont)}</td>
-                                <td class="text-center"><strong>${esc(String(qtd))}</strong></td>
-                                <td>${esc(os)}</td>
-                                <td><span class="text-dim" style="font-size:0.75rem;">${esc(obs)}</span></td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
-            }
-            document.getElementById('historicoOriginalCard').classList.remove('hidden');
+        if (analiseEmAberto) {
+            mostrarFecharAnalise(analiseEmAberto);
         } else {
-            document.getElementById('historicoOriginalCard').classList.add('hidden');
-            if (analiseEmAberto) {
-                mostrarFecharAnalise(analiseEmAberto);
-            } else {
-                abrirAnaliseImediata();
-            }
+            abrirAnaliseImediata();
         }
 
     } catch (e) {
