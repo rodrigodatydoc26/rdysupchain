@@ -621,8 +621,10 @@ async function buscarEquipamento(serie) {
                 }
 
                 state.equipamento = equip;
-                document.getElementById('resCliente').innerText = equip.cliente?.nome || 'N/D';
-                const _scEl = document.getElementById('resSubCliente'); if (_scEl) { const _scNome = equip.sub_cliente?.nome || ''; _scEl.innerText = _scNome ? ' - ' + _scNome : ''; }
+                const cNomeOff = equip.cliente?.cidade || equip.cliente?.nome || 'N/D';
+                const sNomeOff = equip.sub_cliente?.nome || '';
+                document.getElementById('resCliente').innerText = cNomeOff;
+                const _scEl = document.getElementById('resSubCliente'); if (_scEl) { _scEl.innerText = sNomeOff ? ` - Sub = ${sNomeOff}` : ''; }
                 document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
                 document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
                 document.getElementById('resSerie').innerText = equip.serie;
@@ -681,8 +683,10 @@ async function buscarEquipamento(serie) {
         state.equipamento = equip;
         state.entregas = entregas;
 
-        document.getElementById('resCliente').innerText = equip.cliente?.nome || 'N/D';
-        document.getElementById('resSubCliente').innerText = equip.sub_cliente?.nome || '';
+        const cNome = equip.cliente?.cidade || equip.cliente?.nome || 'N/D';
+        const sNome = equip.sub_cliente?.nome || '';
+        document.getElementById('resCliente').innerText = cNome;
+        document.getElementById('resSubCliente').innerText = sNome ? ` - Sub = ${sNome}` : '';
         document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
         document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
         document.getElementById('resSerie').innerText = equip.serie;
@@ -1840,7 +1844,7 @@ async function carregarHistorico() {
         return base;
     };
 
-    const endpoint    = addFilters(`/balanceamento_entregas?select=*,cliente:clientes${joinCliente}(nome,cidade),equipamento:equipamentos!inner(serie,patrimonio,secretaria)&order=data_registro.desc&limit=${limit}&offset=${offset}`);
+    const endpoint    = addFilters(`/balanceamento_entregas?select=*,cliente:clientes${joinCliente}(nome,cidade),equipamento:equipamentos!inner(serie,patrimonio,secretaria,sub_cliente:sub_clientes(nome))&order=data_registro.desc&limit=${limit}&offset=${offset}`);
     const sumEndpoint = addFilters(`/balanceamento_entregas?select=quantidade_definida,cliente:clientes${joinCliente}(cidade),equipamento:equipamentos!inner(id)`);
 
     try {
@@ -1882,11 +1886,14 @@ async function carregarHistorico() {
             const dateStr = (dateObj && !isNaN(dateObj.getTime())) ? dateObj.toLocaleDateString('pt-BR') : '-';
             const mediaVal = parseFloat(i.media_consumo_mensal);
             const mediaStr = (i.media_consumo_mensal && !isNaN(mediaVal)) ? mediaVal.toFixed(1).replace('.', ',') : '-';
+            const cCidadeHist = i.cliente?.cidade || i.cliente?.nome || 'N/D';
+            const sNomeHist = i.equipamento?.sub_cliente?.nome || '';
+            const displayClienteHist = sNomeHist ? `${cCidadeHist} - ${sNomeHist}` : cCidadeHist;
             
             return `
             <tr class="clickable-row" onclick="abrirModalVisualizar(this, event)"
                 data-data="${escAttr(dateStr)}"
-                data-cliente="${escAttr(i.cliente?.nome || 'N/D')}"
+                data-cliente="${escAttr(displayClienteHist)}"
                 data-local="${escAttr(i.equipamento?.secretaria || 'N/D')}"
                 data-serie="${escAttr(i.equipamento?.serie || 'N/D')}"
                 data-media="${escAttr(mediaStr)}"
@@ -1895,7 +1902,7 @@ async function carregarHistorico() {
                 data-os="${escAttr(i.numero_os || '-')}"
                 data-status="${escAttr(i.status)}">
                 <td data-label="Data">${esc(dateStr)}</td>
-                <td data-label="Cliente">${esc(i.cliente?.nome || 'N/D')}</td>
+                <td data-label="Cliente">${esc(displayClienteHist)}</td>
                 <td data-label="Local/Setor">${esc(i.equipamento?.secretaria || 'N/D')}</td>
                 <td data-label="Série">${esc(i.equipamento?.serie || 'N/D')}</td>
                 <td data-label="Média/mês">${esc(mediaStr)}</td>

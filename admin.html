@@ -3023,7 +3023,7 @@ async function carregarEntregas() {
   if (fStatus === 'analise_aberta') statusParam = 'eq.analise_aberta';
 
   let params = `status=${statusParam}${cidadeFilter()}&limit=1000`;
-  params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,contador_atual,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade))`;
+  params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,contador_atual,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade),sub_cliente:sub_clientes(nome))`;
   
   const tz = getLocalOffsetString();
   if (di) params += `&data_registro=gte.${di}T00:00:00${tz}`;
@@ -3227,12 +3227,16 @@ async function carregarEntregas() {
                         Próx. Sol.: <strong>${limiteText}</strong>${divBadge ? '<br>'+divBadge : ''}`;
       }
       
+      const cCidadeAdmin = e.equipamento?.cliente?.cidade || e.equipamento?.cliente?.nome || '—';
+      const sNomeAdmin = e.equipamento?.sub_cliente?.nome || '';
+      const displayClienteAdmin = sNomeAdmin ? `${cCidadeAdmin} - ${sNomeAdmin}` : cCidadeAdmin;
+
       return `
       <tr class="${e._isRepetido ? 'tr-repetido' : ''}">
         <td class="text-center" style="color:var(--text-dim);font-size:0.8rem;font-weight:600;">${fmtHora(e.data_registro)}</td>
         <td>${fmtData(e.data_registro)}</td>
         <td><strong>${esc(e.equipamento?.serie || '—')}</strong></td>
-        <td>${esc(e.equipamento?.cliente?.nome || '—')}<br><small class="text-dim" style="font-size:0.75rem;">${esc(e.equipamento?.secretaria || 'OUTROS')}</small></td>
+        <td>${esc(displayClienteAdmin)}<br><small class="text-dim" style="font-size:0.75rem;">${esc(e.equipamento?.secretaria || 'OUTROS')}</small></td>
         <td class="text-center"><strong>${esc(String(e.quantidade_definida || 0))}</strong></td>
         <td class="text-center">${esc(e.media_consumo_mensal ? parseFloat(e.media_consumo_mensal).toFixed(1) : '—')}</td>
         <td style="font-size:0.8rem; line-height:1.4;">${auditoriaHtml}</td>
