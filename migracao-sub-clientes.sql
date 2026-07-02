@@ -6,23 +6,16 @@
 -- ── BLOCO 0 (OBRIGATÓRIO): Policies UPDATE em clientes e equipamentos
 -- Sem isso, editar cidade/sub_nome via anon key retorna 200 mas não altera nada
 
-DO $$
-BEGIN
-  -- UPDATE em clientes
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename='clientes' AND policyname='anon_update_clientes'
-  ) THEN
-    EXECUTE 'CREATE POLICY anon_update_clientes ON public.clientes FOR UPDATE TO anon USING (true) WITH CHECK (true)';
-  END IF;
-  -- UPDATE em equipamentos
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename='equipamentos' AND policyname='anon_update_equipamentos'
-  ) THEN
-    EXECUTE 'CREATE POLICY anon_update_equipamentos ON public.equipamentos FOR UPDATE TO anon USING (true) WITH CHECK (true)';
-  END IF;
-END $$;
+DROP POLICY IF EXISTS anon_update_clientes   ON public.clientes;
+DROP POLICY IF EXISTS anon_update_equipamentos ON public.equipamentos;
 
--- Verificação
+CREATE POLICY anon_update_clientes ON public.clientes
+  FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+CREATE POLICY anon_update_equipamentos ON public.equipamentos
+  FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+-- Verificação (deve aparecer as duas políticas UPDATE)
 SELECT tablename, policyname, cmd FROM pg_policies
 WHERE tablename IN ('clientes','equipamentos') ORDER BY tablename, cmd;
 
