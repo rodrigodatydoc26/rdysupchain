@@ -131,12 +131,21 @@ async function initLogin() {
                 `/balanceamento_usuarios?username=eq.${encodeURIComponent(autoU.trim().toLowerCase())}&select=username,label,role,cidade`
             );
             const found = result?.[0];
-            // Só permite roles técnico/gestor — CTO requer login com senha
-            if (found && (found.role === 'tecnico' || found.role === 'gestor')) {
+            if (found && found.role === 'tecnico') {
                 currentUser = { ...found };
                 localStorage.setItem('rdyUser', JSON.stringify(currentUser));
                 history.replaceState({}, '', window.location.pathname);
                 showApp();
+                return;
+            }
+            if (found && (found.role === 'admin' || found.role === 'cto' || found.role === 'gestor')) {
+                currentUser = { ...found };
+                localStorage.setItem('rdyUser', JSON.stringify(currentUser));
+                localStorage.setItem('adm_user', JSON.stringify(currentUser));
+                localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
+                history.replaceState({}, '', window.location.pathname);
+                const _adminUrl = new URL('admin.html', window.location.href).href;
+                try { (window !== window.top ? window.top : window).location.href = _adminUrl; } catch(_) { window.location.href = _adminUrl; }
                 return;
             }
         }
@@ -2040,9 +2049,8 @@ function showAdmin() {
         if (!document.getElementById('adminApp')) {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
-            // Se estiver dentro de um iframe, redireciona a janela pai
-            const target = (window !== window.top) ? window.top : window;
-            target.location.href = 'admin.html?v=20260702';
+            const _url = new URL('admin.html', window.location.href).href;
+            try { (window !== window.top ? window.top : window).location.href = _url; } catch(_) { window.location.href = _url; }
             return;
         }
         document.getElementById('loginScreen').style.display = 'none';
