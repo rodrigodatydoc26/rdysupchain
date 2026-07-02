@@ -17,8 +17,15 @@
   <meta name="apple-mobile-web-app-title" content="RDY Control">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.svg">
+  <script>
+    if (localStorage.getItem('rdyUser')) {
+      document.documentElement.classList.add('is-logged-in');
+    }
+  </script>
   <style>
     #appContainer { display: none; }
+    html.is-logged-in #loginScreen { display: none !important; }
+    html.is-logged-in #appContainer { display: block !important; }
     .orig-hist-header { background: var(--bg-1); border-bottom: 1px solid var(--border); }
     .orig-hist-title { margin: 0; font-size: 0.9375rem; font-weight: 700; }
     .orig-hist-subtitle { margin: 0; font-size: 0.75rem; color: var(--text-dim); }

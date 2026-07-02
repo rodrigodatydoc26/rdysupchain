@@ -22,11 +22,16 @@
   <link rel="stylesheet" href="css/style.css?v=20260702">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
+  <script>
+    if (localStorage.getItem('adm_user')) {
+      document.documentElement.classList.add('is-logged-in');
+    }
+  </script>
   <style>
     #adminApp { display: none; }
-    /* Garante que loginScreen seja visível por padrão no admin.html,
-       sobrescrevendo o #loginScreen { display:none } do style.css */
     #loginScreen { display: flex; }
+    html.is-logged-in #loginScreen { display: none !important; }
+    html.is-logged-in #adminApp { display: block !important; }
     /* ── LOGIN ── */
     .login-screen {
       min-height: 100vh;
