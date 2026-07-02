@@ -25,6 +25,15 @@
   <script>
     if (localStorage.getItem('adm_user')) {
       document.documentElement.classList.add('is-logged-in');
+      try {
+        var _u = JSON.parse(localStorage.getItem('adm_user') || '{}');
+        if (_u && (_u.role === 'cto' || _u.role === 'admin' || _u.role === 'gestor')) {
+          document.documentElement.classList.add('is-admin-role');
+        }
+        if (_u && (_u.role === 'cto' || _u.role === 'admin')) {
+          document.documentElement.classList.add('is-gov-role');
+        }
+      } catch(e) {}
       var _lastTab = sessionStorage.getItem('adm_tab') || 'dashboard';
       var _st = document.createElement('style');
       _st.id = 'preTabStyle';
@@ -37,6 +46,11 @@
     #loginScreen { display: flex; }
     html.is-logged-in #loginScreen { display: none !important; }
     html.is-logged-in #adminApp { display: block !important; }
+    html.is-admin-role #btnTabCadastro,
+    html.is-admin-role #btnTabInvestigacao,
+    html.is-admin-role #btnTabEquipamentos { display: inline-flex !important; }
+    html.is-gov-role #btnTabGovernanca,
+    html.is-gov-role #btnTabBancoDados { display: inline-flex !important; }
     /* ── LOGIN ── */
     .login-screen {
       min-height: 100vh;
@@ -1857,14 +1871,11 @@ async function entrarAdmin(user, cfg) {
     btnEquip?.classList.add('hidden');
   }
   if (cfg.role === 'cto' || cfg.role === 'admin') {
-    btnGov.classList.remove('hidden');
+    btnGov?.classList.remove('hidden');
+    btnDb?.classList.remove('hidden');
   } else {
-    btnGov.classList.add('hidden');
-  }
-  if (cfg.role === 'admin') {
-    btnDb.classList.remove('hidden');
-  } else {
-    btnDb.classList.add('hidden');
+    btnGov?.classList.add('hidden');
+    btnDb?.classList.add('hidden');
   }
 
   document.getElementById('adminBadge').innerText = user;

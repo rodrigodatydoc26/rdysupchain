@@ -1,4 +1,4 @@
-const CACHE = 'rdy-bal-v94';
+const CACHE = 'rdy-bal-v95';
 const SUPABASE = 'https://iedkbtceqgrawgubxslh.supabase.co';
 
 const SHELL = [
