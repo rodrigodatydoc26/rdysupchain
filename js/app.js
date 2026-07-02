@@ -2040,12 +2040,9 @@ function showAdmin() {
         if (!document.getElementById('adminApp')) {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
-            // Se estiver dentro de um iframe, abre admin em nova aba
-            if (window !== window.top) {
-                window.open('admin.html', '_blank');
-                return;
-            }
-            window.location.href = 'admin.html?v=20260702';
+            // Se estiver dentro de um iframe, redireciona a janela pai
+            const target = (window !== window.top) ? window.top : window;
+            target.location.href = 'admin.html?v=20260702';
             return;
         }
         document.getElementById('loginScreen').style.display = 'none';
