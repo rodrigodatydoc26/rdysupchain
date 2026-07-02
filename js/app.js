@@ -2328,8 +2328,8 @@ async function sincronizarDados(silencioso) {
     try {
         const cidade = getCidadeFiltro();
         const cidadeParam = cidade
-            ? ('&cliente=not.is.null&select=*,cliente:clientes!inner(id,nome)&cliente.nome=ilike.*' + encodeURIComponent(cidade) + '*')
-            : '&select=*,cliente:clientes(id,nome)';
+            ? ('&cliente=not.is.null&select=*,cliente:clientes!inner(id,nome),sub_cliente:sub_clientes(nome)&cliente.nome=ilike.*' + encodeURIComponent(cidade) + '*')
+            : '&select=*,cliente:clientes(id,nome),sub_cliente:sub_clientes(nome)';
 
         const [equipamentos, clientes] = await Promise.all([
             API.fetch('/equipamentos?' + cidadeParam + '&order=serie.asc&limit=5000'),

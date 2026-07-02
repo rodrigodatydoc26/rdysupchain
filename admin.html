@@ -1699,11 +1699,8 @@ const API = {
       const body = await res.text().catch(() => '');
       throw new Error(`HTTP ${res.status}: ${body}`);
     }
-    const data = await res.json().catch(() => []);
-    if (!Array.isArray(data) || data.length === 0) {
-      throw new Error('Nenhum registro foi deletado. Verifique se o ID é válido.');
-    }
-    return data;
+    if (res.status === 204) return [];
+    return res.json().catch(() => []);
   }
 };
 
