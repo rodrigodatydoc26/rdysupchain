@@ -25,6 +25,11 @@
   <script>
     if (localStorage.getItem('adm_user')) {
       document.documentElement.classList.add('is-logged-in');
+      var _lastTab = sessionStorage.getItem('adm_tab') || 'dashboard';
+      var _st = document.createElement('style');
+      _st.id = 'preTabStyle';
+      _st.innerHTML = '.tab-content { display: none !important; } #tab-' + _lastTab + ' { display: block !important; }';
+      document.head.appendChild(_st);
     }
   </script>
   <style>
@@ -1890,6 +1895,8 @@ async function entrarAdmin(user, cfg) {
 // TABS
 // ════════════════════════════════════════════════════════
 function trocarAbaAdmin(tabId) {
+  const _pst = document.getElementById('preTabStyle');
+  if (_pst) _pst.remove();
   sessionStorage.setItem('adm_tab', tabId);
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tabId}`));
