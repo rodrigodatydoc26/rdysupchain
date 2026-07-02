@@ -600,7 +600,7 @@ async function buscarEquipamento(serie) {
 
                 state.equipamento = equip;
                 document.getElementById('resCliente').innerText = equip.cliente?.nome || 'N/D';
-                const _scEl = document.getElementById('resSubCliente'); if (_scEl) { const _scNome = equip.sub_cliente?.nome || ''; _scEl.innerText = _scNome ? ' · ' + _scNome : ''; }
+                const _scEl = document.getElementById('resSubCliente'); if (_scEl) { const _scNome = equip.sub_cliente?.nome || ''; _scEl.innerText = _scNome ? ' - ' + _scNome : ''; }
                 document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
                 document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
                 document.getElementById('resSerie').innerText = equip.serie;
