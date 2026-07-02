@@ -1443,6 +1443,10 @@
           <input type="text" id="editEquipSecretaria" class="input-text" placeholder="Ex: SECRETARIA DE EDUCAÇÃO">
         </div>
         <div class="form-group">
+          <label>Cidade do Cliente</label>
+          <input type="text" id="editEquipCidade" class="input-text" placeholder="Ex: INDAIATUBA">
+        </div>
+        <div class="form-group">
           <label>Sub-Local do Cliente</label>
           <input type="text" id="editEquipSubNome" class="input-text" placeholder="Ex: ESCOLA MUNICIPAL X">
         </div>
@@ -1851,6 +1855,7 @@ function abrirModalEditarEquip(id) {
   document.getElementById('editEquipModelo').value     = r.modelo || '';
   document.getElementById('editEquipPatrimonio').value = r.patrimonio || '';
   document.getElementById('editEquipSecretaria').value = r.secretaria || '';
+  document.getElementById('editEquipCidade').value     = r.cliente?.cidade || '';
   document.getElementById('editEquipSubNome').value    = r.cliente?.sub_nome || '';
   document.getElementById('editEquipMedia').value      = r.media_referencia != null ? r.media_referencia : '';
   document.getElementById('editEquipContador').value   = '';
@@ -1874,6 +1879,7 @@ async function salvarEdicaoEquipamento() {
   const modelo     = document.getElementById('editEquipModelo').value.trim();
   const patrimonio = document.getElementById('editEquipPatrimonio').value.trim();
   const secretaria = document.getElementById('editEquipSecretaria').value.trim().toUpperCase();
+  const cidade     = document.getElementById('editEquipCidade').value.trim().toUpperCase();
   const subNome    = document.getElementById('editEquipSubNome').value.trim();
   const mediaVal   = document.getElementById('editEquipMedia').value.trim();
   const contVal    = document.getElementById('editEquipContador').value.trim();
@@ -1902,9 +1908,11 @@ async function salvarEdicaoEquipamento() {
       media_referencia: mediaVal !== '' ? parseFloat(mediaVal) : null
     });
 
-    // 2. Atualiza sub_nome do cliente (se informado e cliente existir)
+    // 2. Atualiza cidade e sub_nome do cliente
     if (clienteId) {
-      await API.patch(`/clientes?id=eq.${clienteId}`, { sub_nome: subNome || null });
+      const clientePatch = { sub_nome: subNome || null };
+      if (cidade) clientePatch.cidade = cidade;
+      await API.patch(`/clientes?id=eq.${clienteId}`, clientePatch);
     }
 
     // 3. Insere novo contador em ctrl_os (se informado)
