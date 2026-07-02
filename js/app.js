@@ -104,7 +104,7 @@ async function initLogin() {
                                     currentUser = foundSafe;
                                     localStorage.setItem('rdyUser', JSON.stringify(foundSafe));
                                     const { role } = currentUser;
-                                    if (role === 'cto' || role === 'admin') {
+                                    if (role === 'cto' || role === 'admin' || role === 'gestor') {
                                         showAdmin();
                                     } else {
                                         showTech();
@@ -233,7 +233,7 @@ function showApp() {
         return;
     }
     const { role } = currentUser;
-    if (role === 'cto' || role === 'admin') { showAdmin(); } else { showTech(); }
+    if (role === 'cto' || role === 'admin' || role === 'gestor') { showAdmin(); } else { showTech(); }
 }
 
 function showTech() {
