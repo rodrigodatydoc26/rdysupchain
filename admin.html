@@ -3452,6 +3452,10 @@ async function carregarGovernanca() {
 
 function renderizarGovernanca() {
   const tbody = document.getElementById('govTbody');
+  const isGestor = adminState.role === 'gestor';
+  const btnNovoUsr = document.getElementById('btnNovoUsuario');
+  if (btnNovoUsr) btnNovoUsr.style.display = isGestor ? 'none' : 'inline-flex';
+
   const nomeFiltro = (document.getElementById('filtroGovNome')?.value || '').toLowerCase();
   const perfilFiltro = (document.getElementById('filtroGovPerfil')?.value || '').toLowerCase();
   const cidadeFiltro = (document.getElementById('filtroGovCidade')?.value || '');
@@ -3473,10 +3477,12 @@ function renderizarGovernanca() {
           <td><span class="status-badge ${u.role === 'admin' || u.role === 'cto' ? 'status-confirmado' : 'status-pendente'}">${u.role === 'admin' ? 'Administrador' : esc(u.role)}</span></td>
           <td>${esc(u.cidade || 'Todas')}</td>
           <td class="text-center">
+            ${isGestor ? '<span style="color:var(--text-dim);font-size:0.8rem;">— (Leitura)</span>' : `
             <div style="display:flex; justify-content:center; gap:8px;">
               <button class="btn-outline" onclick="abrirModalUsuario('${esc(u.username)}')" title="Editar" style="padding:4px 8px"><i data-lucide="edit"></i></button>
               <button class="btn-outline" onclick="excluirUsuario('${esc(u.username)}')" title="Excluir" style="padding:4px 8px; color:var(--danger); border-color:var(--danger)"><i data-lucide="trash-2"></i></button>
             </div>
+            `}
           </td>
         </tr>
       `).join('');
@@ -3510,6 +3516,10 @@ async function carregarCidadesModal() {
 let userEmEdicao = null;
 
 async function abrirModalUsuario(username = null) {
+  if (adminState.role === 'gestor') {
+    alert('Acesso Negado: O perfil Gestor possui permissão apenas de visualização.');
+    return;
+  }
   document.getElementById('formUsuario').reset();
   const modal = document.getElementById('modalUsuario');
   
@@ -3584,6 +3594,10 @@ function fecharModalEquipEntregas() {
 }
 
 async function salvarUsuario() {
+  if (adminState.role === 'gestor') {
+    alert('Acesso Negado: O perfil Gestor possui permissão apenas de visualização.');
+    return;
+  }
   const username = document.getElementById('govUsername').value.trim().toLowerCase();
   const password = document.getElementById('govPassword').value;
   const label = document.getElementById('govLabel').value.trim();
@@ -3626,6 +3640,10 @@ async function salvarUsuario() {
 }
 
 async function excluirUsuario(username) {
+  if (adminState.role === 'gestor') {
+    alert('Acesso Negado: O perfil Gestor possui permissão apenas de visualização.');
+    return;
+  }
   if (!confirm(`Tem certeza que deseja excluir o usuário "${username}"?`)) return;
   if (username === adminState.user) {
     alert("Você não pode excluir a si mesmo!");
