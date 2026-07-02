@@ -18,9 +18,19 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.svg">
   <script>
-    if (localStorage.getItem('rdyUser')) {
-      document.documentElement.classList.add('is-logged-in');
-    }
+    (function() {
+      try {
+        var u = JSON.parse(localStorage.getItem('rdyUser') || '{}');
+        if (u && u.role) {
+          if (u.role === 'admin' || u.role === 'cto' || u.role === 'gestor') {
+            localStorage.setItem('adm_user', JSON.stringify(u));
+            window.location.href = 'admin.html?v=20260702';
+            return;
+          }
+          document.documentElement.classList.add('is-logged-in');
+        }
+      } catch(e) {}
+    })();
   </script>
   <style>
     #appContainer { display: none; }
