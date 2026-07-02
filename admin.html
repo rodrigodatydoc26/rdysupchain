@@ -582,6 +582,9 @@
       </button>
       <span class="admin-city" id="adminCity">—</span>
       <span class="admin-badge" id="adminBadge">—</span>
+      <button class="btn-logout" onclick="forcaAtualizacao()" title="Forçar atualização do app" id="btnForcaUpdate">
+        <i data-lucide="refresh-cw"></i> Atualizar
+      </button>
       <button class="btn-logout" onclick="fazerLogout()">
         <i data-lucide="log-out"></i> Sair
       </button>
@@ -1799,6 +1802,25 @@ async function fazerLogin() {
     errEl.textContent = 'Erro ao se conectar ao servidor.';
     errEl.classList.remove('hidden');
   }
+}
+
+async function forcaAtualizacao() {
+  const btn = document.getElementById('btnForcaUpdate');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader"></i> Limpando...'; safeCreateIcons(); }
+  try {
+    // 1. Apaga todos os caches do SW
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    // 2. Manda o SW pular a fila e ativar imediatamente
+    if (navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+    }
+    // 3. Cancela o registro do SW atual para forçar download limpo
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  } catch(e) { console.warn('forcaAtualizacao:', e); }
+  // 4. Recarrega sem cache
+  location.reload(true);
 }
 
 function fazerLogout() {
