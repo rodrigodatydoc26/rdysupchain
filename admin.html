@@ -1877,11 +1877,12 @@ async function cadCarregarClientes() {
   const tbody = document.getElementById('cadClientesTbody');
   tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
   try {
-    const [clientes, equipCounts] = await Promise.all([
-      API.fetch('/clientes?select=id,nome,cidade,sub_nome&order=cidade.asc,nome.asc&limit=2000'),
-      API.fetch('/equipamentos?select=id,cliente_id&limit=5000')
-    ]);
-    _cadClientes = clientes || [];
+    // Nested select: cada cliente já vem com seus equipamentos (só id)
+    const clientes = await API.fetch('/clientes?select=id,nome,cidade,sub_nome,equipamentos(id)&order=cidade.asc,nome.asc&limit=2000');
+    _cadClientes = (clientes || []).map(c => ({
+      ...c,
+      _equipCount: (c.equipamentos || []).length
+    }));
 
     // Popula select de cidade
     const cidades = [...new Set(_cadClientes.map(c => c.cidade).filter(Boolean))].sort();
@@ -1889,11 +1890,6 @@ async function cadCarregarClientes() {
     const cur = sel.value;
     sel.innerHTML = '<option value="">Todas as Cidades</option>' +
       cidades.map(c => `<option value="${esc(c)}"${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
-
-    // Monta mapa de contagem por cliente
-    const countMap = {};
-    (equipCounts || []).forEach(e => { countMap[e.cliente_id] = (countMap[e.cliente_id] || 0) + 1; });
-    _cadClientes.forEach(c => { c._equipCount = countMap[c.id] || 0; });
 
     cadFiltrarClientes();
   } catch(err) {
