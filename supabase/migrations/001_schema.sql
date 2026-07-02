@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS balanceamento_usuarios (
   username TEXT PRIMARY KEY,
   password TEXT NOT NULL,
   label    TEXT NOT NULL,
-  role     TEXT NOT NULL CHECK (role IN ('cto', 'gestor', 'tecnico')),
+  role     TEXT NOT NULL CHECK (role IN ('admin', 'cto', 'gestor', 'tecnico')),
   cidade   TEXT
 );
 
