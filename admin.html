@@ -2017,11 +2017,9 @@ async function carregarEquipamentosAdmin() {
 async function excluirEquipamento(id, serie) {
   if (!confirm(`Excluir o equipamento "${serie}"?\n\nEsta ação também apaga todo o histórico de entregas e OS associadas. Não pode ser desfeita.`)) return;
   try {
-    await Promise.all([
-      API.fetch(`/balanceamento_entregas?equipamento_id=eq.${id}`, { method: 'DELETE' }),
-      API.fetch(`/ctrl_os?equipment_id=eq.${id}`, { method: 'DELETE' })
-    ]);
-    await API.fetch(`/equipamentos?id=eq.${id}`, { method: 'DELETE' });
+    await API.delete(`/balanceamento_entregas?equipamento_id=eq.${id}`).catch(() => {});
+    await API.delete(`/ctrl_os?equipment_id=eq.${id}`).catch(() => {});
+    await API.delete(`/equipamentos?id=eq.${id}`);
     carregarEquipamentos();
   } catch(err) {
     alert('Erro ao excluir equipamento: ' + err.message);
