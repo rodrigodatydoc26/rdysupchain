@@ -1997,14 +1997,33 @@ async function carregarEquipamentosAdmin() {
       <td class="text-center">${r.media_referencia != null ? r.media_referencia + ' r' : '—'}</td>
       <td class="text-center">—</td>
       <td class="text-center">
-        <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar">
-          <i data-lucide="edit"></i>
-        </button>
+        <div style="display:flex;justify-content:center;gap:6px">
+          <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar">
+            <i data-lucide="edit"></i>
+          </button>
+          <button class="btn-outline" style="padding:4px 8px;color:var(--danger);border-color:var(--danger)" onclick="excluirEquipamento('${r.id}','${esc(r.serie)}')" title="Excluir">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
       </td>
     </tr>`).join('');
     safeCreateIcons();
   } catch(err) {
     if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
+  }
+}
+
+async function excluirEquipamento(id, serie) {
+  if (!confirm(`Excluir o equipamento "${serie}"?\n\nEsta ação também apaga todo o histórico de entregas e OS associadas. Não pode ser desfeita.`)) return;
+  try {
+    await Promise.all([
+      API.fetch(`/balanceamento_entregas?equipamento_id=eq.${id}`, { method: 'DELETE' }),
+      API.fetch(`/ctrl_os?equipment_id=eq.${id}`, { method: 'DELETE' })
+    ]);
+    await API.fetch(`/equipamentos?id=eq.${id}`, { method: 'DELETE' });
+    carregarEquipamentos();
+  } catch(err) {
+    alert('Erro ao excluir equipamento: ' + err.message);
   }
 }
 

@@ -509,7 +509,10 @@ function setupAutocomplete(inputId, listId, type) {
                     if (!data.length) { list.classList.add('hidden'); return; }
                     list.innerHTML = data.map(item => {
                         if (type === 'equip') {
-                            return `<div class="suggestion-item" data-value="${escAttr(item.serie)}" data-type="equip"><div class="sugg-main"><strong>${esc(item.serie)}</strong><span class="tag-sm">${esc(item.secretaria || 'OUTROS')}</span></div><span class="sub">${esc(item.cliente ? item.cliente.nome : (item.patrimonio || ''))}</span></div>`;
+                            const subNome = item.sub_cliente?.nome || '';
+                            const clienteLabel = item.cliente ? item.cliente.nome : '';
+                            const localLabel = subNome ? `${clienteLabel} › ${subNome}` : (clienteLabel || item.patrimonio || '');
+                            return `<div class="suggestion-item" data-value="${escAttr(item.serie)}" data-type="equip"><div class="sugg-main"><strong>${esc(item.serie)}</strong><span class="tag-sm">${esc(item.secretaria || 'OUTROS')}</span></div><span class="sub">${esc(localLabel)}</span></div>`;
                         }
                         return `<div class="suggestion-item" data-value="${escAttr(item.nome)}" data-type="cliente"><strong>${esc(item.nome)}</strong></div>`;
                     }).join('');
@@ -527,8 +530,8 @@ function setupAutocomplete(inputId, listId, type) {
                     const cidadeParam = cidade ? `&cliente.cidade=eq.${encodeURIComponent(cidade)}` : '';
                     const joinType    = cidade ? '!inner' : '';
                     const [porSerie, porCliente] = await Promise.all([
-                        API.fetch(`/equipamentos?or=(serie.ilike.*${valEnc}*,patrimonio.ilike.*${valEnc}*)&select=*,cliente:clientes${joinType}(nome,cidade)${cidadeParam}&limit=10`).catch(() => []),
-                        cidade ? Promise.resolve([]) : API.fetch(`/equipamentos?select=*,cliente:clientes!inner(nome)&cliente.nome=ilike.*${valEnc}*&limit=10`).catch(() => [])
+                        API.fetch(`/equipamentos?or=(serie.ilike.*${valEnc}*,patrimonio.ilike.*${valEnc}*)&select=*,cliente:clientes${joinType}(nome,cidade),sub_cliente:sub_clientes(nome)${cidadeParam}&limit=10`).catch(() => []),
+                        cidade ? Promise.resolve([]) : API.fetch(`/equipamentos?select=*,cliente:clientes!inner(nome),sub_cliente:sub_clientes(nome)&cliente.nome=ilike.*${valEnc}*&limit=10`).catch(() => [])
                     ]);
                     const ids  = new Set(porSerie.map(i => i.id));
                     const merged = [...porSerie, ...porCliente.filter(i => !ids.has(i.id))].slice(0, 10);
@@ -571,7 +574,7 @@ async function buscarEquipamento(serie) {
     try {
         let data = [];
         try {
-            data = await API.fetch(`/equipamentos?serie=eq.${encodeURIComponent(serie)}&select=*,cliente:clientes(id,nome,cidade)&limit=1`);
+            data = await API.fetch(`/equipamentos?serie=eq.${encodeURIComponent(serie)}&select=*,cliente:clientes(id,nome,cidade),sub_cliente:sub_clientes(nome)&limit=1`);
         } catch (apiErr) {
             console.warn("Supabase fetch failed, trying local IndexedDB cache:", apiErr);
         }
@@ -597,6 +600,7 @@ async function buscarEquipamento(serie) {
 
                 state.equipamento = equip;
                 document.getElementById('resCliente').innerText = `Cliente: ${equip.cliente?.nome || 'N/D'}`;
+                document.getElementById('resSubCliente').innerText = equip.sub_cliente?.nome || '';
                 document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
                 document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
                 document.getElementById('resSerie').innerText = equip.serie;
@@ -656,6 +660,7 @@ async function buscarEquipamento(serie) {
         state.entregas = entregas;
 
         document.getElementById('resCliente').innerText = `Cliente: ${equip.cliente?.nome || 'N/D'}`;
+        document.getElementById('resSubCliente').innerText = equip.sub_cliente?.nome || '';
         document.getElementById('resSecretaria').innerText = `SETOR: ${equip.secretaria || 'OUTROS'}`;
         document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
         document.getElementById('resSerie').innerText = equip.serie;
