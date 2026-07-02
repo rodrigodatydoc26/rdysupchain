@@ -2510,3 +2510,12 @@ select.input-text option { background: var(--bg-0); color: var(--text); }
   opacity: 0.6;
   margin-left: 8px;
 }
+
+/* Utility classes to fix inline style lint warnings */
+.mt-8 {
+  margin-top: 8px !important;
+}
+.text-orange {
+  color: #f59e0b !important;
+}
+

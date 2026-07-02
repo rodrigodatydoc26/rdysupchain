@@ -509,6 +509,29 @@
     .my-12 {
       margin: 12px 0;
     }
+    /* Utility classes to fix inline style lint warnings */
+    .flex-gap-wrap-mb-8 { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .margin-my-12 { margin: 12px 0; }
+    .text-dimmed { color: var(--text-dim); }
+    .text-dimmed-weight-400 { color: var(--text-dim); font-weight: 400; }
+    .overflow-x-auto { overflow-x: auto; }
+    .flex-wrap-gap-10 { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .margin-left-auto { margin-left: auto; }
+    .margin-bottom-12 { margin-bottom: 12px; }
+    .flex-align-gap-10 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .btn-sm-padding { padding: 6px 12px; font-size: 0.8rem; }
+    .flex-1-grow { flex: 1; }
+    .h3-title-m0-fs-11 { margin: 0; font-size: 1.1rem; }
+    .fs-08 { font-size: 0.8rem; }
+    .fs-085-m-8-12 { margin: 8px 0 12px; font-size: 0.85rem; }
+    .fs-082-mb-8 { font-size: 0.82rem; margin-bottom: 8px; }
+    .fs-075 { font-size: 0.75rem; }
+    .hr-border-m16 { border-color: var(--border); margin: 16px 0; }
+    .form-box-inline { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .cadastro-step-title-mb-12 { margin-bottom: 12px; }
+    .margin-top-10-p10-r8 { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 0.85rem; }
+    .margin-top-12-p10-r8 { margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 0.85rem; }
+    .margin-top-14 { margin-top: 14px; }
   </style>
 
 
@@ -853,7 +876,7 @@
         </div>
         <div class="admin-filters-grid">
           <!-- Atalhos de período -->
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <div class="flex-gap-wrap-mb-8">
             <button class="inv-periodo-btn" onclick="invSetPeriodo('hoje')">Hoje</button>
             <button class="inv-periodo-btn" onclick="invSetPeriodo('ontem')">Ontem</button>
             <button class="inv-periodo-btn" onclick="invSetPeriodo('semana')">Esta semana</button>
@@ -889,7 +912,7 @@
           </div>
         </div>
 
-        <div class="kpi-grid kpi-grid-entregas" style="margin:12px 0">
+        <div class="kpi-grid kpi-grid-entregas margin-my-12">
           <div class="kpi-card">
             <span class="kpi-label">Equipamentos</span>
             <span class="kpi-value" id="invKpiEquip">—</span>
@@ -1004,10 +1027,10 @@
             </button>
           </div>
         </div>
-        <div style="margin:8px 0 12px;font-size:.85rem;color:var(--text-dim)">
+        <div class="fs-085-m-8-12 text-dimmed">
           <span id="equipKpiTotal">—</span> equipamentos encontrados
         </div>
-        <div style="overflow-x:auto">
+        <div class="overflow-x-auto">
           <table class="data-table">
             <thead><tr>
               <th>Série</th>
@@ -1020,7 +1043,7 @@
               <th class="text-center">Ações</th>
             </tr></thead>
             <tbody id="equipTbody">
-              <tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Selecione uma cidade para carregar.</td></tr>
+              <tr><td colspan="8" class="text-center text-dimmed">Selecione uma cidade para carregar.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1034,13 +1057,13 @@
       <!-- ── VISÃO A: LISTA DE CLIENTES ── -->
       <div id="cadViewClientes">
         <div class="search-card">
-          <div class="section-hdr" style="flex-wrap:wrap;gap:10px">
+          <div class="section-hdr flex-wrap-gap-10">
             <h3><i data-lucide="users"></i> Clientes</h3>
-            <button class="btn-primary" onclick="cadAbrirNovoCliente()" style="margin-left:auto">
+            <button class="btn-primary margin-left-auto" onclick="cadAbrirNovoCliente()">
               <i data-lucide="plus"></i> Novo Cliente
             </button>
           </div>
-          <div class="filter-row-top" style="margin-bottom:12px">
+          <div class="filter-row-top margin-bottom-12">
             <div class="filter-input-group">
               <select id="cadListaCidade" class="input-text" onchange="cadFiltrarClientes()">
                 <option value="">Todas as Cidades</option>
@@ -1050,56 +1073,90 @@
               <input type="text" id="cadListaBusca" class="input-text" placeholder="Buscar por nome..." oninput="cadFiltrarClientes()">
             </div>
           </div>
-          <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:8px">
+          <div class="fs-082-mb-8 text-dimmed">
             <span id="cadKpiClientes">—</span> clientes
           </div>
-          <div style="overflow-x:auto">
+          <div class="overflow-x-auto">
             <table class="data-table">
               <thead><tr>
                 <th>Cliente / Local</th>
                 <th>Cidade</th>
-                <th>Sub-Local</th>
-                <th class="text-center">Equipamentos</th>
+                <th class="text-center">Sub-Clientes</th>
                 <th class="text-center">Ações</th>
               </tr></thead>
               <tbody id="cadClientesTbody">
-                <tr><td colspan="5" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>
+                <tr><td colspan="4" class="text-center text-dimmed">Carregando...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ── VISÃO B: DETALHE DO CLIENTE ── -->
-      <div id="cadViewDetalhe" class="hidden">
-        <!-- Cabeçalho do cliente -->
-        <div class="search-card" style="margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <button class="btn-outline" onclick="cadVoltarLista()" style="padding:6px 12px;font-size:.8rem">
-              <i data-lucide="arrow-left"></i> Voltar
+      <!-- ── VISÃO B: SUB-CLIENTES DO CLIENTE ── -->
+      <div id="cadViewSubClientes" class="hidden">
+        <div class="search-card margin-bottom-12">
+          <div class="flex-align-gap-10">
+            <button class="btn-outline btn-sm-padding" onclick="cadVoltarClientes()">
+              <i data-lucide="arrow-left"></i> Clientes
             </button>
-            <div style="flex:1">
-              <h3 style="margin:0;font-size:1.1rem" id="cadDetNome">—</h3>
-              <div style="font-size:.8rem;color:var(--text-dim)" id="cadDetCidade">—</div>
+            <div class="flex-1-grow">
+              <h3 class="h3-title-m0-fs-11" id="cadDetNomeCliente">—</h3>
+              <div class="fs-08 text-dimmed" id="cadDetCidadeCliente">—</div>
             </div>
-            <button class="btn-outline" onclick="cadAbrirEditarCliente()" style="padding:6px 12px;font-size:.8rem">
+            <button class="btn-outline btn-sm-padding" onclick="cadAbrirEditarCliente()">
               <i data-lucide="edit"></i> Editar Cliente
             </button>
           </div>
         </div>
-
-        <!-- Equipamentos do cliente -->
         <div class="search-card">
-          <div class="section-hdr" style="flex-wrap:wrap;gap:10px">
-            <h3><i data-lucide="printer"></i> Equipamentos deste Cliente</h3>
-            <button class="btn-primary" onclick="cadAbrirFormEquip()" style="margin-left:auto">
+          <div class="section-hdr flex-wrap-gap-10">
+            <h3><i data-lucide="building-2"></i> Sub-Clientes / Locais</h3>
+            <button class="btn-primary margin-left-auto" onclick="cadAbrirNovoSubCliente()">
+              <i data-lucide="plus"></i> Novo Sub-Cliente
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead><tr>
+                <th>Sub-Cliente / Local</th>
+                <th class="text-center">Equipamentos</th>
+                <th class="text-center">Ações</th>
+              </tr></thead>
+              <tbody id="cadSubClientesTbody">
+                <tr><td colspan="3" class="text-center text-dimmed">Carregando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VISÃO C: EQUIPAMENTOS DO SUB-CLIENTE ── -->
+      <div id="cadViewEquipamentos" class="hidden">
+        <div class="search-card margin-bottom-12">
+          <div class="flex-align-gap-10">
+            <button class="btn-outline btn-sm-padding" onclick="cadVoltarSubClientes()">
+              <i data-lucide="arrow-left"></i> Sub-Clientes
+            </button>
+            <div class="flex-1-grow">
+              <h3 class="h3-title-m0-fs-11" id="cadDetNomeSubCliente">—</h3>
+              <div class="fs-08 text-dimmed" id="cadDetNomeClientePai">—</div>
+            </div>
+            <button class="btn-outline btn-sm-padding" onclick="cadAbrirEditarSubCliente()">
+              <i data-lucide="edit"></i> Editar
+            </button>
+          </div>
+        </div>
+        <div class="search-card">
+          <div class="section-hdr flex-wrap-gap-10">
+            <h3><i data-lucide="printer"></i> Equipamentos</h3>
+            <button class="btn-primary margin-left-auto" onclick="cadAbrirFormEquip()">
               <i data-lucide="plus"></i> + Equipamento
             </button>
           </div>
 
-          <!-- Formulário inline de novo equipamento (oculto por padrão) -->
-          <div id="cadFormEquip" class="hidden" style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
-            <div class="cadastro-step-title" style="margin-bottom:12px">Novo Equipamento</div>
+          <!-- Formulário inline -->
+          <div id="cadFormEquip" class="hidden form-box-inline">
+            <div class="cadastro-step-title-mb-12">Novo Equipamento</div>
             <div class="form-grid form-grid-cadastro">
               <div class="form-group">
                 <label>Série *</label>
@@ -1110,8 +1167,8 @@
                 <input type="text" id="cadModelo" class="input-text" placeholder="Ex: Kyocera TASKalfa 3212i">
               </div>
               <div class="form-group">
-                <label>Secretaria / Setor</label>
-                <input type="text" id="cadSecretaria" class="input-text" placeholder="Ex: SEC. DE EDUCAÇÃO">
+                <label>Setor</label>
+                <input type="text" id="cadSecretaria" class="input-text" placeholder="Ex: RECURSOS HUMANOS">
               </div>
               <div class="form-group">
                 <label>Patrimônio</label>
@@ -1122,7 +1179,7 @@
                 <input type="number" id="cadNumerador" class="input-text" placeholder="Ex: 126414" min="0">
               </div>
               <div class="form-group">
-                <label>Média de Referência <span style="font-weight:400;color:var(--text-dim)">(resmas/mês)</span></label>
+                <label>Média de Referência <span class="text-dimmed-weight-400">(resmas/mês)</span></label>
                 <input type="number" id="cadMediaRef" class="input-text" placeholder="Ex: 5" min="0" step="0.5">
               </div>
             </div>
@@ -1130,30 +1187,30 @@
             <div id="cadMsgSucesso" class="analise-info-row highlight-row mt-16 hidden">
               <strong>Equipamento cadastrado!</strong> <span id="cadMsgDetalhe"></span>
             </div>
-            <div class="flex-gap-12 justify-end" style="margin-top:14px">
+            <div class="flex-gap-12 justify-end margin-top-14">
               <button class="btn-outline" onclick="cadFecharFormEquip()">Cancelar</button>
               <button class="btn-primary" onclick="cadSalvar()"><i data-lucide="save"></i> Salvar</button>
             </div>
           </div>
 
-          <!-- Tabela de equipamentos do cliente -->
-          <div style="overflow-x:auto">
+          <div class="overflow-x-auto">
             <table class="data-table">
               <thead><tr>
-                <th>Série</th><th>Modelo</th><th>Secretaria</th>
+                <th>Série</th><th>Modelo</th><th>Setor</th>
                 <th class="text-center">Contador</th><th class="text-center">Média/mês</th>
                 <th class="text-center">Ações</th>
               </tr></thead>
               <tbody id="cadEquipTbody">
-                <tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Nenhum equipamento.</td></tr>
+                <tr><td colspan="6" class="text-center text-dimmed">Nenhum equipamento.</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Campos ocultos auxiliares -->
+      <!-- Campos ocultos -->
       <input type="hidden" id="cadClienteAtualId">
+      <input type="hidden" id="cadSubClienteAtualId">
       <input type="hidden" id="cadClienteNovo">
       <input type="hidden" id="cadCidade">
       <input type="hidden" id="cadSubNome">
@@ -1326,14 +1383,32 @@
           <label>Cidade *</label>
           <input type="text" id="modalClienteCidade" class="input-text" placeholder="Ex: INDAIATUBA">
         </div>
-        <div class="form-group">
-          <label>Sub-Local <span style="font-weight:400;color:var(--text-dim)">(opcional)</span></label>
-          <input type="text" id="modalClienteSubNome" class="input-text" placeholder="Ex: SECRETARIA DE EDUCAÇÃO">
-        </div>
-        <div id="modalClienteMsg" class="hidden" style="margin-top:10px;padding:10px;border-radius:8px;font-size:.85rem"></div>
+        <div id="modalClienteMsg" class="hidden margin-top-10-p10-r8"></div>
         <div class="modal-actions mt-20">
           <button class="btn-outline" onclick="fecharModalCliente()">Cancelar</button>
           <button class="btn-primary" onclick="salvarModalCliente()"><i data-lucide="save"></i> Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NOVO / EDITAR SUB-CLIENTE -->
+  <div id="modalSubCliente" class="modal-overlay hidden" onclick="if(event.target===this)fecharModalSubCliente()">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h3><i data-lucide="building-2"></i> <span id="modalSubClienteTitulo">Novo Sub-Cliente</span></h3>
+        <button class="btn-close" onclick="fecharModalSubCliente()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modalSubClienteId">
+        <div class="form-group">
+          <label>Nome do Sub-Cliente / Local *</label>
+          <input type="text" id="modalSubClienteNome" class="input-text" placeholder="Ex: SECRETARIA DE EDUCAÇÃO">
+        </div>
+        <div id="modalSubClienteMsg" class="hidden margin-top-10-p10-r8"></div>
+        <div class="modal-actions mt-20">
+          <button class="btn-outline" onclick="fecharModalSubCliente()">Cancelar</button>
+          <button class="btn-primary" onclick="salvarModalSubCliente()"><i data-lucide="save"></i> Salvar</button>
         </div>
       </div>
     </div>
@@ -1349,7 +1424,7 @@
       <div class="modal-body">
         <input type="hidden" id="editEquipId">
         <input type="hidden" id="editEquipClienteId">
-        <p id="editEquipInfo" style="font-size:.8rem;color:var(--text-dim);margin-bottom:12px"></p>
+        <p id="editEquipInfo" class="fs-08 text-dimmed margin-bottom-12"></p>
 
         <div class="form-group">
           <label>Série *</label>
@@ -1372,17 +1447,17 @@
           <input type="text" id="editEquipSubNome" class="input-text" placeholder="Ex: ESCOLA MUNICIPAL X">
         </div>
         <div class="form-group">
-          <label>Média de Referência <span style="color:var(--text-dim);font-weight:400">(resmas/mês)</span></label>
+          <label>Média de Referência <span class="text-dimmed-weight-400">(resmas/mês)</span></label>
           <input type="number" id="editEquipMedia" class="input-text" min="0" step="0.5">
         </div>
-        <hr style="border-color:var(--border);margin:16px 0">
+        <hr class="hr-border-m16">
         <div class="form-group">
-          <label>Atualizar Contador <span style="color:var(--text-dim);font-weight:400">(leitura atual do numerador)</span></label>
+          <label>Atualizar Contador <span class="text-dimmed-weight-400">(leitura atual do numerador)</span></label>
           <input type="number" id="editEquipContador" class="input-text" min="0" placeholder="Deixe vazio para não alterar">
-          <small style="color:var(--text-dim);font-size:.75rem">Atual: <strong id="editEquipContadorAtual">—</strong></small>
+          <small class="text-dimmed fs-075">Atual: <strong id="editEquipContadorAtual">—</strong></small>
         </div>
 
-        <div id="editEquipMsg" class="hidden" style="margin-top:12px;padding:10px;border-radius:8px;font-size:.85rem"></div>
+        <div id="editEquipMsg" class="hidden margin-top-12-p10-r8"></div>
 
         <div class="modal-actions mt-20">
           <button type="button" class="btn-outline" onclick="fecharModalEditarEquip()">Cancelar</button>
@@ -1862,29 +1937,31 @@ async function salvarEdicaoEquipamento() {
 }
 
 // ════════════════════════════════════════════════════════
-// CADASTRO — ESTRUTURA CLIENTE → EQUIPAMENTOS
+// CADASTRO — CLIENTE → SUB-CLIENTE → EQUIPAMENTOS
 // ════════════════════════════════════════════════════════
-let _cadClientes = [];   // cache da lista de clientes
-let _cadEquips   = [];   // cache dos equipamentos do cliente aberto
+let _cadClientes    = [];
+let _cadSubClientes = [];
+let _cadEquips      = [];
+
+function cadShowView(view) {
+  ['cadViewClientes','cadViewSubClientes','cadViewEquipamentos'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden', id !== view);
+  });
+}
 
 async function cadInicializar() {
-  document.getElementById('cadViewClientes').classList.remove('hidden');
-  document.getElementById('cadViewDetalhe').classList.add('hidden');
+  cadShowView('cadViewClientes');
   await cadCarregarClientes();
 }
 
 async function cadCarregarClientes() {
   const tbody = document.getElementById('cadClientesTbody');
-  tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
   try {
-    // Nested select: cada cliente já vem com seus equipamentos (só id)
-    const clientes = await API.fetch('/clientes?select=id,nome,cidade,sub_nome,equipamentos(id)&order=cidade.asc,nome.asc&limit=2000');
-    _cadClientes = (clientes || []).map(c => ({
-      ...c,
-      _equipCount: (c.equipamentos || []).length
-    }));
+    const clientes = await API.fetch('/clientes?select=id,nome,cidade,sub_clientes(id)&order=cidade.asc,nome.asc&limit=2000');
+    _cadClientes = (clientes || []).map(c => ({ ...c, _subCount: (c.sub_clientes || []).length }));
 
-    // Popula select de cidade
     const cidades = [...new Set(_cadClientes.map(c => c.cidade).filter(Boolean))].sort();
     const sel = document.getElementById('cadListaCidade');
     const cur = sel.value;
@@ -1893,7 +1970,7 @@ async function cadCarregarClientes() {
 
     cadFiltrarClientes();
   } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
   }
 }
 
@@ -1912,21 +1989,20 @@ function cadFiltrarClientes() {
   if (kpi) kpi.textContent = rows.length;
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--text-dim)">Nenhum cliente encontrado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--text-dim)">Nenhum cliente encontrado.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = rows.map(c => `<tr>
     <td><strong>${esc(c.nome)}</strong></td>
     <td>${esc(c.cidade || '—')}</td>
-    <td>${esc(c.sub_nome || '—')}</td>
     <td class="text-center">
       <span style="background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-weight:700;font-size:.85rem">
-        ${c._equipCount}
+        ${c._subCount}
       </span>
     </td>
     <td class="text-center">
-      <button class="btn-primary" style="padding:5px 14px;font-size:.8rem" onclick="cadAbrirCliente('${c.id}')">
+      <button class="btn-primary" style="padding:5px 14px;font-size:.8rem" onclick="cadAbrirSubClientes('${c.id}')">
         Gerenciar
       </button>
     </td>
@@ -1934,29 +2010,70 @@ function cadFiltrarClientes() {
   safeCreateIcons();
 }
 
-async function cadAbrirCliente(clienteId) {
-  const cliente = _cadClientes.find(c => c.id === clienteId);
-  if (!cliente) return;
-
-  document.getElementById('cadClienteAtualId').value = clienteId;
-  document.getElementById('cadDetNome').textContent  = cliente.nome;
-  document.getElementById('cadDetCidade').textContent = `${cliente.cidade || ''}${cliente.sub_nome ? ' · ' + cliente.sub_nome : ''}`;
-
-  document.getElementById('cadViewClientes').classList.add('hidden');
-  document.getElementById('cadViewDetalhe').classList.remove('hidden');
-  cadFecharFormEquip();
-
-  await cadCarregarEquipsCliente(clienteId);
+async function cadAbrirSubClientes(clienteId) {
+  const c = _cadClientes.find(x => x.id === clienteId);
+  if (!c) return;
+  document.getElementById('cadClienteAtualId').value       = clienteId;
+  document.getElementById('cadDetNomeCliente').textContent  = c.nome;
+  document.getElementById('cadDetCidadeCliente').textContent = c.cidade || '';
+  cadShowView('cadViewSubClientes');
+  await cadCarregarSubClientes(clienteId);
 }
 
-async function cadCarregarEquipsCliente(clienteId) {
+async function cadCarregarSubClientes(clienteId) {
+  const tbody = document.getElementById('cadSubClientesTbody');
+  tbody.innerHTML = `<tr><td colspan="3" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
+  try {
+    const sc = await API.fetch(`/sub_clientes?cliente_id=eq.${clienteId}&select=id,nome,equipamentos(id)&order=nome.asc`);
+    _cadSubClientes = (sc || []).map(s => ({ ...s, _equipCount: (s.equipamentos || []).length }));
+    if (_cadSubClientes.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="3" class="text-center" style="color:var(--text-dim)">Nenhum sub-cliente. Crie o primeiro.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = _cadSubClientes.map(s => `<tr>
+      <td><strong>${esc(s.nome)}</strong></td>
+      <td class="text-center">
+        <span style="background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-weight:700;font-size:.85rem">
+          ${s._equipCount}
+        </span>
+      </td>
+      <td class="text-center">
+        <button class="btn-primary" style="padding:5px 14px;font-size:.8rem" onclick="cadAbrirEquipamentos('${s.id}')">Ver Equipamentos</button>
+        <button class="btn-outline" style="padding:5px 8px;margin-left:4px" onclick="cadAbrirEditarSubCliente('${s.id}')" title="Editar"><i data-lucide="edit"></i></button>
+      </td>
+    </tr>`).join('');
+    safeCreateIcons();
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="3" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
+  }
+}
+
+function cadVoltarClientes() {
+  cadShowView('cadViewClientes');
+  cadCarregarClientes();
+}
+
+async function cadAbrirEquipamentos(subClienteId) {
+  const sc = _cadSubClientes.find(s => s.id === subClienteId);
+  if (!sc) return;
+  const clienteId = document.getElementById('cadClienteAtualId').value;
+  const c = _cadClientes.find(x => x.id === clienteId);
+  document.getElementById('cadSubClienteAtualId').value        = subClienteId;
+  document.getElementById('cadDetNomeSubCliente').textContent  = sc.nome;
+  document.getElementById('cadDetNomeClientePai').textContent  = c ? `${c.nome} · ${c.cidade || ''}` : '';
+  cadShowView('cadViewEquipamentos');
+  cadFecharFormEquip();
+  await cadCarregarEquipsSubCliente(subClienteId);
+}
+
+async function cadCarregarEquipsSubCliente(subClienteId) {
   const tbody = document.getElementById('cadEquipTbody');
   tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
   try {
-    const equips = await API.fetch(`/equipamentos?cliente_id=eq.${clienteId}&select=id,serie,modelo,secretaria,patrimonio,media_referencia,ultimo_contador&order=serie.asc`);
+    const equips = await API.fetch(`/equipamentos?sub_cliente_id=eq.${subClienteId}&select=id,serie,modelo,secretaria,patrimonio,media_referencia,ultimo_contador&order=serie.asc`);
     _cadEquips = equips || [];
     if (_cadEquips.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Nenhum equipamento. Clique em "+ Equipamento" para adicionar.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Nenhum equipamento. Clique em "+ Equipamento".</td></tr>`;
       return;
     }
     tbody.innerHTML = _cadEquips.map(r => `<tr>
@@ -1966,9 +2083,7 @@ async function cadCarregarEquipsCliente(clienteId) {
       <td class="text-center">${r.ultimo_contador != null ? r.ultimo_contador.toLocaleString('pt-BR') : '—'}</td>
       <td class="text-center">${r.media_referencia != null ? r.media_referencia + ' r' : '—'}</td>
       <td class="text-center">
-        <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar">
-          <i data-lucide="edit"></i>
-        </button>
+        <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar"><i data-lucide="edit"></i></button>
       </td>
     </tr>`).join('');
     safeCreateIcons();
@@ -1977,10 +2092,10 @@ async function cadCarregarEquipsCliente(clienteId) {
   }
 }
 
-function cadVoltarLista() {
-  document.getElementById('cadViewDetalhe').classList.add('hidden');
-  document.getElementById('cadViewClientes').classList.remove('hidden');
-  cadCarregarClientes();
+function cadVoltarSubClientes() {
+  const clienteId = document.getElementById('cadClienteAtualId').value;
+  cadShowView('cadViewSubClientes');
+  if (clienteId) cadCarregarSubClientes(clienteId);
 }
 
 function cadAbrirFormEquip() {
@@ -1999,29 +2114,31 @@ function cadFecharFormEquip() {
 }
 
 async function cadSalvar() {
-  const clienteId  = document.getElementById('cadClienteAtualId').value;
-  const serie      = document.getElementById('cadSerie').value.trim().toUpperCase();
-  const modelo     = document.getElementById('cadModelo').value.trim();
-  const secretaria = document.getElementById('cadSecretaria').value.trim().toUpperCase();
-  const patrim     = document.getElementById('cadPatrimonio').value.trim();
-  const numVal     = document.getElementById('cadNumerador').value.trim();
-  const numerador  = numVal !== '' ? parseInt(numVal) : null;
-  const mediaVal   = document.getElementById('cadMediaRef').value.trim();
-  const mediaRef   = mediaVal !== '' ? parseFloat(mediaVal) : null;
+  const clienteId    = document.getElementById('cadClienteAtualId').value;
+  const subClienteId = document.getElementById('cadSubClienteAtualId').value;
+  const serie        = document.getElementById('cadSerie').value.trim().toUpperCase();
+  const modelo       = document.getElementById('cadModelo').value.trim();
+  const secretaria   = document.getElementById('cadSecretaria').value.trim().toUpperCase();
+  const patrim       = document.getElementById('cadPatrimonio').value.trim();
+  const numVal       = document.getElementById('cadNumerador').value.trim();
+  const numerador    = numVal !== '' ? parseInt(numVal) : null;
+  const mediaVal     = document.getElementById('cadMediaRef').value.trim();
+  const mediaRef     = mediaVal !== '' ? parseFloat(mediaVal) : null;
 
-  if (!clienteId) return cadErro('Nenhum cliente selecionado.');
-  if (!serie)     return cadErro('Informe o número de série.');
+  if (!subClienteId) return cadErro('Nenhum sub-cliente selecionado.');
+  if (!serie)        return cadErro('Informe o número de série.');
 
   document.getElementById('cadMsgErro').classList.add('hidden');
   document.getElementById('cadMsgSucesso').classList.add('hidden');
 
   try {
     const res = await API.post('/equipamentos', {
-      cliente_id:       clienteId,
+      cliente_id:       clienteId    || null,
+      sub_cliente_id:   subClienteId,
       serie,
-      modelo:           modelo     || null,
-      secretaria:       secretaria || null,
-      patrimonio:       patrim     || null,
+      modelo:           modelo       || null,
+      secretaria:       secretaria   || null,
+      patrimonio:       patrim       || null,
       media_referencia: mediaRef
     });
 
@@ -2041,7 +2158,7 @@ async function cadSalvar() {
     ['cadSerie','cadModelo','cadSecretaria','cadPatrimonio','cadNumerador','cadMediaRef'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
-    cadCarregarEquipsCliente(clienteId);
+    cadCarregarEquipsSubCliente(subClienteId);
   } catch(err) {
     cadErro('Erro ao salvar: ' + err.message);
   }
@@ -2063,12 +2180,11 @@ function cadErro(msg) {
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// ── Modal Novo / Editar Cliente
+// ── Modal Cliente
 function cadAbrirNovoCliente() {
-  document.getElementById('modalClienteId').value      = '';
-  document.getElementById('modalClienteNome').value    = '';
-  document.getElementById('modalClienteCidade').value  = '';
-  document.getElementById('modalClienteSubNome').value = '';
+  document.getElementById('modalClienteId').value     = '';
+  document.getElementById('modalClienteNome').value   = '';
+  document.getElementById('modalClienteCidade').value = '';
   document.getElementById('modalClienteTitulo').textContent = 'Novo Cliente';
   document.getElementById('modalClienteMsg').className = 'hidden';
   document.getElementById('modalCliente').classList.remove('hidden');
@@ -2079,10 +2195,9 @@ function cadAbrirEditarCliente() {
   const clienteId = document.getElementById('cadClienteAtualId').value;
   const c = _cadClientes.find(x => x.id === clienteId);
   if (!c) return;
-  document.getElementById('modalClienteId').value      = c.id;
-  document.getElementById('modalClienteNome').value    = c.nome || '';
-  document.getElementById('modalClienteCidade').value  = c.cidade || '';
-  document.getElementById('modalClienteSubNome').value = c.sub_nome || '';
+  document.getElementById('modalClienteId').value     = c.id;
+  document.getElementById('modalClienteNome').value   = c.nome || '';
+  document.getElementById('modalClienteCidade').value = c.cidade || '';
   document.getElementById('modalClienteTitulo').textContent = 'Editar Cliente';
   document.getElementById('modalClienteMsg').className = 'hidden';
   document.getElementById('modalCliente').classList.remove('hidden');
@@ -2093,35 +2208,89 @@ function fecharModalCliente() {
 }
 
 async function salvarModalCliente() {
-  const id      = document.getElementById('modalClienteId').value;
-  const nome    = document.getElementById('modalClienteNome').value.trim().toUpperCase();
-  const cidade  = document.getElementById('modalClienteCidade').value.trim().toUpperCase();
-  const subNome = document.getElementById('modalClienteSubNome').value.trim();
-  const msg     = document.getElementById('modalClienteMsg');
+  const id     = document.getElementById('modalClienteId').value;
+  const nome   = document.getElementById('modalClienteNome').value.trim().toUpperCase();
+  const cidade = document.getElementById('modalClienteCidade').value.trim().toUpperCase();
+  const msg    = document.getElementById('modalClienteMsg');
 
-  if (!nome)   { msg.textContent = 'Nome é obrigatório.'; msg.className = ''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
-  if (!cidade) { msg.textContent = 'Cidade é obrigatória.'; msg.className = ''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
+  if (!nome)   { msg.textContent='Nome é obrigatório.'; msg.className=''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
+  if (!cidade) { msg.textContent='Cidade é obrigatória.'; msg.className=''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
 
   msg.textContent = 'Salvando...';
-  msg.className = '';
+  msg.className   = '';
   msg.style.cssText = 'background:rgba(59,130,246,.1);color:#3b82f6;padding:10px;border-radius:8px;font-size:.85rem';
 
   try {
     if (id) {
-      await API.patch(`/clientes?id=eq.${id}`, { nome, cidade, sub_nome: subNome || null });
+      await API.patch(`/clientes?id=eq.${id}`, { nome, cidade });
     } else {
-      await API.post('/clientes', { nome, cidade, sub_nome: subNome || null });
+      await API.post('/clientes', { nome, cidade });
     }
     msg.textContent = 'Salvo!';
     msg.style.cssText = 'background:rgba(34,197,94,.1);color:#22c55e;padding:10px;border-radius:8px;font-size:.85rem';
     setTimeout(() => {
       fecharModalCliente();
       if (id) {
-        // Atualiza header do detalhe
-        document.getElementById('cadDetNome').textContent = nome;
-        document.getElementById('cadDetCidade').textContent = `${cidade}${subNome ? ' · ' + subNome : ''}`;
+        document.getElementById('cadDetNomeCliente').textContent  = nome;
+        document.getElementById('cadDetCidadeCliente').textContent = cidade;
       }
       cadCarregarClientes();
+    }, 800);
+  } catch(err) {
+    msg.textContent = 'Erro: ' + err.message;
+    msg.style.cssText = 'background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem';
+  }
+}
+
+// ── Modal Sub-Cliente
+function cadAbrirNovoSubCliente() {
+  document.getElementById('modalSubClienteId').value   = '';
+  document.getElementById('modalSubClienteNome').value = '';
+  document.getElementById('modalSubClienteTitulo').textContent = 'Novo Sub-Cliente';
+  document.getElementById('modalSubClienteMsg').className = 'hidden';
+  document.getElementById('modalSubCliente').classList.remove('hidden');
+  document.getElementById('modalSubClienteNome').focus();
+}
+
+function cadAbrirEditarSubCliente(subClienteId) {
+  const id = subClienteId || document.getElementById('cadSubClienteAtualId').value;
+  const sc = _cadSubClientes.find(s => s.id === id);
+  if (!sc) return;
+  document.getElementById('modalSubClienteId').value   = sc.id;
+  document.getElementById('modalSubClienteNome').value = sc.nome || '';
+  document.getElementById('modalSubClienteTitulo').textContent = 'Editar Sub-Cliente';
+  document.getElementById('modalSubClienteMsg').className = 'hidden';
+  document.getElementById('modalSubCliente').classList.remove('hidden');
+}
+
+function fecharModalSubCliente() {
+  document.getElementById('modalSubCliente').classList.add('hidden');
+}
+
+async function salvarModalSubCliente() {
+  const id        = document.getElementById('modalSubClienteId').value;
+  const nome      = document.getElementById('modalSubClienteNome').value.trim().toUpperCase();
+  const clienteId = document.getElementById('cadClienteAtualId').value;
+  const msg       = document.getElementById('modalSubClienteMsg');
+
+  if (!nome) { msg.textContent='Nome é obrigatório.'; msg.className=''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
+
+  msg.textContent = 'Salvando...';
+  msg.className   = '';
+  msg.style.cssText = 'background:rgba(59,130,246,.1);color:#3b82f6;padding:10px;border-radius:8px;font-size:.85rem';
+
+  try {
+    if (id) {
+      await API.patch(`/sub_clientes?id=eq.${id}`, { nome });
+    } else {
+      await API.post('/sub_clientes', { cliente_id: clienteId, nome });
+    }
+    msg.textContent = 'Salvo!';
+    msg.style.cssText = 'background:rgba(34,197,94,.1);color:#22c55e;padding:10px;border-radius:8px;font-size:.85rem';
+    setTimeout(() => {
+      fecharModalSubCliente();
+      if (id) document.getElementById('cadDetNomeSubCliente').textContent = nome;
+      cadCarregarSubClientes(clienteId);
     }, 800);
   } catch(err) {
     msg.textContent = 'Erro: ' + err.message;
