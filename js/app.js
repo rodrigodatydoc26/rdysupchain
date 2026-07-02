@@ -2038,16 +2038,14 @@ let adminState = { cidade: null, clienteIds: null };
 function showAdmin() {
     try {
         if (!document.getElementById('adminApp')) {
-            // Se estiver dentro de um iframe (Sistema Original), não redireciona
-            if (window !== window.top) {
-                showTech();
-                return;
-            }
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
-            if (typeof window !== 'undefined' && window.location) {
-                window.location.href = 'admin.html?v=20260702';
+            // Se estiver dentro de um iframe, abre admin em nova aba
+            if (window !== window.top) {
+                window.open('admin.html', '_blank');
+                return;
             }
+            window.location.href = 'admin.html?v=20260702';
             return;
         }
         document.getElementById('loginScreen').style.display = 'none';
