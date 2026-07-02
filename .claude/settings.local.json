@@ -15,7 +15,8 @@
       "PowerShell(cd \"C:\\\\Users\\\\Rodrigo Daty\\\\Desktop\\\\Projetos Antigravit\\\\balanceamento\"; $proc = Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c npx serve . --port 3001\" -PassThru -NoNewWindow; Start-Sleep -Seconds 5; try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/index.html\" -UseBasicParsing -TimeoutSec 5; \"HTTP $\\($r.StatusCode\\) — OK\" } catch { \"Erro ao conectar: $_\" })",
       "PowerShell(Start-Process \"http://localhost:3001/index.html\")",
       "Bash(node -e ' *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "PowerShell(Stop-Process *)"
     ]
   }
 }
