@@ -979,6 +979,7 @@
             <div class="filter-input-group max-w-200">
               <select id="filtroGovPerfil" class="input-text" onchange="filtrarGovernanca()">
                 <option value="">Todos os Perfis</option>
+                <option value="admin">Administrador</option>
                 <option value="cto">CTO</option>
                 <option value="gestor">Gestor</option>
                 <option value="tecnico">Técnico</option>
@@ -1390,7 +1391,8 @@
           <div class="form-group">
             <label>Perfil (Role)</label>
             <select id="govRole" required class="input-text">
-              <option value="cto">Admin (CTO)</option>
+              <option value="admin">Administrador</option>
+              <option value="cto">CTO</option>
               <option value="gestor">Gestor</option>
               <option value="tecnico" selected>Técnico</option>
             </select>
@@ -1817,7 +1819,7 @@ async function entrarAdmin(user, cfg) {
   const btnDb    = document.getElementById('btnTabBancoDados');
   const btnInv   = document.getElementById('btnTabInvestigacao');
   const btnEquip = document.getElementById('btnTabEquipamentos');
-  if (cfg.role === 'cto' || cfg.role === 'gestor') {
+  if (cfg.role === 'cto' || cfg.role === 'gestor' || cfg.role === 'admin') {
     btnCad.classList.remove('hidden');
     btnInv?.classList.remove('hidden');
     btnEquip?.classList.remove('hidden');
@@ -1826,11 +1828,14 @@ async function entrarAdmin(user, cfg) {
     btnInv?.classList.add('hidden');
     btnEquip?.classList.add('hidden');
   }
-  if (cfg.role === 'cto') {
+  if (cfg.role === 'cto' || cfg.role === 'admin') {
     btnGov.classList.remove('hidden');
-    btnDb.classList.remove('hidden');
   } else {
     btnGov.classList.add('hidden');
+  }
+  if (cfg.role === 'admin') {
+    btnDb.classList.remove('hidden');
+  } else {
     btnDb.classList.add('hidden');
   }
 
@@ -3349,7 +3354,7 @@ function fecharSistemaOriginal() {
 window.govUsers = [];
 
 async function carregarGovernanca() {
-  if (adminState.role !== 'cto') return; // Bloqueio de segurança front-end
+  if (adminState.role !== 'cto' && adminState.role !== 'admin') return; // Bloqueio de segurança front-end
   
   const tbody = document.getElementById('govTbody');
   try {
@@ -3393,7 +3398,7 @@ function renderizarGovernanca() {
         <tr>
           <td><strong>${esc(u.username)}</strong></td>
           <td>${esc(u.label)}</td>
-          <td><span class="status-badge ${u.role === 'cto' ? 'status-confirmado' : 'status-pendente'}">${esc(u.role)}</span></td>
+          <td><span class="status-badge ${u.role === 'admin' || u.role === 'cto' ? 'status-confirmado' : 'status-pendente'}">${u.role === 'admin' ? 'Administrador' : esc(u.role)}</span></td>
           <td>${esc(u.cidade || 'Todas')}</td>
           <td class="text-center">
             <div style="display:flex; justify-content:center; gap:8px;">
@@ -3831,7 +3836,7 @@ async function confirmarDbAuth() {
 // GESTÃO DE HISTÓRICO (EDITAR E EXCLUIR)
 // ════════════════════════════════════════════════════════
 async function excluirRegistroHistorico(id) {
-  if (adminState.role !== 'cto' && adminState.role !== 'gestor') {
+  if (adminState.role !== 'cto' && adminState.role !== 'gestor' && adminState.role !== 'admin') {
     return alert("Você não tem permissão para excluir registros.");
   }
   
@@ -3865,7 +3870,7 @@ async function excluirRegistroHistorico(id) {
 }
 
 async function prepararEdicaoHistorico(id) {
-  if (adminState.role !== 'cto' && adminState.role !== 'gestor') {
+  if (adminState.role !== 'cto' && adminState.role !== 'gestor' && adminState.role !== 'admin') {
     return alert("Você não tem permissão para editar registros.");
   }
   try {
