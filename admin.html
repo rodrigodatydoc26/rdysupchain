@@ -532,6 +532,11 @@
     .margin-top-10-p10-r8 { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 0.85rem; }
     .margin-top-12-p10-r8 { margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 0.85rem; }
     .margin-top-14 { margin-top: 14px; }
+    .w-col-full { grid-column: 1 / -1; }
+    .flex-gap-8 { display: flex; gap: 8px; }
+    .ws-nowrap { white-space: nowrap; }
+    .mt-16 { margin-top: 16px; }
+    .migration-warn-box { background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.4); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; font-size: .85rem; color: #f59e0b; }
   </style>
 
 
@@ -1055,12 +1060,92 @@
     <section id="tab-cadastro" class="tab-content">
 
       <!-- aviso de migração pendente -->
-      <div id="cadMigrationWarn" class="hidden" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:.85rem;color:#f59e0b">
+      <div id="cadMigrationWarn" class="hidden migration-warn-box">
         <strong>⚠️ Migração pendente:</strong> Execute o arquivo <code>migracao-sub-clientes.sql</code> no Supabase SQL Editor para ativar a estrutura de Sub-Clientes.
       </div>
 
-      <!-- ── VISÃO A: LISTA DE CLIENTES ── -->
-      <div id="cadViewClientes">
+      <!-- ── FORMULÁRIO RÁPIDO ── -->
+      <div class="search-card">
+        <div class="section-hdr">
+          <h3><i data-lucide="plus-circle"></i> Cadastro de Equipamento</h3>
+        </div>
+        <div class="form-grid form-grid-cadastro">
+          <!-- Cliente -->
+          <div class="form-group w-col-full">
+            <label>Cliente *</label>
+            <div class="flex-gap-8">
+              <select id="cadRapidoCliente" class="input-text flex-1-grow" onchange="cadRapidoClienteChanged()">
+                <option value="">Selecione o cliente...</option>
+              </select>
+              <button class="btn-outline ws-nowrap" onclick="cadAbrirNovoCliente()">
+                <i data-lucide="plus"></i> Novo
+              </button>
+            </div>
+          </div>
+          <!-- Sub-Cliente -->
+          <div class="form-group w-col-full">
+            <label>Sub-Cliente *</label>
+            <div class="flex-gap-8">
+              <select id="cadRapidoSubCliente" class="input-text flex-1-grow" disabled>
+                <option value="">Selecione o cliente primeiro</option>
+              </select>
+              <button class="btn-outline ws-nowrap" id="btnCadRapidoNovoSub" onclick="cadAbrirNovoSubCliente()" disabled>
+                <i data-lucide="plus"></i> Novo
+              </button>
+            </div>
+          </div>
+          <!-- Equipamento -->
+          <div class="form-group">
+            <label>Série *</label>
+            <input type="text" id="cadRapidoSerie" class="input-text" placeholder="Ex: VBQ1234567">
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <input type="text" id="cadRapidoModelo" class="input-text" placeholder="Ex: Kyocera TASKalfa 3212i">
+          </div>
+          <div class="form-group">
+            <label>Setor</label>
+            <input type="text" id="cadRapidoSetor" class="input-text" placeholder="Ex: RECURSOS HUMANOS">
+          </div>
+          <div class="form-group">
+            <label>Patrimônio</label>
+            <input type="text" id="cadRapidoPatrimonio" class="input-text" placeholder="Ex: PAT-0042">
+          </div>
+          <div class="form-group">
+            <label>Numerador Atual</label>
+            <input type="number" id="cadRapidoNumerador" class="input-text" placeholder="Ex: 126414" min="0">
+          </div>
+          <div class="form-group">
+            <label>Média/mês <span class="text-dimmed-weight-400">(resmas)</span></label>
+            <input type="number" id="cadRapidoMedia" class="input-text" placeholder="Ex: 5" min="0" step="0.5">
+          </div>
+        </div>
+        <div id="cadRapidoMsg" class="hidden margin-top-12-p10-r8"></div>
+        <div class="flex-gap-12 justify-end margin-top-14">
+          <button class="btn-outline" onclick="cadRapidoLimpar()">Limpar</button>
+          <button class="btn-primary" onclick="cadRapidoSalvar()"><i data-lucide="save"></i> Salvar Equipamento</button>
+        </div>
+      </div>
+
+      <!-- ── ÚLTIMOS CADASTRADOS ── -->
+      <div class="search-card mt-16">
+        <div class="section-hdr">
+          <h3><i data-lucide="clock"></i> Últimos Cadastrados</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="data-table">
+            <thead><tr>
+              <th>Série</th><th>Modelo</th><th>Sub-Cliente</th><th>Cliente</th><th>Setor</th>
+            </tr></thead>
+            <tbody id="cadRecentesTbody">
+              <tr><td colspan="5" class="text-center text-dimmed">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Auxiliar oculto -->
+      <div id="cadViewClientes" class="hidden">
         <div class="search-card">
           <div class="section-hdr flex-wrap-gap-10">
             <h3><i data-lucide="users"></i> Clientes</h3>
@@ -1956,224 +2041,113 @@ async function salvarEdicaoEquipamento() {
 }
 
 // ════════════════════════════════════════════════════════
-// CADASTRO — CLIENTE → SUB-CLIENTE → EQUIPAMENTOS
+// CADASTRO — FORMULÁRIO RÁPIDO
 // ════════════════════════════════════════════════════════
 let _cadClientes    = [];
 let _cadSubClientes = [];
 let _cadEquips      = [];
 
-function cadShowView(view) {
-  ['cadViewClientes','cadViewSubClientes','cadViewEquipamentos'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('hidden', id !== view);
-  });
-}
-
 async function cadInicializar() {
-  cadShowView('cadViewClientes');
-  await cadCarregarClientes();
+  await cadCarregarDropdownClientes();
+  cadRecentesCarregar();
 }
 
-async function cadCarregarClientes() {
-  const tbody = document.getElementById('cadClientesTbody');
-  tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
+async function cadCarregarDropdownClientes() {
   try {
-    let clientes, migrationOk = true;
-    try {
-      clientes = await API.fetch('/clientes?select=id,nome,cidade,sub_clientes(id)&order=cidade.asc,nome.asc&limit=2000');
-      _cadClientes = (clientes || []).map(c => ({ ...c, _subCount: (c.sub_clientes || []).length }));
-    } catch(e) {
-      // sub_clientes não existe ainda — roda sem nested select
-      migrationOk = false;
-      clientes = await API.fetch('/clientes?select=id,nome,cidade&order=cidade.asc,nome.asc&limit=2000');
-      _cadClientes = (clientes || []).map(c => ({ ...c, _subCount: '—', _migrationPendente: true }));
+    const clientes = await API.fetch('/clientes?select=id,nome,cidade&order=cidade.asc,nome.asc&limit=2000');
+    _cadClientes = clientes || [];
+    const sel = document.getElementById('cadRapidoCliente');
+    const cur = sel?.value;
+    if (sel) {
+      sel.innerHTML = '<option value="">Selecione o cliente...</option>' +
+        _cadClientes.map(c => `<option value="${c.id}"${c.id === cur ? ' selected' : ''}>${esc(c.nome)}</option>`).join('');
     }
-    if (!migrationOk) {
-      const warn = document.getElementById('cadMigrationWarn');
-      if (warn) warn.classList.remove('hidden');
-    }
-
-    const cidades = [...new Set(_cadClientes.map(c => c.cidade).filter(Boolean))].sort();
-    const sel = document.getElementById('cadListaCidade');
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">Todas as Cidades</option>' +
-      cidades.map(c => `<option value="${esc(c)}"${c === cur ? ' selected' : ''}>${esc(c)}</option>`).join('');
-
-    cadFiltrarClientes();
+    const warn = document.getElementById('cadMigrationWarn');
+    if (warn) warn.classList.add('hidden');
   } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="4" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
+    console.error('cadCarregarDropdownClientes:', err);
   }
 }
 
-function cadFiltrarClientes() {
-  const fCidade = document.getElementById('cadListaCidade')?.value || '';
-  const fBusca  = (document.getElementById('cadListaBusca')?.value || '').toLowerCase();
-  const tbody   = document.getElementById('cadClientesTbody');
+async function cadRapidoClienteChanged() {
+  const clienteId = document.getElementById('cadRapidoCliente').value;
+  const subSel    = document.getElementById('cadRapidoSubCliente');
+  const btnNovo   = document.getElementById('btnCadRapidoNovoSub');
+  document.getElementById('cadClienteAtualId').value = clienteId;
 
-  const rows = _cadClientes.filter(c => {
-    if (fCidade && c.cidade !== fCidade) return false;
-    if (fBusca  && !(c.nome || '').toLowerCase().includes(fBusca)) return false;
-    return true;
-  });
-
-  const kpi = document.getElementById('cadKpiClientes');
-  if (kpi) kpi.textContent = rows.length;
-
-  if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--text-dim)">Nenhum cliente encontrado.</td></tr>`;
+  if (!clienteId) {
+    subSel.innerHTML = '<option value="">Selecione o cliente primeiro</option>';
+    subSel.disabled  = true;
+    btnNovo.disabled = true;
     return;
   }
 
-  tbody.innerHTML = rows.map(c => `<tr>
-    <td><strong>${esc(c.nome)}</strong></td>
-    <td>${esc(c.cidade || '—')}</td>
-    <td class="text-center">
-      <span style="background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-weight:700;font-size:.85rem">
-        ${c._subCount}
-      </span>
-    </td>
-    <td class="text-center">
-      <button class="btn-primary" style="padding:5px 14px;font-size:.8rem" onclick="cadAbrirSubClientes('${c.id}')">
-        Gerenciar
-      </button>
-    </td>
-  </tr>`).join('');
-  safeCreateIcons();
-}
+  subSel.innerHTML = '<option value="">Carregando...</option>';
+  subSel.disabled  = true;
 
-async function cadAbrirSubClientes(clienteId) {
-  const c = _cadClientes.find(x => x.id === clienteId);
-  if (!c) return;
-  if (c._migrationPendente) {
-    alert('Execute primeiro o arquivo migracao-sub-clientes.sql no Supabase para usar esta funcionalidade.');
-    return;
-  }
-  document.getElementById('cadClienteAtualId').value       = clienteId;
-  document.getElementById('cadDetNomeCliente').textContent  = c.nome;
-  document.getElementById('cadDetCidadeCliente').textContent = c.cidade || '';
-  cadShowView('cadViewSubClientes');
-  await cadCarregarSubClientes(clienteId);
-}
-
-async function cadCarregarSubClientes(clienteId) {
-  const tbody = document.getElementById('cadSubClientesTbody');
-  tbody.innerHTML = `<tr><td colspan="3" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
   try {
-    const sc = await API.fetch(`/sub_clientes?cliente_id=eq.${clienteId}&select=id,nome,equipamentos(id)&order=nome.asc`);
-    _cadSubClientes = (sc || []).map(s => ({ ...s, _equipCount: (s.equipamentos || []).length }));
-    if (_cadSubClientes.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="3" class="text-center" style="color:var(--text-dim)">Nenhum sub-cliente. Crie o primeiro.</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = _cadSubClientes.map(s => `<tr>
-      <td><strong>${esc(s.nome)}</strong></td>
-      <td class="text-center">
-        <span style="background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-weight:700;font-size:.85rem">
-          ${s._equipCount}
-        </span>
-      </td>
-      <td class="text-center">
-        <button class="btn-primary" style="padding:5px 14px;font-size:.8rem" onclick="cadAbrirEquipamentos('${s.id}')">Ver Equipamentos</button>
-        <button class="btn-outline" style="padding:5px 8px;margin-left:4px" onclick="cadAbrirEditarSubCliente('${s.id}')" title="Editar"><i data-lucide="edit"></i></button>
-      </td>
-    </tr>`).join('');
-    safeCreateIcons();
+    const subs = await API.fetch(`/sub_clientes?cliente_id=eq.${clienteId}&select=id,nome&order=nome.asc`);
+    _cadSubClientes = subs || [];
+    subSel.innerHTML = '<option value="">Selecione o sub-cliente...</option>' +
+      _cadSubClientes.map(s => `<option value="${s.id}">${esc(s.nome)}</option>`).join('');
+    subSel.disabled  = false;
+    btnNovo.disabled = false;
   } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="3" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
+    subSel.innerHTML = '<option value="">Migração pendente</option>';
+    subSel.disabled  = true;
+    btnNovo.disabled = false;
+    const warn = document.getElementById('cadMigrationWarn');
+    if (warn) warn.classList.remove('hidden');
   }
 }
 
-function cadVoltarClientes() {
-  cadShowView('cadViewClientes');
-  cadCarregarClientes();
-}
-
-async function cadAbrirEquipamentos(subClienteId) {
-  const sc = _cadSubClientes.find(s => s.id === subClienteId);
-  if (!sc) return;
-  const clienteId = document.getElementById('cadClienteAtualId').value;
-  const c = _cadClientes.find(x => x.id === clienteId);
-  document.getElementById('cadSubClienteAtualId').value        = subClienteId;
-  document.getElementById('cadDetNomeSubCliente').textContent  = sc.nome;
-  document.getElementById('cadDetNomeClientePai').textContent  = c ? `${c.nome} · ${c.cidade || ''}` : '';
-  cadShowView('cadViewEquipamentos');
-  cadFecharFormEquip();
-  await cadCarregarEquipsSubCliente(subClienteId);
-}
-
-async function cadCarregarEquipsSubCliente(subClienteId) {
-  const tbody = document.getElementById('cadEquipTbody');
-  tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
-  try {
-    const equips = await API.fetch(`/equipamentos?sub_cliente_id=eq.${subClienteId}&select=id,serie,modelo,secretaria,patrimonio,media_referencia&order=serie.asc`);
-    _cadEquips = equips || [];
-    if (_cadEquips.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="color:var(--text-dim)">Nenhum equipamento. Clique em "+ Equipamento".</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = _cadEquips.map(r => `<tr>
-      <td><strong>${esc(r.serie)}</strong></td>
-      <td>${esc(r.modelo || '—')}</td>
-      <td>${esc(r.secretaria || '—')}</td>
-      <td class="text-center">—</td>
-      <td class="text-center">${r.media_referencia != null ? r.media_referencia + ' r' : '—'}</td>
-      <td class="text-center">
-        <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar"><i data-lucide="edit"></i></button>
-      </td>
-    </tr>`).join('');
-    safeCreateIcons();
-  } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="color:#ef4444;padding:12px">Erro: ${err.message}</td></tr>`;
-  }
-}
-
-function cadVoltarSubClientes() {
-  const clienteId = document.getElementById('cadClienteAtualId').value;
-  cadShowView('cadViewSubClientes');
-  if (clienteId) cadCarregarSubClientes(clienteId);
-}
-
-function cadAbrirFormEquip() {
-  document.getElementById('cadFormEquip').classList.remove('hidden');
-  ['cadSerie','cadModelo','cadSecretaria','cadPatrimonio','cadNumerador','cadMediaRef'].forEach(id => {
+function cadRapidoLimpar() {
+  ['cadRapidoSerie','cadRapidoModelo','cadRapidoSetor','cadRapidoPatrimonio','cadRapidoNumerador','cadRapidoMedia'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
-  document.getElementById('cadMsgErro').classList.add('hidden');
-  document.getElementById('cadMsgSucesso').classList.add('hidden');
-  document.getElementById('cadSerie').focus();
+  const msg = document.getElementById('cadRapidoMsg');
+  if (msg) msg.className = 'hidden';
 }
 
-function cadFecharFormEquip() {
-  const f = document.getElementById('cadFormEquip');
-  if (f) f.classList.add('hidden');
+function cadRapidoMsgShow(text, type) {
+  const el = document.getElementById('cadRapidoMsg');
+  if (!el) return;
+  el.textContent = text;
+  el.className   = '';
+  const colors = {
+    ok:   'background:rgba(34,197,94,.1);color:#22c55e',
+    warn: 'background:rgba(245,158,11,.1);color:#f59e0b',
+    err:  'background:rgba(239,68,68,.1);color:#ef4444'
+  };
+  el.style.cssText = (colors[type] || colors.err) + ';padding:10px;border-radius:8px;font-size:.85rem;margin:12px 0';
 }
 
-async function cadSalvar() {
+async function cadRapidoSalvar() {
   const clienteId    = document.getElementById('cadClienteAtualId').value;
-  const subClienteId = document.getElementById('cadSubClienteAtualId').value;
-  const serie        = document.getElementById('cadSerie').value.trim().toUpperCase();
-  const modelo       = document.getElementById('cadModelo').value.trim();
-  const secretaria   = document.getElementById('cadSecretaria').value.trim().toUpperCase();
-  const patrim       = document.getElementById('cadPatrimonio').value.trim();
-  const numVal       = document.getElementById('cadNumerador').value.trim();
+  const subClienteId = document.getElementById('cadRapidoSubCliente').value;
+  const serie        = document.getElementById('cadRapidoSerie').value.trim().toUpperCase();
+  const modelo       = document.getElementById('cadRapidoModelo').value.trim();
+  const secretaria   = document.getElementById('cadRapidoSetor').value.trim().toUpperCase();
+  const patrim       = document.getElementById('cadRapidoPatrimonio').value.trim();
+  const numVal       = document.getElementById('cadRapidoNumerador').value.trim();
   const numerador    = numVal !== '' ? parseInt(numVal) : null;
-  const mediaVal     = document.getElementById('cadMediaRef').value.trim();
+  const mediaVal     = document.getElementById('cadRapidoMedia').value.trim();
   const mediaRef     = mediaVal !== '' ? parseFloat(mediaVal) : null;
 
-  if (!subClienteId) return cadErro('Nenhum sub-cliente selecionado.');
-  if (!serie)        return cadErro('Informe o número de série.');
+  if (!clienteId)    return cadRapidoMsgShow('Selecione o cliente.', 'err');
+  if (!subClienteId) return cadRapidoMsgShow('Selecione o sub-cliente.', 'err');
+  if (!serie)        return cadRapidoMsgShow('Informe o número de série.', 'err');
 
-  document.getElementById('cadMsgErro').classList.add('hidden');
-  document.getElementById('cadMsgSucesso').classList.add('hidden');
+  cadRapidoMsgShow('Salvando...', 'warn');
 
   try {
     const res = await API.post('/equipamentos', {
-      cliente_id:       clienteId    || null,
+      cliente_id:       clienteId,
       sub_cliente_id:   subClienteId,
       serie,
-      modelo:           modelo       || null,
-      secretaria:       secretaria   || null,
-      patrimonio:       patrim       || null,
+      modelo:           modelo     || null,
+      secretaria:       secretaria || null,
+      patrimonio:       patrim     || null,
       media_referencia: mediaRef
     });
 
@@ -2188,31 +2162,35 @@ async function cadSalvar() {
       } catch(e) {}
     }
 
-    document.getElementById('cadMsgDetalhe').textContent = `Série: ${serie}`;
-    document.getElementById('cadMsgSucesso').classList.remove('hidden');
-    ['cadSerie','cadModelo','cadSecretaria','cadPatrimonio','cadNumerador','cadMediaRef'].forEach(id => {
-      const el = document.getElementById(id); if (el) el.value = '';
-    });
-    cadCarregarEquipsSubCliente(subClienteId);
+    cadRapidoMsgShow(`Equipamento ${serie} cadastrado!`, 'ok');
+    cadRapidoLimpar();
+    cadRecentesCarregar();
   } catch(err) {
-    cadErro('Erro ao salvar: ' + err.message);
+    let msg = err.message;
+    if (msg.includes('duplicate key')) msg = `Série ${serie} já cadastrada no sistema.`;
+    cadRapidoMsgShow(msg, 'err');
   }
 }
 
-function cadErro(msg) {
-  const el = document.getElementById('cadMsgErro');
-  let display = msg;
+async function cadRecentesCarregar() {
+  const tbody = document.getElementById('cadRecentesTbody');
+  if (!tbody) return;
   try {
-    const m = msg.match(/\{.*\}/s);
-    if (m) {
-      const obj = JSON.parse(m[0]);
-      if (obj.message) display = obj.message + (obj.details ? ' — ' + obj.details : '');
-      if (obj.message?.includes('duplicate key')) display = 'Série já cadastrada no sistema.';
+    const rows = await API.fetch('/equipamentos?select=serie,modelo,secretaria,sub_cliente:sub_clientes(nome),cliente:clientes(nome)&order=created_at.desc&limit=15');
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dimmed">Nenhum equipamento cadastrado ainda.</td></tr>';
+      return;
     }
-  } catch(e) {}
-  el.textContent = display;
-  el.classList.remove('hidden');
-  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    tbody.innerHTML = rows.map(r => `<tr>
+      <td><strong>${esc(r.serie)}</strong></td>
+      <td>${esc(r.modelo || '—')}</td>
+      <td>${esc(r.sub_cliente?.nome || '—')}</td>
+      <td>${esc(r.cliente?.nome || '—')}</td>
+      <td>${esc(r.secretaria || '—')}</td>
+    </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-dimmed">Erro ao carregar.</td></tr>';
+  }
 }
 
 // ── Modal Cliente
@@ -2226,17 +2204,7 @@ function cadAbrirNovoCliente() {
   document.getElementById('modalClienteNome').focus();
 }
 
-function cadAbrirEditarCliente() {
-  const clienteId = document.getElementById('cadClienteAtualId').value;
-  const c = _cadClientes.find(x => x.id === clienteId);
-  if (!c) return;
-  document.getElementById('modalClienteId').value     = c.id;
-  document.getElementById('modalClienteNome').value   = c.nome || '';
-  document.getElementById('modalClienteCidade').value = c.cidade || '';
-  document.getElementById('modalClienteTitulo').textContent = 'Editar Cliente';
-  document.getElementById('modalClienteMsg').className = 'hidden';
-  document.getElementById('modalCliente').classList.remove('hidden');
-}
+function cadAbrirEditarCliente() {}
 
 function fecharModalCliente() {
   document.getElementById('modalCliente').classList.add('hidden');
@@ -2248,28 +2216,29 @@ async function salvarModalCliente() {
   const cidade = document.getElementById('modalClienteCidade').value.trim().toUpperCase();
   const msg    = document.getElementById('modalClienteMsg');
 
-  if (!nome)   { msg.textContent='Nome é obrigatório.'; msg.className=''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
+  if (!nome)   { msg.textContent='Nome é obrigatório.';  msg.className=''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
   if (!cidade) { msg.textContent='Cidade é obrigatória.'; msg.className=''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
 
-  msg.textContent = 'Salvando...';
-  msg.className   = '';
+  msg.textContent = 'Salvando...'; msg.className='';
   msg.style.cssText = 'background:rgba(59,130,246,.1);color:#3b82f6;padding:10px;border-radius:8px;font-size:.85rem';
 
   try {
+    let newId = id;
     if (id) {
       await API.patch(`/clientes?id=eq.${id}`, { nome, cidade });
     } else {
-      await API.post('/clientes', { nome, cidade });
+      const res = await API.post('/clientes', { nome, cidade });
+      newId = res?.[0]?.id;
     }
     msg.textContent = 'Salvo!';
     msg.style.cssText = 'background:rgba(34,197,94,.1);color:#22c55e;padding:10px;border-radius:8px;font-size:.85rem';
-    setTimeout(() => {
+    setTimeout(async () => {
       fecharModalCliente();
-      if (id) {
-        document.getElementById('cadDetNomeCliente').textContent  = nome;
-        document.getElementById('cadDetCidadeCliente').textContent = cidade;
+      await cadCarregarDropdownClientes();
+      if (newId) {
+        document.getElementById('cadRapidoCliente').value = newId;
+        await cadRapidoClienteChanged();
       }
-      cadCarregarClientes();
     }, 800);
   } catch(err) {
     msg.textContent = 'Erro: ' + err.message;
@@ -2279,6 +2248,8 @@ async function salvarModalCliente() {
 
 // ── Modal Sub-Cliente
 function cadAbrirNovoSubCliente() {
+  const clienteId = document.getElementById('cadRapidoCliente').value;
+  if (!clienteId) { alert('Selecione um cliente primeiro.'); return; }
   document.getElementById('modalSubClienteId').value   = '';
   document.getElementById('modalSubClienteNome').value = '';
   document.getElementById('modalSubClienteTitulo').textContent = 'Novo Sub-Cliente';
@@ -2287,16 +2258,7 @@ function cadAbrirNovoSubCliente() {
   document.getElementById('modalSubClienteNome').focus();
 }
 
-function cadAbrirEditarSubCliente(subClienteId) {
-  const id = subClienteId || document.getElementById('cadSubClienteAtualId').value;
-  const sc = _cadSubClientes.find(s => s.id === id);
-  if (!sc) return;
-  document.getElementById('modalSubClienteId').value   = sc.id;
-  document.getElementById('modalSubClienteNome').value = sc.nome || '';
-  document.getElementById('modalSubClienteTitulo').textContent = 'Editar Sub-Cliente';
-  document.getElementById('modalSubClienteMsg').className = 'hidden';
-  document.getElementById('modalSubCliente').classList.remove('hidden');
-}
+function cadAbrirEditarSubCliente() {}
 
 function fecharModalSubCliente() {
   document.getElementById('modalSubCliente').classList.add('hidden');
@@ -2305,33 +2267,47 @@ function fecharModalSubCliente() {
 async function salvarModalSubCliente() {
   const id        = document.getElementById('modalSubClienteId').value;
   const nome      = document.getElementById('modalSubClienteNome').value.trim().toUpperCase();
-  const clienteId = document.getElementById('cadClienteAtualId').value;
+  const clienteId = document.getElementById('cadRapidoCliente').value || document.getElementById('cadClienteAtualId').value;
   const msg       = document.getElementById('modalSubClienteMsg');
 
   if (!nome) { msg.textContent='Nome é obrigatório.'; msg.className=''; msg.style.cssText='background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem'; return; }
 
-  msg.textContent = 'Salvando...';
-  msg.className   = '';
+  msg.textContent='Salvando...'; msg.className='';
   msg.style.cssText = 'background:rgba(59,130,246,.1);color:#3b82f6;padding:10px;border-radius:8px;font-size:.85rem';
 
   try {
+    let newId = id;
     if (id) {
       await API.patch(`/sub_clientes?id=eq.${id}`, { nome });
     } else {
-      await API.post('/sub_clientes', { cliente_id: clienteId, nome });
+      const res = await API.post('/sub_clientes', { cliente_id: clienteId, nome });
+      newId = res?.[0]?.id;
     }
     msg.textContent = 'Salvo!';
     msg.style.cssText = 'background:rgba(34,197,94,.1);color:#22c55e;padding:10px;border-radius:8px;font-size:.85rem';
-    setTimeout(() => {
+    setTimeout(async () => {
       fecharModalSubCliente();
-      if (id) document.getElementById('cadDetNomeSubCliente').textContent = nome;
-      cadCarregarSubClientes(clienteId);
+      await cadRapidoClienteChanged();
+      if (newId) document.getElementById('cadRapidoSubCliente').value = newId;
     }, 800);
   } catch(err) {
     msg.textContent = 'Erro: ' + err.message;
     msg.style.cssText = 'background:rgba(239,68,68,.1);color:#ef4444;padding:10px;border-radius:8px;font-size:.85rem';
   }
 }
+
+// shims para compatibilidade
+function cadShowView() {}
+function cadFiltrarClientes() {}
+function cadVoltarClientes() {}
+function cadVoltarSubClientes() {}
+function cadAbrirSubClientes() {}
+function cadCarregarSubClientes() {}
+function cadAbrirEquipamentos() {}
+function cadFecharFormEquip() { const f=document.getElementById('cadFormEquip'); if(f) f.classList.add('hidden'); }
+function cadAbrirFormEquip()  { const f=document.getElementById('cadFormEquip'); if(f) f.classList.remove('hidden'); }
+function cadSalvar() {}
+function cadErro(m) { cadRapidoMsgShow(m,'err'); }
 
 // ════════════════════════════════════════════════════════
 // RENDERIZAR GRÁFICOS (CHART.JS)
