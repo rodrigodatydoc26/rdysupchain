@@ -1054,6 +1054,11 @@
     <!-- ══ TAB: CADASTRO ══ -->
     <section id="tab-cadastro" class="tab-content">
 
+      <!-- aviso de migração pendente -->
+      <div id="cadMigrationWarn" class="hidden" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:.85rem;color:#f59e0b">
+        <strong>⚠️ Migração pendente:</strong> Execute o arquivo <code>migracao-sub-clientes.sql</code> no Supabase SQL Editor para ativar a estrutura de Sub-Clientes.
+      </div>
+
       <!-- ── VISÃO A: LISTA DE CLIENTES ── -->
       <div id="cadViewClientes">
         <div class="search-card">
@@ -1912,7 +1917,14 @@ async function salvarEdicaoEquipamento() {
     if (clienteId) {
       const clientePatch = { sub_nome: subNome || null };
       if (cidade) clientePatch.cidade = cidade;
-      await API.patch(`/clientes?id=eq.${clienteId}`, clientePatch);
+      const patchResult = await API.patch(`/clientes?id=eq.${clienteId}`, clientePatch);
+      if (!patchResult || patchResult.length === 0) {
+        msg.textContent = 'Equipamento salvo, mas a cidade não foi alterada — falta política UPDATE no RLS. Execute o SQL abaixo no Supabase:\nALTER POLICY ou CREATE POLICY "anon_update_clientes" ON public.clientes FOR UPDATE TO anon USING (true) WITH CHECK (true);';
+        msg.style.background = 'rgba(245,158,11,.1)';
+        msg.style.color = '#f59e0b';
+        setTimeout(() => { fecharModalEditarEquip(); carregarEquipamentosAdmin(); }, 4000);
+        return;
+      }
     }
 
     // 3. Insere novo contador em ctrl_os (se informado)
@@ -1966,8 +1978,20 @@ async function cadCarregarClientes() {
   const tbody = document.getElementById('cadClientesTbody');
   tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
   try {
-    const clientes = await API.fetch('/clientes?select=id,nome,cidade,sub_clientes(id)&order=cidade.asc,nome.asc&limit=2000');
-    _cadClientes = (clientes || []).map(c => ({ ...c, _subCount: (c.sub_clientes || []).length }));
+    let clientes, migrationOk = true;
+    try {
+      clientes = await API.fetch('/clientes?select=id,nome,cidade,sub_clientes(id)&order=cidade.asc,nome.asc&limit=2000');
+      _cadClientes = (clientes || []).map(c => ({ ...c, _subCount: (c.sub_clientes || []).length }));
+    } catch(e) {
+      // sub_clientes não existe ainda — roda sem nested select
+      migrationOk = false;
+      clientes = await API.fetch('/clientes?select=id,nome,cidade&order=cidade.asc,nome.asc&limit=2000');
+      _cadClientes = (clientes || []).map(c => ({ ...c, _subCount: '—', _migrationPendente: true }));
+    }
+    if (!migrationOk) {
+      const warn = document.getElementById('cadMigrationWarn');
+      if (warn) warn.classList.remove('hidden');
+    }
 
     const cidades = [...new Set(_cadClientes.map(c => c.cidade).filter(Boolean))].sort();
     const sel = document.getElementById('cadListaCidade');
@@ -2020,6 +2044,10 @@ function cadFiltrarClientes() {
 async function cadAbrirSubClientes(clienteId) {
   const c = _cadClientes.find(x => x.id === clienteId);
   if (!c) return;
+  if (c._migrationPendente) {
+    alert('Execute primeiro o arquivo migracao-sub-clientes.sql no Supabase para usar esta funcionalidade.');
+    return;
+  }
   document.getElementById('cadClienteAtualId').value       = clienteId;
   document.getElementById('cadDetNomeCliente').textContent  = c.nome;
   document.getElementById('cadDetCidadeCliente').textContent = c.cidade || '';
