@@ -151,6 +151,19 @@ async function initLogin() {
     if (passIn) passIn.value = '';
 }
 
+async function forcaAtualizacaoPortal() {
+    try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+        if (navigator.serviceWorker?.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+        }
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+    } catch(e) { console.warn(e); }
+    location.reload(true);
+}
+
 async function doLogin() {
     const errEl = document.getElementById('loginError');
 
