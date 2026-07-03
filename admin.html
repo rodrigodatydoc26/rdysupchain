@@ -1739,11 +1739,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('admDataFim').value = hojeStr;
   safeCreateIcons();
   initTheme();
-  const saved = localStorage.getItem('adm_user');
+  const saved = localStorage.getItem('adm_user') || localStorage.getItem('rdyUser');
   if (saved) {
     try {
       const cfg = JSON.parse(saved);
       if (!cfg || !cfg.username) throw new Error('Sessão inválida');
+      localStorage.setItem('adm_user', JSON.stringify(cfg));
       entrarAdmin(cfg.username, cfg);
 
       // Background refresh admin user profile to reflect database updates (e.g. role/city changes)
