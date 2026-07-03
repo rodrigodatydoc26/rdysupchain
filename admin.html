@@ -10,11 +10,23 @@
     window.addEventListener('unhandledrejection', function(event) {
       console.error('ADMIN unhandledrejection:', event.reason);
     });
-    // Exige adm_user E adm_tk — impede acesso apenas colocando a URL ou manipulando localStorage
+    // Exige adm_user E adm_tk, OU rdyUser com role admin/cto/gestor (acesso direto via sistema original)
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
-      localStorage.removeItem('adm_user');
-      localStorage.removeItem('adm_tk');
-      window.location.href = 'index.html?v=20260702';
+      try {
+        const _rdy = JSON.parse(localStorage.getItem('rdyUser') || 'null');
+        if (_rdy && (_rdy.role === 'admin' || _rdy.role === 'cto' || _rdy.role === 'gestor')) {
+          localStorage.setItem('adm_user', JSON.stringify(_rdy));
+          localStorage.setItem('adm_tk', Date.now().toString(36));
+        } else {
+          localStorage.removeItem('adm_user');
+          localStorage.removeItem('adm_tk');
+          window.location.href = 'index.html?v=20260702';
+        }
+      } catch(_) {
+        localStorage.removeItem('adm_user');
+        localStorage.removeItem('adm_tk');
+        window.location.href = 'index.html?v=20260702';
+      }
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
