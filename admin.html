@@ -10,19 +10,21 @@
     window.addEventListener('unhandledrejection', function(event) {
       console.error('ADMIN unhandledrejection:', event.reason);
     });
-    // Exige adm_user E adm_tk, OU rdyUser com role admin/cto/gestor (acesso direto via sistema original)
+    // Permite acesso se: tem adm_user+adm_tk, OU rdyUser admin/cto/gestor, OU ?u= na URL (auth via DOMContentLoaded)
     if (!localStorage.getItem('adm_user') || !localStorage.getItem('adm_tk')) {
+      var _allowed = false;
       try {
-        const _rdy = JSON.parse(localStorage.getItem('rdyUser') || 'null');
+        var _rdy = JSON.parse(localStorage.getItem('rdyUser') || 'null');
         if (_rdy && (_rdy.role === 'admin' || _rdy.role === 'cto' || _rdy.role === 'gestor')) {
           localStorage.setItem('adm_user', JSON.stringify(_rdy));
           localStorage.setItem('adm_tk', Date.now().toString(36));
-        } else {
-          localStorage.removeItem('adm_user');
-          localStorage.removeItem('adm_tk');
-          window.location.href = 'index.html?v=20260702';
+          _allowed = true;
         }
-      } catch(_) {
+      } catch(_) {}
+      if (!_allowed && new URLSearchParams(window.location.search).get('u')) {
+        _allowed = true; // DOMContentLoaded vai autenticar via ?u=
+      }
+      if (!_allowed) {
         localStorage.removeItem('adm_user');
         localStorage.removeItem('adm_tk');
         window.location.href = 'index.html?v=20260702';
