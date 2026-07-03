@@ -145,9 +145,13 @@ async function initLogin() {
                 localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
                 history.replaceState({}, '', window.location.pathname);
                 if (window === window.top) {
-                    window.location.href = _adminUrl;
+                    // Acesso direto: redireciona para painel admin
+                    window.location.href = new URL('admin.html', window.location.href).href;
                     return;
                 }
+                // Dentro de iframe: mostra portal com botão "Painel Admin" visível
+                showApp();
+                return;
             }
         }
     } catch (e) {}
