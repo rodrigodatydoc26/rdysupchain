@@ -4252,14 +4252,10 @@ if ('serviceWorker' in navigator) {
     });
   }).catch(() => {});
 
-  // Reload quando SW mudar de controlador
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) { refreshing = true; window.location.reload(true); }
-  });
-
+  // Manter escuta do ServiceWorker sem recarregamentos forçados
   navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data && e.data.type === 'SW_UPDATED' && !refreshing) {
-      refreshing = true; window.location.reload(true);
+    if (e.data && e.data.type === 'SYNC_OK') {
+      localStorage.setItem('lastSync', e.data.time);
     }
   });
 }

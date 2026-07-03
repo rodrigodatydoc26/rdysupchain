@@ -849,18 +849,11 @@
       });
     }).catch(() => {});
 
-    // Reload quando SW mudar de controlador
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) { refreshing = true; window.location.reload(true); }
-    });
-
+    // Ouvinte de mensagens do SW sem forçar recarregamento automático da janela
     navigator.serviceWorker.addEventListener('message', e => {
       if (e.data && e.data.type === 'SYNC_OK') {
         localStorage.setItem('lastSync', e.data.time);
-        document.getElementById('syncBanner').classList.add('hidden');
-      }
-      if (e.data && e.data.type === 'SW_UPDATED' && !refreshing) {
-        refreshing = true; window.location.reload(true);
+        document.getElementById('syncBanner')?.classList.add('hidden');
       }
     });
   }
