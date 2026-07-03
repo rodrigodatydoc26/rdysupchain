@@ -255,8 +255,7 @@ function showApp() {
         }
         return;
     }
-    const { role } = currentUser;
-    if (role === 'cto' || role === 'admin' || role === 'gestor') { showAdmin(); } else { showTech(); }
+    showTech();
 }
 
 function showTech() {
@@ -279,6 +278,11 @@ function applyRoleRestrictions() {
     // Exibir badge do usuário logado
     document.getElementById('userLabel').innerText = label;
     document.getElementById('userBadge').classList.remove('hidden');
+
+    const adminBtn = document.getElementById('btnAdminLink');
+    if (adminBtn) {
+        adminBtn.style.display = (role === 'admin' || role === 'cto' || role === 'gestor') ? 'inline-flex' : 'none';
+    }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         if (role === 'tecnico' || role === 'gestor') {
@@ -2005,8 +2009,11 @@ function showAdmin() {
         if (!document.getElementById('adminApp')) {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
-            const _url = new URL('admin.html', window.location.href).href;
-            try { (window !== window.top ? window.top : window).location.href = _url; } catch(_) { window.location.href = _url; }
+            if (window === window.top) {
+                window.location.href = 'admin.html';
+            } else {
+                showTech();
+            }
             return;
         }
         document.getElementById('loginScreen').style.display = 'none';
