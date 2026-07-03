@@ -144,9 +144,10 @@ async function initLogin() {
                 localStorage.setItem('adm_user', JSON.stringify(currentUser));
                 localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
                 history.replaceState({}, '', window.location.pathname);
-                const _adminUrl = new URL('admin.html', window.location.href).href;
-                try { (window !== window.top ? window.top : window).location.href = _adminUrl; } catch(_) { window.location.href = _adminUrl; }
-                return;
+                if (window === window.top) {
+                    window.location.href = _adminUrl;
+                    return;
+                }
             }
         }
     } catch (e) {}

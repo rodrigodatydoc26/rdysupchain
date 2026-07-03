@@ -23,6 +23,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin></script>
   <script>
+    if (window !== window.top) {
+      document.documentElement.classList.add('in-iframe');
+    }
     if (localStorage.getItem('adm_user')) {
       document.documentElement.classList.add('is-logged-in');
       try {
@@ -42,6 +45,7 @@
     }
   </script>
   <style>
+    html.in-iframe #sistemaOriginalOverlay { display: none !important; }
     #adminApp { display: none; }
     #loginScreen { display: flex; }
     html.is-logged-in #loginScreen { display: none !important; }
@@ -3409,10 +3413,11 @@ function exportarExcel(tableId, nome) {
 
 <script>
 function abrirSistemaOriginal() {
+  if (window !== window.top) return; // Se já estiver num iframe, ignora
   const overlay = document.getElementById('sistemaOriginalOverlay');
   const frame   = document.getElementById('sistemaOriginalFrame');
-  if (!frame.src || frame.src === window.location.href) {
-    frame.src = 'index.html';
+  if (!frame.src || !frame.src.includes('mode=embedded')) {
+    frame.src = 'index.html?mode=embedded';
   }
   overlay.classList.add('ativo');
   if (typeof lucide !== 'undefined') lucide.createIcons();

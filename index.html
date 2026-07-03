@@ -20,6 +20,12 @@
   <script>
     (function() {
       try {
+        if (window !== window.top || window.location.search.includes('mode=embedded')) {
+          if (localStorage.getItem('rdyUser')) {
+            document.documentElement.classList.add('is-logged-in');
+          }
+          return;
+        }
         var u = JSON.parse(localStorage.getItem('rdyUser') || '{}');
         if (u && u.role) {
           if (u.role === 'admin' || u.role === 'cto' || u.role === 'gestor') {
