@@ -1786,8 +1786,29 @@ document.addEventListener('DOMContentLoaded', () => {
       if (userIn) userIn.focus();
     }
   } else {
-    const userIn = document.getElementById('loginUser');
-    if (userIn) userIn.focus();
+    // Tenta auto-login via ?u=username (sistema original abre admin.html com username na URL)
+    const autoU = new URLSearchParams(window.location.search).get('u');
+    if (autoU) {
+      API.fetch(`/balanceamento_usuarios?username=eq.${encodeURIComponent(autoU.trim().toLowerCase())}&select=username,label,role,cidade`)
+        .then(result => {
+          const cfg = result?.[0];
+          if (cfg && (cfg.role === 'admin' || cfg.role === 'cto' || cfg.role === 'gestor')) {
+            localStorage.setItem('adm_user', JSON.stringify(cfg));
+            localStorage.setItem('adm_tk', Date.now().toString(36));
+            entrarAdmin(cfg.username, cfg);
+          } else {
+            const userIn = document.getElementById('loginUser');
+            if (userIn) { userIn.value = autoU; userIn.focus(); }
+          }
+        })
+        .catch(() => {
+          const userIn = document.getElementById('loginUser');
+          if (userIn) userIn.focus();
+        });
+    } else {
+      const userIn = document.getElementById('loginUser');
+      if (userIn) userIn.focus();
+    }
   }
 });
 
