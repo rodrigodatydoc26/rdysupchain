@@ -2012,11 +2012,7 @@ function showAdmin() {
         if (!document.getElementById('adminApp')) {
             localStorage.setItem('adm_user', JSON.stringify(currentUser));
             localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
-            if (window === window.top) {
-                window.location.href = 'admin.html';
-            } else {
-                showTech();
-            }
+            showTech();
             return;
         }
         document.getElementById('loginScreen').style.display = 'none';
