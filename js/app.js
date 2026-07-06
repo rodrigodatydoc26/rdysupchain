@@ -103,12 +103,7 @@ async function initLogin() {
                                     const { password: _pw, ...foundSafe } = found;
                                     currentUser = foundSafe;
                                     localStorage.setItem('rdyUser', JSON.stringify(foundSafe));
-                                    const { role } = currentUser;
-                                    if (role === 'cto' || role === 'admin' || role === 'gestor') {
-                                        showAdmin();
-                                    } else {
-                                        showTech();
-                                    }
+                                    showTech();
                                 }
                             }
                         })
@@ -122,37 +117,41 @@ async function initLogin() {
         localStorage.removeItem('adm_tk');
     }
 
-    // 2. Auto-login via parâmetro URL ?u=username (integração com portal)
-    // O portal passa o username do técnico na URL: .../index.html?u=david.jesus
+    // 2. Auto-login via parâmetro URL (?u=username ou ?user=username ou ?serie=12345)
     try {
-        const autoU = new URLSearchParams(window.location.search).get('u');
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoU = urlParams.get('u') || urlParams.get('user') || urlParams.get('usuario');
+        const autoSerie = urlParams.get('serie') || urlParams.get('s') || urlParams.get('patrimonio');
+
         if (autoU) {
             const result = await API.fetch(
                 `/balanceamento_usuarios?username=eq.${encodeURIComponent(autoU.trim().toLowerCase())}&select=username,label,role,cidade`
             );
             const found = result?.[0];
-            if (found && found.role === 'tecnico') {
+            if (found) {
                 currentUser = { ...found };
                 localStorage.setItem('rdyUser', JSON.stringify(currentUser));
-                history.replaceState({}, '', window.location.pathname);
-                showApp();
-                return;
-            }
-            if (found && (found.role === 'admin' || found.role === 'cto' || found.role === 'gestor')) {
-                currentUser = { ...found };
-                localStorage.setItem('rdyUser', JSON.stringify(currentUser));
-                localStorage.setItem('adm_user', JSON.stringify(currentUser));
-                localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
-                history.replaceState({}, '', window.location.pathname);
-                if (window === window.top) {
-                    // Acesso direto: redireciona para painel admin
-                    window.location.href = new URL('admin.html', window.location.href).href;
-                    return;
+                if (found.role === 'admin' || found.role === 'cto' || found.role === 'gestor') {
+                    localStorage.setItem('adm_user', JSON.stringify(currentUser));
+                    localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
                 }
-                // Dentro de iframe: mostra portal com botão "Painel Admin" visível
+                history.replaceState({}, '', window.location.pathname);
                 showApp();
+                if (autoSerie) {
+                    setTimeout(() => {
+                        const sIn = document.getElementById('searchInput');
+                        if (sIn) sIn.value = autoSerie;
+                        buscarEquipamento(autoSerie);
+                    }, 200);
+                }
                 return;
             }
+        } else if (autoSerie && currentUser) {
+            setTimeout(() => {
+                const sIn = document.getElementById('searchInput');
+                if (sIn) sIn.value = autoSerie;
+                buscarEquipamento(autoSerie);
+            }, 200);
         }
     } catch (e) {}
 
