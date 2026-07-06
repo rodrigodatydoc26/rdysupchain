@@ -1909,8 +1909,18 @@ async function entrarAdmin(user, cfg) {
     btnDb?.classList.add('hidden');
   }
 
-  document.getElementById('adminBadge').innerText = user;
-  document.getElementById('adminCity').innerText  = cfg.label;
+  const displayLabel = cfg.label || '';
+  const displayRole = (cfg.role || '').toUpperCase();
+  document.getElementById('adminCity').innerText = displayLabel;
+  const badgeEl = document.getElementById('adminBadge');
+  if (badgeEl) {
+    if (displayLabel.toUpperCase() === displayRole) {
+      badgeEl.style.display = 'none';
+    } else {
+      badgeEl.style.display = 'inline-block';
+      badgeEl.innerText = displayRole;
+    }
+  }
 
   adminState.cidade = cfg.cidade || null; // null = CTO, ver tudo
 

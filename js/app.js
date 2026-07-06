@@ -2027,8 +2027,18 @@ function showAdmin() {
         }
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('adminApp').style.display = 'block';
-        document.getElementById('adminBadge').innerText = currentUser.label;
+        const displayLabel = currentUser.label || '';
+        const displayRole = (currentUser.role || '').toUpperCase();
         document.getElementById('adminCity').innerText = currentUser.cidade || 'TODAS AS CIDADES';
+        const badgeEl = document.getElementById('adminBadge');
+        if (badgeEl) {
+            if (displayLabel.toUpperCase() === displayRole) {
+                badgeEl.style.display = 'none';
+            } else {
+                badgeEl.style.display = 'inline-block';
+                badgeEl.innerText = displayRole;
+            }
+        }
         adminState.cidade = currentUser.cidade;
         lucide.createIcons();
         initTheme();
