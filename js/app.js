@@ -258,6 +258,15 @@ function showApp() {
         }
         return;
     }
+    // Admin/CTO/Gestor na janela principal → redireciona para o painel admin
+    const isEmbedded = new URLSearchParams(window.location.search).get('mode') === 'embedded';
+    if (!isEmbedded && window === window.top &&
+        (currentUser.role === 'admin' || currentUser.role === 'cto' || currentUser.role === 'gestor')) {
+        localStorage.setItem('adm_user', JSON.stringify(currentUser));
+        localStorage.setItem('adm_tk', Math.random().toString(36).slice(2) + Date.now().toString(36));
+        window.location.href = new URL('admin.html', window.location.href).href;
+        return;
+    }
     showTech();
 }
 
