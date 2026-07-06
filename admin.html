@@ -3446,9 +3446,13 @@ function abrirSistemaOriginal() {
   if (window !== window.top) return; // Se já estiver num iframe, ignora
   const overlay = document.getElementById('sistemaOriginalOverlay');
   const frame   = document.getElementById('sistemaOriginalFrame');
-  if (!frame.src || !frame.src.includes('mode=embedded')) {
-    frame.src = 'index.html?mode=embedded';
-  }
+  // Passa o username atual para o portal fazer auto-login sem exigir nova senha
+  const username = adminState.user || (function(){ try { return JSON.parse(localStorage.getItem('adm_user')||'{}').username||''; } catch(_){ return ''; } })();
+  const targetSrc = username
+    ? 'index.html?mode=embedded&u=' + encodeURIComponent(username)
+    : 'index.html?mode=embedded';
+  // Recarrega o iframe sempre que o overlay é aberto para garantir sessão fresca
+  frame.src = targetSrc;
   overlay.classList.add('ativo');
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }

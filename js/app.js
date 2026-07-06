@@ -284,7 +284,8 @@ function applyRoleRestrictions() {
 
     const adminBtn = document.getElementById('btnAdminLink');
     if (adminBtn) {
-        adminBtn.style.display = (role === 'admin' || role === 'cto' || role === 'gestor') ? 'inline-flex' : 'none';
+        const isEmbedded = new URLSearchParams(window.location.search).get('mode') === 'embedded';
+        adminBtn.style.display = (!isEmbedded && (role === 'admin' || role === 'cto' || role === 'gestor')) ? 'inline-flex' : 'none';
     }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
