@@ -309,10 +309,16 @@ function applyRoleRestrictions() {
         }
     });
 
-    // Todos os usuários e cidades utilizam o Novo Sistema Supabase com acesso completo
-    document.querySelectorAll('.options-section, .summary-column').forEach(el => {
+    document.querySelectorAll('.summary-column').forEach(el => {
         el.style.display = '';
     });
+
+    // Bloco "OPÇÕES DE ENTREGA" (atalho rápido com botão próprio CONFIRMAR BALANCEAMENTO,
+    // paralelo ao fluxo obrigatório de análise) é restrito a admin/cto/gestor.
+    const optionsSection = document.querySelector('.options-section');
+    if (optionsSection) {
+        optionsSection.style.display = (role === 'tecnico') ? 'none' : '';
+    }
     const recCard = document.querySelector('.option-card[data-opcao="rec"]');
     if (recCard) {
         recCard.style.display = '';
@@ -687,6 +693,7 @@ async function buscarEquipamento(serie) {
         equip.data_ultimo_contador = ultimaOs?.os_date || null;
 
         state.equipamento = equip;
+        salvarEquipamentoLocal(equip);
         state.entregas = entregas;
 
         const cNome = equip.cliente?.cidade || equip.cliente?.nome || 'N/D';
@@ -741,12 +748,12 @@ function verTodoHistorico() {
 
 function calcularMediaCalibrada(osHistory, entregas, mediaReferencia) {
     if (osHistory && osHistory.length >= 2) {
-        const ordenadas = [...osHistory].sort((a, b) => new Date(a.data_os) - new Date(b.data_os));
+        const ordenadas = [...osHistory].sort((a, b) => new Date(a.os_date) - new Date(b.os_date));
         const consumos = [];
         for (let i = 1; i < ordenadas.length; i++) {
-            const deltaPages = ordenadas[i].contador_atual - ordenadas[i - 1].contador_atual;
+            const deltaPages = ordenadas[i].counter_reading - ordenadas[i - 1].counter_reading;
             const deltaDias = Math.ceil(
-                Math.abs(new Date(ordenadas[i].data_os) - new Date(ordenadas[i - 1].data_os)) / (1000 * 60 * 60 * 24)
+                Math.abs(new Date(ordenadas[i].os_date) - new Date(ordenadas[i - 1].os_date)) / (1000 * 60 * 60 * 24)
             ) || 1;
             const resmasMes = (deltaPages / deltaDias) * 30 / 500;
             if (resmasMes > 0) consumos.push(resmasMes);
@@ -1011,6 +1018,32 @@ function recalcularComContador() {
     updateProxima();
 }
 
+async function atualizarContadorEquipamento(id, cont) {
+    if (cont === null || isNaN(cont) || cont <= 0) return;
+    try {
+        // current_counter é o campo real na tabela equipamentos (ultimo_contador/data_ultimo_contador
+        // não existem na base ao vivo - só no SCHEMA.sql desatualizado). ctrl_os continua sendo a
+        // fonte da verdade para o histórico; isso é só o fallback sincronizado.
+        await API.patch(`/equipamentos?id=eq.${id}`, {
+            current_counter: cont
+        });
+    } catch (e) {
+        console.warn('Falhou ao atualizar contador do equipamento:', e);
+    }
+}
+
+async function salvarEquipamentoLocal(equip) {
+    if (!equip || !equip.id) return;
+    try {
+        const db = await abrirDB();
+        const tx = db.transaction('equipamentos', 'readwrite');
+        const store = tx.objectStore('equipamentos');
+        store.put(JSON.parse(JSON.stringify(equip)));
+    } catch (e) {
+        console.warn('Falhou ao salvar equipamento local:', e);
+    }
+}
+
 async function salvarBalanceamento() {
     if (!state.equipamento) return alert("Busque e selecione um equipamento antes de confirmar!");
 
@@ -1209,6 +1242,7 @@ async function salvarBalanceamento() {
                 // ctrl_os é histórico auxiliar — falha aqui não desfaz a entrega já salva
                 console.warn('ctrl_os falhou (não crítico):', ctrlErr);
             }
+            await atualizarContadorEquipamento(state.equipamento.id, cont);
         }
 
         alert("Balanceamento confirmado com sucesso!");
@@ -1393,6 +1427,7 @@ async function salvarAnaliseAberta() {
             data_registro: new Date().toISOString(),
             criado_por: obterUsuarioAtual() || (window !== window.top ? 'Sistema Original' : 'Portal')
         });
+        await atualizarContadorEquipamento(equip.id, numeradorBase);
         alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
         window.location.reload();
     } catch (e) {
@@ -1554,6 +1589,7 @@ async function confirmarFechamentoAnalise() {
             counter_reading: novoContador,
             os_date: new Date().toISOString().slice(0, 10)
         });
+        await atualizarContadorEquipamento(equip.id, novoContador);
         
         // Criar a nova entrega de resmas no balanceamento (como análise aberta)
         await API.post('/balanceamento_entregas', {
@@ -1774,6 +1810,10 @@ function selecionarParaBalancear(serie) {
 function aplicarFiltroRapido(termo) {
     document.getElementById('filterCliente').value = termo;
     document.getElementById('filterSerie').value = '';
+    if (termo === '') {
+        document.getElementById('filterDataInicio').value = '';
+        document.getElementById('filterDataFim').value = '';
+    }
     state.historico.pagina = 1;
 
     document.querySelectorAll('.filter-chip').forEach(chip => {
