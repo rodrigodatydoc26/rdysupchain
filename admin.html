@@ -1749,6 +1749,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const cfg = JSON.parse(saved);
       if (!cfg || !cfg.username) throw new Error('Sessão inválida');
+      if (cfg.role !== 'admin' && cfg.role !== 'cto' && cfg.role !== 'gestor') {
+        throw new Error('Papel sem permissão para o painel admin');
+      }
       localStorage.setItem('adm_user', JSON.stringify(cfg));
       entrarAdmin(cfg.username, cfg);
 
@@ -1825,6 +1828,13 @@ async function fazerLogin() {
   try {
     const result = await API.fetch(`/balanceamento_usuarios?username=eq.${user}&select=username,label,role,cidade,password`);
     const cfg = result[0];
+
+    if (cfg && cfg.password === pass && cfg.role !== 'admin' && cfg.role !== 'cto' && cfg.role !== 'gestor') {
+      errEl.textContent = 'Este usuário não tem acesso ao Painel Admin. Use o Portal do Técnico.';
+      errEl.classList.remove('hidden');
+      document.getElementById('loginPass').value = '';
+      return;
+    }
 
     if (!cfg || cfg.password !== pass) {
       const tentativas = parseInt(localStorage.getItem('admTentativas') || 0) + 1;
