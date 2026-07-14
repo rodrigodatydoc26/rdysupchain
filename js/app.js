@@ -309,12 +309,11 @@ function applyRoleRestrictions() {
         }
     });
 
-    document.querySelectorAll('.summary-column').forEach(el => {
-        el.style.display = '';
-    });
-
-    // Bloco "OPÇÕES DE ENTREGA" (atalho rápido com botão próprio CONFIRMAR BALANCEAMENTO,
+    // Bloco "OPÇÕES DE ENTREGA" + resumo/CONFIRMAR BALANCEAMENTO (atalho rápido,
     // paralelo ao fluxo obrigatório de análise) é restrito a admin/cto/gestor.
+    document.querySelectorAll('.summary-column').forEach(el => {
+        el.style.display = (role === 'tecnico') ? 'none' : '';
+    });
     const optionsSection = document.querySelector('.options-section');
     if (optionsSection) {
         optionsSection.style.display = (role === 'tecnico') ? 'none' : '';
