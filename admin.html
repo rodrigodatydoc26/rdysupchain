@@ -3091,9 +3091,9 @@ async function carregarEntregas() {
   if (fStatus === 'confirmado') statusParam = 'eq.confirmado';
   if (fStatus === 'analise_aberta') statusParam = 'eq.analise_aberta';
 
-  let params = `status=${statusParam}${cidadeFilter()}&limit=1000`;
+  let params = `status=${statusParam}${cidadeFilter()}`;
   params += `&select=id,data_registro,quantidade_definida,media_consumo_mensal,numero_os,observacao,status,criado_por,contador_atual,equipamento:equipamentos!inner(serie,secretaria,cliente:clientes!inner(nome,cidade),sub_cliente:sub_clientes(nome))`;
-  
+
   const tz = getLocalOffsetString();
   if (di) params += `&data_registro=gte.${di}T00:00:00${tz}`;
   if (df) params += `&data_registro=lte.${df}T23:59:59${tz}`;
@@ -3101,15 +3101,22 @@ async function carregarEntregas() {
   if (fCidade) params += `&equipamento.cliente.cidade=ilike.*${encodeURIComponent(fCidade)}*`;
   if (fOs) params += `&numero_os=ilike.*${encodeURIComponent(fOs)}*`;
 
-  if (fOrdem === 'recentes') {
-    params += `&order=data_registro.desc`;
-  }
+  // Ordem estavel obrigatoria para a paginacao abaixo nao pular/duplicar registros
+  params += `&order=data_registro.desc`;
 
   const tbody = document.getElementById('entregasTbody');
   tbody.style.opacity = '0.5';
-  
+
   try {
-    let data = await API.fetch(`/balanceamento_entregas?${params}`);
+    // Busca TODAS as paginas que baterem com o filtro (evita corte silencioso
+    // de registros antigos quando o periodo selecionado passa de 1000 linhas)
+    let data = [];
+    const PAGE_SIZE = 1000;
+    for (let offset = 0; offset < 20000; offset += PAGE_SIZE) {
+      const page = await API.fetch(`/balanceamento_entregas?${params}&limit=${PAGE_SIZE}&offset=${offset}`);
+      data = data.concat(page);
+      if (page.length < PAGE_SIZE) break;
+    }
     
     // Identificar entregas repetidas para o mesmo equipamento na mesma data (curto período)
     const mapRepetidos = {};
