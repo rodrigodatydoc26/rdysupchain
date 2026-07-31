@@ -457,13 +457,13 @@ function initModalEdicao() {
             await API.patch(`/equipamentos?id=eq.${currentEditingId}`, payload);
 
             if (novoContador > 0) {
-                const equip = state._editEquip;
                 await API.post('/ctrl_os', {
                     equipment_id: currentEditingId,
                     os_number: '',
                     counter_reading: novoContador,
                     os_date: new Date().toISOString().slice(0, 10)
                 });
+                await atualizarContadorEquipamento(currentEditingId, novoContador);
             }
 
             alert("Equipamento atualizado com sucesso!");
@@ -2031,7 +2031,7 @@ async function prepararEdicao(id) {
         const [eq] = await API.fetch(`/equipamentos?id=eq.${id}&select=*,cliente:clientes(nome)`);
         if (!eq) return alert("Equipamento não encontrado!");
 
-        const os = await API.fetch(`/ctrl_os?equipment_id=eq.${id}&order=os_date.desc&limit=1&select=counter_reading`);
+        const os = await API.fetch(`/ctrl_os?equipment_id=eq.${id}&order=created_at.desc&limit=1&select=counter_reading`);
         const ultimoContador = os[0]?.counter_reading || 0;
 
         state._editEquip = eq;

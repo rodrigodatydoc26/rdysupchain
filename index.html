@@ -856,6 +856,15 @@
         document.getElementById('syncBanner')?.classList.add('hidden');
       }
     });
+
+    // Quando o novo SW assume o controle (após SKIP_WAITING), recarrega a
+    // página uma única vez para que todos os dispositivos abertos passem
+    // a rodar a versão nova (HTML/JS) e não fiquem presos na versão antiga em memória.
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
   }
 
   // Detectar online/offline

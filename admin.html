@@ -2105,7 +2105,7 @@ async function excluirEquipamento(id, serie) {
   }
 }
 
-function abrirModalEditarEquip(id) {
+async function abrirModalEditarEquip(id) {
   const r = _equipAdminCache.find(e => e.id === id);
   if (!r) return;
   document.getElementById('editEquipId').value        = r.id;
@@ -2118,13 +2118,22 @@ function abrirModalEditarEquip(id) {
   document.getElementById('editEquipSubNome').value    = r.sub_cliente?.nome || '';
   document.getElementById('editEquipMedia').value      = r.media_referencia != null ? r.media_referencia : '';
   document.getElementById('editEquipContador').value   = '';
-  document.getElementById('editEquipContadorAtual').textContent = 'ver histórico';
+  document.getElementById('editEquipContadorAtual').textContent = 'carregando...';
   document.getElementById('editEquipInfo').textContent =
     `${r.cliente?.cidade || ''} · ${r.sub_cliente?.nome || ''}`;
   const msg = document.getElementById('editEquipMsg');
   msg.className = 'hidden';
   msg.textContent = '';
   document.getElementById('modalEditarEquip').classList.remove('hidden');
+
+  // Busca a leitura mais recente em ctrl_os (fonte da verdade) para mostrar o contador atual real
+  try {
+    const os = await API.fetch(`/ctrl_os?equipment_id=eq.${id}&select=counter_reading&order=created_at.desc&limit=1`);
+    const atual = os?.[0]?.counter_reading;
+    document.getElementById('editEquipContadorAtual').textContent = atual != null ? atual : 'sem leitura registrada';
+  } catch(e) {
+    document.getElementById('editEquipContadorAtual').textContent = 'erro ao buscar';
+  }
 }
 
 function fecharModalEditarEquip() {
@@ -2195,17 +2204,25 @@ async function salvarEdicaoEquipamento() {
       media_referencia: mediaVal !== '' ? parseFloat(mediaVal) : null
     });
 
-    // 3. Insere novo contador em ctrl_os (se informado)
+    // 3. Insere novo contador em ctrl_os (se informado) e sincroniza o fallback
+    //    equipamentos.current_counter, usado em outras partes do sistema (ex.
+    //    api/buscar-equipamento.php) quando não há leitura em ctrl_os.
     if (contVal !== '' && !isNaN(parseInt(contVal))) {
+      const novoContador = parseInt(contVal);
       try {
         await API.post('/ctrl_os', {
           equipment_id:    id,
           os_number:       '',
-          counter_reading: parseInt(contVal),
+          counter_reading: novoContador,
           os_date:         new Date().toISOString().slice(0, 10)
         });
       } catch(ctrlErr) {
         console.warn('ctrl_os falhou:', ctrlErr);
+      }
+      try {
+        await API.patch(`/equipamentos?id=eq.${id}`, { current_counter: novoContador });
+      } catch(syncErr) {
+        console.warn('Falha ao sincronizar current_counter:', syncErr);
       }
     }
 
@@ -4314,6 +4331,15 @@ if ('serviceWorker' in navigator) {
     if (e.data && e.data.type === 'SYNC_OK') {
       localStorage.setItem('lastSync', e.data.time);
     }
+  });
+
+  // Quando o novo SW assume o controle (após SKIP_WAITING), recarrega a
+  // página uma única vez para que todos os dispositivos abertos passem
+  // a rodar a versão nova (HTML/JS) e não fiquem presos na versão antiga em memória.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
   });
 }
 
