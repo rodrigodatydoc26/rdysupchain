@@ -944,9 +944,10 @@ function updateProxima() {
 
     const entregas = state.entregas || [];
     const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
-    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
-        ? parseInt(ultimaEntrega.contador_atual)
-        : (state.equipamento?.ultimo_contador || 0);
+    const ultimoContador = state.equipamento?.ultimo_contador || 
+        ((ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+            ? parseInt(ultimaEntrega.contador_atual)
+            : 0);
 
     const consumo = Math.max(0, cont - ultimoContador);
 
@@ -1087,9 +1088,10 @@ async function salvarBalanceamento() {
 
     const entregas = state.entregas || [];
     const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
-    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
-        ? parseInt(ultimaEntrega.contador_atual)
-        : (state.equipamento?.ultimo_contador || 0);
+    const ultimoContador = state.equipamento?.ultimo_contador || 
+        ((ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+            ? parseInt(ultimaEntrega.contador_atual)
+            : 0);
 
     // Primeira entrega do equipamento: numerador é opcional
     const isPrimeiraEntrega = entregas.length === 0 && !ultimoContador;
@@ -1346,10 +1348,10 @@ function analiseNumeradorChanged() {
     // Obter última entrega e seu numerador para calcular consumo e sugerir reposição
     const entregas = state.entregas || [];
     const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
-    
-    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
-        ? parseInt(ultimaEntrega.contador_atual)
-        : (equip?.ultimo_contador || 0);
+    const ultimoContador = equip?.ultimo_contador || 
+        ((ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+            ? parseInt(ultimaEntrega.contador_atual)
+            : 0);
         
     const ultimaEntregaResmas = ultimaEntrega ? (parseInt(ultimaEntrega.quantidade_definida) || 0) : 0;
     const btnAplicar = document.getElementById('btnAplicarSugestao');
@@ -1419,9 +1421,10 @@ async function salvarAnaliseAberta() {
     // Validar se o numerador atual é menor que o anterior
     const entregas = state.entregas || [];
     const ultimaEntrega = entregas.length > 0 ? entregas[entregas.length - 1] : null;
-    const ultimoContador = (ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
-        ? parseInt(ultimaEntrega.contador_atual)
-        : (equip?.ultimo_contador || 0);
+    const ultimoContador = equip?.ultimo_contador || 
+        ((ultimaEntrega && ultimaEntrega.contador_atual !== null && ultimaEntrega.contador_atual !== undefined)
+            ? parseInt(ultimaEntrega.contador_atual)
+            : 0);
 
     if (numeradorBase < ultimoContador) {
         return alert(`O numerador atual (${numeradorBase.toLocaleString('pt-BR')}) não pode ser menor que o anterior (${ultimoContador.toLocaleString('pt-BR')})!`);
