@@ -282,6 +282,7 @@ function showTech() {
     initModalEdicao();
     initTheme();
     verificarAutoSync();
+    iniciarRealtimeNumerador();
 }
 
 function applyRoleRestrictions() {
@@ -463,7 +464,6 @@ function initModalEdicao() {
                     counter_reading: novoContador,
                     os_date: new Date().toISOString().slice(0, 10)
                 });
-                await atualizarContadorEquipamento(currentEditingId, novoContador);
             }
 
             alert("Equipamento atualizado com sucesso!");
@@ -649,8 +649,8 @@ async function buscarEquipamento(serie) {
                 document.getElementById('resPatrimonio').innerText = equip.patrimonio || 'N/D';
                 document.getElementById('resSerie').innerText = equip.serie;
                 document.getElementById('resModelo').innerText = equip.modelo || 'N/D';
-                document.getElementById('resContador').innerText = equip.ultimo_contador || 0;
-                document.getElementById('sumContadorAnterior').innerText = equip.ultimo_contador || 0;
+                document.getElementById('resContador').innerText = equip.ultimo_contador || equip.current_counter || 0;
+                document.getElementById('sumContadorAnterior').innerText = equip.ultimo_contador || equip.current_counter || 0;
 
                 const media = parseFloat(equip.media_referencia) || 0;
                 updateMedia(media);
@@ -682,7 +682,7 @@ async function buscarEquipamento(serie) {
         }
 
         [osHistory, entregas, analiseEmAberto] = await Promise.all([
-            API.fetch(`/ctrl_os?equipment_id=eq.${equip.id}&select=counter_reading,os_date&order=os_date.asc`).catch(() => []),
+            API.fetch(`/ctrl_os?equipment_id=eq.${equip.id}&select=counter_reading,os_date,created_at&order=created_at.asc`).catch(() => []),
             API.fetch(`/balanceamento_entregas?equipamento_id=eq.${equip.id}&status=in.(confirmado,analise_aberta)&order=data_registro.asc`).catch(() => []),
             verificarAnaliseAberta(equip.id).catch(() => null)
         ]);
@@ -747,7 +747,11 @@ function verTodoHistorico() {
 
 function calcularMediaCalibrada(osHistory, entregas, mediaReferencia) {
     if (osHistory && osHistory.length >= 2) {
-        const ordenadas = [...osHistory].sort((a, b) => new Date(a.os_date) - new Date(b.os_date));
+        const ordenadas = [...osHistory].sort((a, b) => {
+            const diaA = new Date(a.os_date), diaB = new Date(b.os_date);
+            if (diaA - diaB !== 0) return diaA - diaB;
+            return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+        });
         const consumos = [];
         for (let i = 1; i < ordenadas.length; i++) {
             const deltaPages = ordenadas[i].counter_reading - ordenadas[i - 1].counter_reading;
@@ -1017,20 +1021,6 @@ function recalcularComContador() {
     updateProxima();
 }
 
-async function atualizarContadorEquipamento(id, cont) {
-    if (cont === null || isNaN(cont) || cont <= 0) return;
-    try {
-        // current_counter é o campo real na tabela equipamentos (ultimo_contador/data_ultimo_contador
-        // não existem na base ao vivo - só no SCHEMA.sql desatualizado). ctrl_os continua sendo a
-        // fonte da verdade para o histórico; isso é só o fallback sincronizado.
-        await API.patch(`/equipamentos?id=eq.${id}`, {
-            current_counter: cont
-        });
-    } catch (e) {
-        console.warn('Falhou ao atualizar contador do equipamento:', e);
-    }
-}
-
 async function salvarEquipamentoLocal(equip) {
     if (!equip || !equip.id) return;
     try {
@@ -1041,6 +1031,46 @@ async function salvarEquipamentoLocal(equip) {
     } catch (e) {
         console.warn('Falhou ao salvar equipamento local:', e);
     }
+}
+
+// ════════════════════════════════════════════════════════
+// REALTIME — reflete current_counter na tela assim que o
+// trigger do banco atualiza o equipamento (sem F5, sem sync manual)
+// ════════════════════════════════════════════════════════
+let _realtimeChannel = null;
+
+function iniciarRealtimeNumerador() {
+    if (_realtimeChannel || typeof window.supabase === 'undefined') return;
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    _realtimeChannel = sb
+        .channel('equipamentos-current-counter')
+        .on('postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'equipamentos' },
+            (payload) => aplicarAtualizacaoRealtime(payload.new))
+        .subscribe();
+}
+
+async function aplicarAtualizacaoRealtime(equipAtualizado) {
+    if (!equipAtualizado || !equipAtualizado.id) return;
+
+    if (state.equipamento && state.equipamento.id === equipAtualizado.id) {
+        state.equipamento.ultimo_contador = equipAtualizado.current_counter;
+        state.equipamento.current_counter = equipAtualizado.current_counter;
+        const resContadorEl = document.getElementById('resContador');
+        const sumContadorEl = document.getElementById('sumContadorAnterior');
+        if (resContadorEl) resContadorEl.innerText = equipAtualizado.current_counter;
+        if (sumContadorEl) sumContadorEl.innerText = equipAtualizado.current_counter;
+    }
+
+    try {
+        const cache = await lerCacheStore('equipamentos');
+        const item = cache.find(e => e.id === equipAtualizado.id);
+        if (item) {
+            item.current_counter = equipAtualizado.current_counter;
+            await salvarCacheStore('equipamentos', cache);
+        }
+    } catch (e) { /* cache local é best-effort */ }
 }
 
 async function salvarBalanceamento() {
@@ -1241,7 +1271,6 @@ async function salvarBalanceamento() {
                 // ctrl_os é histórico auxiliar — falha aqui não desfaz a entrega já salva
                 console.warn('ctrl_os falhou (não crítico):', ctrlErr);
             }
-            await atualizarContadorEquipamento(state.equipamento.id, cont);
         }
 
         alert("Balanceamento confirmado com sucesso!");
@@ -1588,7 +1617,6 @@ async function confirmarFechamentoAnalise() {
             counter_reading: novoContador,
             os_date: new Date().toISOString().slice(0, 10)
         });
-        await atualizarContadorEquipamento(equip.id, novoContador);
         
         // Criar a nova entrega de resmas no balanceamento (como análise aberta)
         await API.post('/balanceamento_entregas', {

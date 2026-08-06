@@ -55,7 +55,7 @@ if (is_array($resData) && count($resData) > 0) {
                . '?equipment_id=eq.' . urlencode($data['id'])
                . '&counter_reading=gt.0'
                . '&select=counter_reading,os_date'
-               . '&order=os_date.desc&limit=1';
+               . '&order=created_at.desc&limit=1';
 
         $chOs = curl_init($urlOs);
         curl_setopt($chOs, CURLOPT_HTTPHEADER, [

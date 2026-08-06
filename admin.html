@@ -600,7 +600,7 @@
 </div>
 
 <!-- ═══════════════ ADMIN APP ═══════════════ -->
-<div id="adminApp" class="app-container" style="display: none;">
+<div id="adminApp" class="app-container">
 
   <header class="topbar">
     <div class="logo">
@@ -2218,11 +2218,6 @@ async function salvarEdicaoEquipamento() {
         });
       } catch(ctrlErr) {
         console.warn('ctrl_os falhou:', ctrlErr);
-      }
-      try {
-        await API.patch(`/equipamentos?id=eq.${id}`, { current_counter: novoContador });
-      } catch(syncErr) {
-        console.warn('Falha ao sincronizar current_counter:', syncErr);
       }
     }
 
