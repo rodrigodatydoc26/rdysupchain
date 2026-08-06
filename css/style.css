@@ -1360,6 +1360,16 @@ input[type="text"]:focus, input[type="number"]:focus {
   max-width: 600px;
   padding: 32px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
 }
 
 .modal-header {
@@ -2181,8 +2191,7 @@ color: var(--gold);
   /* Modal — evita sair da tela */
   .modal-content {
     width: calc(100% - 32px);
-    max-height: 88vh;
-    overflow-y: auto;
+    max-height: 90vh;
   }
   .modal-content-sm, .modal-content-danger { max-width: calc(100% - 32px); }
 
