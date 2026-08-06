@@ -1458,7 +1458,11 @@ async function salvarAnaliseAberta() {
             data_registro: new Date().toISOString(),
             criado_por: obterUsuarioAtual() || (window !== window.top ? 'Sistema Original' : 'Portal')
         });
-        await atualizarContadorEquipamento(equip.id, numeradorBase);
+        try {
+            await API.patch(`/equipamentos?id=eq.${equip.id}`, { current_counter: numeradorBase });
+        } catch (syncErr) {
+            console.warn('Falha ao sincronizar current_counter:', syncErr);
+        }
         alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
         window.location.reload();
     } catch (e) {
