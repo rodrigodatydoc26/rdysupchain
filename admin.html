@@ -1613,6 +1613,7 @@
       <div class="modal-body">
         <form id="formEditHistorico" onsubmit="event.preventDefault(); salvarEdicaoHistorico();">
           <input type="hidden" id="editHistId">
+          <input type="hidden" id="editHistEquipId">
           <p id="editHistEquip" class="modal-subtitle"></p>
           
           <div class="form-group">
@@ -1630,7 +1631,22 @@
               <option value="analise_aberta">Inconforme</option>
             </select>
           </div>
-          
+          <hr class="hr-border-m16">
+          <div class="form-group">
+            <label for="editHistContador">Numerador (Contador Atual) <span class="text-dimmed-weight-400">desta entrega</span></label>
+            <input type="number" id="editHistContador" class="input-text" min="0">
+            <small class="text-dimmed fs-075">Contador atual do equipamento: <strong id="editHistContadorEquip">—</strong></small>
+          </div>
+          <div class="form-group">
+            <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;cursor:pointer">
+              <input type="checkbox" id="editHistSyncEquip" style="margin-top:3px">
+              <span>Sincronizar o contador atual do equipamento com este valor corrigido</span>
+            </label>
+            <small class="text-dimmed fs-075">Marque isto se esta é a entrega mais recente do equipamento e o numerador errado está bloqueando novos balanceamentos. Isso insere uma nova leitura em ctrl_os e atualiza equipamentos.current_counter.</small>
+          </div>
+
+          <div id="editHistMsg" class="hidden margin-top-12-p10-r8"></div>
+
           <div class="modal-actions mt-20">
             <button type="button" class="btn-outline" onclick="fecharModalEdicaoHistorico()">Cancelar</button>
             <button type="submit" class="btn-primary">Salvar Alterações</button>
@@ -4048,10 +4064,24 @@ async function prepararEdicaoHistorico(id) {
     const item = data[0];
 
     document.getElementById('editHistId').value = item.id;
+    document.getElementById('editHistEquipId').value = item.equipamento_id || '';
     document.getElementById('editHistEquip').innerText = `${item.equipamento?.serie || '—'} - ${item.cliente?.nome || '—'}`;
     document.getElementById('editHistQtd').value = item.quantidade_definida;
     document.getElementById('editHistOs').value = item.numero_os || '';
     document.getElementById('editHistStatus').value = item.status;
+    document.getElementById('editHistContador').value = (item.contador_atual !== null && item.contador_atual !== undefined) ? item.contador_atual : '';
+    document.getElementById('editHistSyncEquip').checked = false;
+
+    const contEquipEl = document.getElementById('editHistContadorEquip');
+    contEquipEl.innerText = '—';
+    if (item.equipamento_id) {
+      API.fetch(`/equipamentos?id=eq.${item.equipamento_id}&select=current_counter`).then(eq => {
+        if (eq && eq[0]) contEquipEl.innerText = (eq[0].current_counter ?? '—').toLocaleString?.('pt-BR') ?? eq[0].current_counter;
+      }).catch(() => {});
+    }
+
+    const msgEl = document.getElementById('editHistMsg');
+    if (msgEl) { msgEl.className = 'hidden'; msgEl.textContent = ''; }
 
     document.getElementById('modalEdicaoHistorico').classList.remove('hidden');
   } catch (e) {
@@ -4062,24 +4092,72 @@ async function prepararEdicaoHistorico(id) {
 
 async function salvarEdicaoHistorico() {
   const id = document.getElementById('editHistId').value;
+  const equipId = document.getElementById('editHistEquipId').value;
+  const msgEl = document.getElementById('editHistMsg');
+  const showMsg = (text, type) => {
+    if (!msgEl) return;
+    msgEl.textContent = text;
+    msgEl.className = '';
+    const colors = {
+      ok:   'background:rgba(34,197,94,.1);color:#22c55e',
+      warn: 'background:rgba(245,158,11,.1);color:#f59e0b',
+      err:  'background:rgba(239,68,68,.1);color:#ef4444'
+    };
+    msgEl.style.cssText = (colors[type] || colors.err) + ';padding:10px;border-radius:8px;font-size:.85rem;margin:12px 0';
+  };
+
+  const contadorVal = document.getElementById('editHistContador').value.trim();
+  const novoContador = contadorVal !== '' ? parseInt(contadorVal) : null;
+  const syncEquip = document.getElementById('editHistSyncEquip').checked;
+
+  if (syncEquip && (novoContador === null || isNaN(novoContador))) {
+    return showMsg('Informe um numerador válido para sincronizar com o equipamento.', 'err');
+  }
+
+  const osValue = document.getElementById('editHistOs').value;
   const payload = {
     quantidade_definida: parseFloat(document.getElementById('editHistQtd').value),
-    numero_os: document.getElementById('editHistOs').value,
+    numero_os: osValue,
     status: document.getElementById('editHistStatus').value
   };
+  if (contadorVal !== '' && !isNaN(novoContador)) {
+    payload.contador_atual = novoContador;
+  }
 
   try {
     await API.fetch(`/balanceamento_entregas?id=eq.${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload)
     });
-    alert("Registro atualizado com sucesso!");
+
+    // Se marcado, sincroniza o contador do equipamento (insere leitura em ctrl_os,
+    // que por trigger atualiza equipamentos.current_counter). Isso é o que
+    // efetivamente destrava novos balanceamentos que comparam contra o
+    // contador atual do equipamento, não contra este registro histórico.
+    if (syncEquip && equipId) {
+      try {
+        await API.post('/ctrl_os', {
+          equipment_id: equipId,
+          os_number: osValue || '',
+          counter_reading: novoContador,
+          os_date: new Date().toISOString().slice(0, 10)
+        });
+      } catch (ctrlErr) {
+        console.error(ctrlErr);
+        showMsg('Registro salvo, mas falhou ao sincronizar o contador do equipamento: ' + ctrlErr.message, 'warn');
+        carregarEntregas();
+        carregarDashboard();
+        return;
+      }
+    }
+
+    alert("Registro atualizado com sucesso!" + (syncEquip ? "\nContador do equipamento sincronizado." : ""));
     fecharModalEdicaoHistorico();
     carregarEntregas();
     carregarDashboard();
   } catch (e) {
     console.error(e);
-    alert("Erro ao salvar alterações do registro.");
+    showMsg('Erro ao salvar alterações do registro: ' + e.message, 'err');
   }
 }
 

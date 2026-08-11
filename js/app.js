@@ -1459,9 +1459,20 @@ async function salvarAnaliseAberta() {
             criado_por: obterUsuarioAtual() || (window !== window.top ? 'Sistema Original' : 'Portal')
         });
         try {
-            await API.patch(`/equipamentos?id=eq.${equip.id}`, { current_counter: numeradorBase });
-        } catch (syncErr) {
-            console.warn('Falha ao sincronizar current_counter:', syncErr);
+            // Insere em ctrl_os (mesmo padrão de salvarBalanceamento/confirmarFechamentoAnalise)
+            // em vez de dar PATCH direto em current_counter: o trigger do banco sincroniza
+            // current_counter a partir do ctrl_os, e a leitura do equipamento na próxima
+            // vez que a tela abrir usa a última linha de ctrl_os como referência primária
+            // (ver buscarEquipamento). Um PATCH direto ficava fora dessa linha do tempo e
+            // podia ser "esquecido" na hora de validar o próximo numerador.
+            await API.post('/ctrl_os', {
+                equipment_id: equip.id,
+                os_number: os || '',
+                counter_reading: numeradorBase,
+                os_date: new Date().toISOString().slice(0, 10)
+            });
+        } catch (ctrlErr) {
+            console.warn('ctrl_os falhou (não crítico):', ctrlErr);
         }
         alert(`Entrega Realizada!\nSérie: ${equip.serie}\nNumerador base: ${numeradorBase.toLocaleString('pt-BR')}\nLimite: ${(numeradorBase + resmas * 500).toLocaleString('pt-BR')}`);
         window.location.reload();
