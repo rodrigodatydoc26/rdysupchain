@@ -2057,7 +2057,7 @@ async function carregarEquipamentosAdmin() {
   if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:var(--text-dim)">Carregando...</td></tr>`;
 
   try {
-    let params = '/equipamentos?select=id,serie,modelo,patrimonio,secretaria,media_referencia,sub_cliente_id,cliente:clientes(id,nome,cidade),sub_cliente:sub_clientes(id,nome)&order=serie.asc&limit=2000';
+    let params = '/equipamentos?select=id,serie,modelo,patrimonio,secretaria,media_referencia,current_counter,sub_cliente_id,cliente:clientes(id,nome,cidade),sub_cliente:sub_clientes(id,nome)&order=serie.asc&limit=2000';
     const data = await API.fetch(params);
     _equipAdminCache = data || [];
 
@@ -2091,7 +2091,7 @@ async function carregarEquipamentosAdmin() {
       <td>${esc(r.cliente?.cidade || '—')}</td>
       <td>${esc(r.secretaria || '—')}</td>
       <td class="text-center">${r.media_referencia != null ? r.media_referencia + ' r' : '—'}</td>
-      <td class="text-center">—</td>
+      <td class="text-center">${r.current_counter != null ? Number(r.current_counter).toLocaleString('pt-BR') : '—'}</td>
       <td class="text-center">
         <div style="display:flex;justify-content:center;gap:6px">
           <button class="btn-outline" style="padding:4px 8px" onclick="abrirModalEditarEquip('${r.id}')" title="Editar">
